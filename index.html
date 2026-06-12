@@ -42,7 +42,8 @@
         .login-box input:focus { outline: none; border-color: var(--cobli-blue); }
         .login-box .btn-primary { padding: 12px; font-size: 14px; width: 100%; }
 
-        .admin-only { display: none !important; }
+        /* Oculta áreas de admin dinamicamente se o usuário for Comum */
+        body.is-common .admin-only { display: none !important; }
 
         /* Sidebar & Layout */
         #sidebar { width: var(--sidebar-w); background: var(--surface-page); display: flex; flex-direction: column; z-index: 10; border-right: 1px solid var(--border-light); overflow: hidden; }
@@ -118,8 +119,10 @@
         .dropdown-items.visible { display: block; }
         .dropdown-items li { list-style: none; padding: 7px 10px; font-size: 12px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .dropdown-items li:hover { background: var(--surface-muted); }
+        .dropdown-items input[type="checkbox"] { cursor: pointer; }
         .dropdown-actions { display: flex; gap: 6px; padding: 7px 10px; background: var(--surface-muted); border-bottom: 1px solid var(--border-light); }
         .btn-dd-action { background: transparent; border: 1px solid var(--border-mid); border-radius: 4px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+        .btn-dd-action:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
 
         /* Dashboard & Summary */
         .summary-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 11px 14px; border-radius: 8px; margin-bottom: 8px; }
@@ -134,20 +137,22 @@
         /* Routing */
         #routing-result { margin-top: 10px; max-height: 320px; overflow-y: auto; }
         #routing-result::-webkit-scrollbar { width: 3px; }
+        #routing-result::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
         .result-section-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid var(--border-light); padding-top: 10px; margin-bottom: 8px; }
         .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
         .result-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
         .result-card-dist { font-size: 11px; color: var(--cobli-indigo); font-weight: 600; margin-bottom: 8px; }
         .btn-route { width: 100%; padding: 6px 10px; background: var(--cobli-indigo); color: #fff; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+        .btn-route:hover { background: var(--cobli-blue); }
 
+        /* MAP */
         #map-container { flex: 1; position: relative; }
         #map { width: 100%; height: 100%; }
 
         /* Modals & InfoWindow */
         .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(7,7,78,0.55); backdrop-filter: blur(3px); z-index: 200; justify-content: center; align-items: center; }
         .modal-backdrop.open { display: flex; }
-        .modal-box { background: #fff; border-radius: 12px; width: 460px; max-width: calc(100vw - 32px); max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(7,7,78,0.22); animation: modal-in 0.18s ease; }
-        @keyframes modal-in { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-box { background: #fff; border-radius: 12px; width: 460px; max-width: calc(100vw - 32px); max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(7,7,78,0.22); }
         .modal-box.wide { width: 560px; }
         .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
         .modal-head h3 { font-size: 15px; font-weight: 600; color: var(--cobli-navy); }
@@ -162,7 +167,7 @@
         .iw-card { width: 270px; font-family: 'Inter','Segoe UI',sans-serif; }
         .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 14px 16px 12px; display: flex; align-items: center; gap: 10px; }
         .iw-head.destination { background: linear-gradient(135deg, #B01010 0%, #FF4633 100%); }
-        .iw-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; letter-spacing: 0.5px; }
+        .iw-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
         .iw-head-text { flex: 1; min-width: 0; }
         .iw-head-text h4 { font-size: 13px; font-weight: 600; color: #fff; line-height: 1.3; margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .iw-status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 2px 7px; }
@@ -182,7 +187,7 @@
         .summary-status-cell { border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; text-align: center; background: var(--surface-muted); }
         .summary-status-cell .val { font-size: 20px; font-weight: 700; display: block; }
         .summary-status-cell .lbl { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; display: block; }
-        .modal-subtitle { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-light); }
+        .modal-subtitle { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-light); }
         .consultor-list { list-style: none; border: 1px solid var(--border-light); border-radius: 7px; overflow: hidden; }
         .consultor-list li { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); background: #fff; }
         .consultor-list li:last-child { border-bottom: none; }
@@ -217,7 +222,7 @@
             <p>Gestão de rotas, distâncias e status</p>
         </div>
         <div style="display: flex; gap: 6px;">
-            <button class="btn-ghost" id="btn-summary">Ver resumo</button>
+            <button class="btn-ghost" id="btn-summary">Resumo</button>
             <button class="btn-ghost btn-logout" onclick="logout()" title="Sair do sistema">Sair</button>
         </div>
     </div>
@@ -421,6 +426,9 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap" async defer></script>
 
 <script>
+    /* =========================================================================
+       CONFIGURAÇÃO DO BANCO DE DADOS SUPABASE
+       ========================================================================= */
     const supabaseUrl = 'https://tmjmjrhgmyqamuphgdvi.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtam1qcmhnbXlxYW11cGhnZHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY4NzMsImV4cCI6MjA5MjcwMjg3M30.gjClWn46TOgfa-y4PAUMBg4ZxS4xhFjep1mk_DcU2QY';
     const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -490,8 +498,10 @@
         document.getElementById('login-overlay').style.display = 'none';
         
         if (userRole === 'common') {
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden-role'));
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+            // APLICA CLASSE NO BODY PARA O CSS OCULTAR TUDO QUE FOR .admin-only
+            document.body.classList.add('is-common');
+        } else {
+            document.body.classList.remove('is-common');
         }
         
         loadDataFromSupabase();
@@ -784,6 +794,7 @@
         });
     }
 
+    // Importação envia tudo para o Supabase
     async function confirmMapping(event) {
         event.preventDefault();
         const gv = id => document.getElementById(id).value;
@@ -805,7 +816,8 @@
                 contato: cT ? fixStr(row[cT]) : "",
                 endereco: end,
                 status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
-                lat: null, lng: null
+                lat: null, 
+                lng: null
             };
         });
 
