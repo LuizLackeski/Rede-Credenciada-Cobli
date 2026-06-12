@@ -42,8 +42,7 @@
         .login-box input:focus { outline: none; border-color: var(--cobli-blue); }
         .login-box .btn-primary { padding: 12px; font-size: 14px; width: 100%; }
 
-        /* Oculta áreas de admin dinamicamente se o usuário for Comum */
-        body.is-common .admin-only { display: none !important; }
+        .admin-only { display: none !important; }
 
         /* Sidebar & Layout */
         #sidebar { width: var(--sidebar-w); background: var(--surface-page); display: flex; flex-direction: column; z-index: 10; border-right: 1px solid var(--border-light); overflow: hidden; }
@@ -122,7 +121,6 @@
         .dropdown-items input[type="checkbox"] { cursor: pointer; }
         .dropdown-actions { display: flex; gap: 6px; padding: 7px 10px; background: var(--surface-muted); border-bottom: 1px solid var(--border-light); }
         .btn-dd-action { background: transparent; border: 1px solid var(--border-mid); border-radius: 4px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
-        .btn-dd-action:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
 
         /* Dashboard & Summary */
         .summary-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 11px 14px; border-radius: 8px; margin-bottom: 8px; }
@@ -137,15 +135,12 @@
         /* Routing */
         #routing-result { margin-top: 10px; max-height: 320px; overflow-y: auto; }
         #routing-result::-webkit-scrollbar { width: 3px; }
-        #routing-result::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
         .result-section-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid var(--border-light); padding-top: 10px; margin-bottom: 8px; }
         .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
         .result-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
         .result-card-dist { font-size: 11px; color: var(--cobli-indigo); font-weight: 600; margin-bottom: 8px; }
         .btn-route { width: 100%; padding: 6px 10px; background: var(--cobli-indigo); color: #fff; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
-        .btn-route:hover { background: var(--cobli-blue); }
 
-        /* MAP */
         #map-container { flex: 1; position: relative; }
         #map { width: 100%; height: 100%; }
 
@@ -156,8 +151,7 @@
         .modal-box.wide { width: 560px; }
         .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
         .modal-head h3 { font-size: 15px; font-weight: 600; color: var(--cobli-navy); }
-        .modal-close { width: 28px; height: 28px; border-radius: 6px; background: var(--surface-muted); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; color: var(--text-muted); line-height: 1; }
-        .modal-close:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
+        .modal-close { width: 28px; height: 28px; border-radius: 6px; background: var(--surface-muted); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; color: var(--text-muted); }
         .modal-body { padding: 20px; }
         
         .gm-style-iw { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
@@ -199,7 +193,7 @@
         .file-label input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
         .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         
-        #loading-indicator { display: none; text-align: center; color: var(--cobli-blue); font-size: 13px; font-weight: 600; padding: 10px; }
+        #loading-indicator { display: none; text-align: center; color: var(--cobli-blue); font-size: 13px; font-weight: 600; padding: 12px; background: #fff; border-radius: 6px; border: 1px solid var(--border-mid); margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -222,7 +216,7 @@
             <p>Gestão de rotas, distâncias e status</p>
         </div>
         <div style="display: flex; gap: 6px;">
-            <button class="btn-ghost" id="btn-summary">Resumo</button>
+            <button class="btn-ghost" id="btn-summary">Ver resumo</button>
             <button class="btn-ghost btn-logout" onclick="logout()" title="Sair do sistema">Sair</button>
         </div>
     </div>
@@ -328,7 +322,7 @@
                         <input type="file" id="file-upload" accept=".csv,.xlsx,.xls">
                     </div>
                 </div>
-                <div id="loading-indicator">Salvando registros no banco de dados... Aguarde.</div>
+                <div id="loading-indicator">Processando...</div>
             </div>
         </div>
 
@@ -423,7 +417,7 @@
     </div>
 </div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_GOOGLE_MAPS&libraries=places,geometry&callback=initMap" async defer></script>
 
 <script>
     /* =========================================================================
@@ -465,7 +459,6 @@
             if(this.files && this.files[0]) document.getElementById('file-label-display').innerHTML = `<span>✅</span><span style="color:var(--cobli-navy);font-weight:600;">${this.files[0].name}</span>`;
         });
 
-        // Verifica a sessão salva no navegador
         const savedRole = localStorage.getItem('userRole');
         if (savedRole) {
             userRole = savedRole;
@@ -498,7 +491,6 @@
         document.getElementById('login-overlay').style.display = 'none';
         
         if (userRole === 'common') {
-            // APLICA CLASSE NO BODY PARA O CSS OCULTAR TUDO QUE FOR .admin-only
             document.body.classList.add('is-common');
         } else {
             document.body.classList.remove('is-common');
@@ -794,21 +786,28 @@
         });
     }
 
-    // Importação envia tudo para o Supabase
     async function confirmMapping(event) {
         event.preventDefault();
         const gv = id => document.getElementById(id).value;
         const [cN,cC,cE,cT,cL,cNum,cB,cCid,cEst,cCep,cS] = ['map-nome','map-consultor','map-email','map-telefone','map-logradouro','map-numero','map-bairro','map-cidade','map-estado','map-cep','map-status'].map(gv);
         
-        document.getElementById('loading-indicator').style.display = 'block';
+        const indicator = document.getElementById('loading-indicator');
+        indicator.style.display = 'block';
         closeModal('mapping-modal');
         
-        let novosPrestadores = rawImportedData.map(row => {
+        let novosPrestadores = [];
+        for (let i = 0; i < rawImportedData.length; i++) {
+            let row = rawImportedData[i];
             const f = col => fixStr(row[col] || "");
             let end = `${f(cL)}${cNum&&row[cNum]?`, ${f(cNum)}`:""}${cB&&row[cB]?` - ${f(cB)}`:""}, ${f(cCid)} - ${f(cEst)}${cCep&&row[cCep]?` (CEP: ${f(cCep)})` :""}`;
             let consultRaw = cC ? fixStr(row[cC]) : "";
             
-            return {
+            indicator.innerText = `Buscando localização: Endereço ${i + 1} de ${rawImportedData.length}...`;
+            
+            let coords = await getGeocode(end);
+            await new Promise(r => setTimeout(r, 200)); 
+            
+            novosPrestadores.push({
                 nome: (cN ? fixStr(row[cN]) : "Sem Nome") || "Sem Nome",
                 consultor: consultRaw,
                 consultorNorm: normalizeStr(consultRaw),
@@ -816,14 +815,18 @@
                 contato: cT ? fixStr(row[cT]) : "",
                 endereco: end,
                 status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
-                lat: null, 
-                lng: null
-            };
-        });
+                lat: coords.lat, 
+                lng: coords.lng
+            });
+        }
 
+        indicator.innerText = "Limpando base antiga...";
         await _supabase.from('prestadores').delete().neq('id', 0); 
+        
+        indicator.innerText = "Salvando novos dados no Supabase...";
         const { error } = await _supabase.from('prestadores').insert(novosPrestadores);
-        document.getElementById('loading-indicator').style.display = 'none';
+        
+        indicator.style.display = 'none';
         
         if (error) {
             alert("Erro ao salvar no Supabase. Os dados podem não ter sido importados completamente.");
