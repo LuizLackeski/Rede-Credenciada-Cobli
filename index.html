@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rede de Prestadores — Cobli</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            /* Cobli Brand */
             --cobli-navy:    #07074E;
             --cobli-blue:    #001BB8;
             --cobli-indigo:  #3248C6;
@@ -20,155 +20,55 @@
             --cobli-red:     #FF4633;
             --cobli-red-dk:  #F01A1A;
             --cobli-teal:    #00AE97;
-
-            /* Surface */
             --surface-page:  #D8DCF0;
             --surface-card:  #FFFFFF;
-            --surface-raised:#FFFFFF;
             --surface-muted: #F5F6FA;
-
-            /* Text */
             --text-primary:  #07074E;
             --text-secondary:#4B4F7A;
             --text-muted:    #9296B8;
-
-            /* Border */
             --border-light:  #E2E5F0;
             --border-mid:    #C4C9E0;
-
-            /* Sidebar */
             --sidebar-w: 400px;
         }
 
-        body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            display: flex;
-            height: 100vh;
-            background: var(--surface-page);
-            overflow: hidden;
-            color: var(--text-primary);
-        }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; display: flex; height: 100vh; background: var(--surface-page); overflow: hidden; color: var(--text-primary); }
 
-        /* ──────────────────────────── TELA DE LOGIN (E-MAIL) ──────────────────────────── */
-        #login-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--cobli-navy);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-box {
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            width: 360px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            text-align: center;
-        }
+        /* Login */
+        #login-overlay { position: fixed; inset: 0; background: var(--cobli-navy); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: #fff; padding: 40px; border-radius: 12px; width: 360px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; }
         .login-box h2 { color: var(--cobli-navy); margin-bottom: 10px; font-size: 20px; }
         .login-box p { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
-        .login-box input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-mid);
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            text-align: center;
-        }
+        .login-box input { width: 100%; padding: 12px; border: 1px solid var(--border-mid); border-radius: 6px; margin-bottom: 15px; font-size: 14px; text-align: center; }
         .login-box input:focus { outline: none; border-color: var(--cobli-blue); }
         .login-box .btn-primary { padding: 12px; font-size: 14px; width: 100%; }
 
-        /* Ocultar elementos de Admin */
         .admin-only { display: none !important; }
 
-        /* ──────────────────────────── SIDEBAR ──────────────────────────── */
-        #sidebar {
-            width: var(--sidebar-w);
-            background: var(--surface-page);
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-            border-right: 1px solid var(--border-light);
-            overflow: hidden;
-        }
-
-        .topbar {
-            background: var(--cobli-navy);
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
+        /* Sidebar & Layout */
+        #sidebar { width: var(--sidebar-w); background: var(--surface-page); display: flex; flex-direction: column; z-index: 10; border-right: 1px solid var(--border-light); overflow: hidden; }
+        .topbar { background: var(--cobli-navy); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
         .topbar-brand { display: flex; flex-direction: column; gap: 2px; }
         .topbar-brand h1 { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.2px; }
         .topbar-brand p  { font-size: 11px; color: var(--cobli-lavender); opacity: 0.8; }
-
-        .btn-ghost {
-            background: rgba(255,255,255,0.12);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.2px;
-            transition: background 0.15s;
-            white-space: nowrap;
-        }
+        .btn-ghost { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; transition: background 0.15s; white-space: nowrap; }
         .btn-ghost:hover { background: rgba(255,255,255,0.22); }
-
-        .scroll-panel {
-            flex: 1;
-            overflow-y: auto;
-            padding: 18px 16px 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            background: var(--surface-page);
-        }
+        .scroll-panel { flex: 1; overflow-y: auto; padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 18px; background: var(--surface-page); }
         .scroll-panel::-webkit-scrollbar { width: 4px; }
-        .scroll-panel::-webkit-scrollbar-track { background: transparent; }
         .scroll-panel::-webkit-scrollbar-thumb { background: var(--cobli-lavender); border-radius: 2px; }
 
-        /* ──────────── SECTION CARDS ──────────── */
-        .section-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-mid);
-            border-left: 4px solid var(--cobli-indigo);
-            border-radius: 10px;
-            box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06);
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px 12px 14px;
-            background: var(--cobli-navy);
-            border-bottom: 3px solid var(--cobli-indigo);
-            border-top-left-radius: 6px;
-            border-top-right-radius: 9px;
-        }
+        /* Section Cards */
+        .section-card { background: var(--surface-card); border: 1px solid var(--border-mid); border-left: 4px solid var(--cobli-indigo); border-radius: 10px; box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06); }
+        .section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 12px 14px; background: var(--cobli-navy); border-bottom: 3px solid var(--cobli-indigo); border-top-left-radius: 6px; border-top-right-radius: 9px; }
         .section-header-left { display: flex; align-items: center; gap: 8px; }
-        .section-number {
-            width: 22px; height: 22px; border-radius: 50%; background: var(--cobli-indigo);
-            border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center;
-            justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
-        }
+        .section-number { width: 22px; height: 22px; border-radius: 50%; background: var(--cobli-indigo); border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
         .section-title { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.2px; }
         .section-body { padding: 16px 16px 14px; }
 
-        /* ──────────── FORM ELEMENTS ──────────── */
+        /* Forms & Buttons */
         .form-row { margin-bottom: 8px; }
         .form-row label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
-        .form-row input, .form-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 13px; color: var(--text-primary); background: #fff; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit; }
+        .form-row input, .form-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 13px; color: var(--text-primary); background: #fff; font-family: inherit; }
         .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--cobli-violet); box-shadow: 0 0 0 3px rgba(127,141,219,0.18); }
-
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s, transform 0.1s; font-family: inherit; }
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--cobli-blue); color: #fff; }
@@ -183,24 +83,21 @@
         .btn-row { display: flex; gap: 8px; }
         .btn-row .btn { flex: 1; }
 
-        /* ──────────── RANGE PILLS ──────────── */
+        /* Dropdowns & Pills */
         .range-group { display: flex; gap: 6px; margin-bottom: 10px; }
         .btn-range { flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-mid); background: var(--surface-muted); color: var(--text-secondary); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
         .btn-range:hover { background: var(--cobli-lavender); color: var(--cobli-navy); }
         .btn-range.active { background: var(--cobli-blue); color: #fff; border-color: var(--cobli-blue); }
-
-        /* ──────────── SEARCH ROW ──────────── */
         .search-row { display: flex; gap: 6px; margin-bottom: 10px; }
         .search-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; color: var(--text-primary); font-family: inherit; }
-        .search-row input:focus { outline: none; border-color: var(--cobli-violet); box-shadow: 0 0 0 3px rgba(127,141,219,0.18); }
+        .search-row input:focus { outline: none; border-color: var(--cobli-violet); }
         .btn-icon { width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--border-mid); background: var(--surface-muted); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--text-secondary); transition: background 0.15s; }
         .btn-icon:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
 
-        /* ──────────── PROVIDER LIST ──────────── */
+        /* Lists & Badges */
         #providers-list { list-style: none; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; background: var(--surface-muted); border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 8px; }
         #providers-list::-webkit-scrollbar { width: 3px; }
         #providers-list::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
-
         .provider-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1.5px solid var(--border-light); border-radius: 8px; background: #fff; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
         .provider-item:hover { border-color: var(--cobli-violet); background: #F5F6FF; box-shadow: 0 2px 8px rgba(50,72,198,0.12); }
         .provider-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -210,21 +107,17 @@
         .btn-edit:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
         .empty-state { padding: 20px; text-align: center; font-size: 12px; color: var(--text-muted); background: var(--surface-muted); border: 1px dashed var(--border-mid); border-radius: 7px; }
 
-        /* ──────────── DROPDOWN MULTI SELECT ──────────── */
         .dropdown-check-list { position: relative; margin-bottom: 8px; }
         .dropdown-anchor { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; font-size: 12px; font-weight: 500; color: var(--text-primary); user-select: none; }
         .dropdown-anchor::after { content: "▾"; font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
-        .dropdown-anchor:hover { border-color: var(--cobli-violet); }
         .dropdown-items { display: none; position: absolute; background: #fff; width: 100%; border: 1px solid var(--cobli-violet); border-top: none; z-index: 100; max-height: 180px; overflow-y: auto; box-shadow: 0 6px 20px rgba(7,7,78,0.12); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
         .dropdown-items.visible { display: block; }
         .dropdown-items li { list-style: none; padding: 7px 10px; font-size: 12px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .dropdown-items li:hover { background: var(--surface-muted); }
-        .dropdown-items input[type="checkbox"] { cursor: pointer; }
         .dropdown-actions { display: flex; gap: 6px; padding: 7px 10px; background: var(--surface-muted); border-bottom: 1px solid var(--border-light); }
         .btn-dd-action { background: transparent; border: 1px solid var(--border-mid); border-radius: 4px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
-        .btn-dd-action:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
 
-        /* ──────────── DASHBOARD SUMMARY ──────────── */
+        /* Dashboard & Summary */
         .summary-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 11px 14px; border-radius: 8px; margin-bottom: 8px; }
         .summary-total-label { font-size: 11px; font-weight: 600; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
         .summary-total-value { font-size: 24px; font-weight: 700; }
@@ -234,35 +127,28 @@
         .summary-cell-val { font-size: 17px; font-weight: 700; display: block; line-height: 1.2; }
         .summary-cell-lbl { font-size: 9px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 3px; display: block; line-height: 1.3; word-break: break-word; }
 
-        /* ──────────── ROUTING RESULTS ──────────── */
+        /* Routing */
         #routing-result { margin-top: 10px; max-height: 320px; overflow-y: auto; }
         #routing-result::-webkit-scrollbar { width: 3px; }
-        #routing-result::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
         .result-section-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid var(--border-light); padding-top: 10px; margin-bottom: 8px; }
         .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
         .result-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
         .result-card-dist { font-size: 11px; color: var(--cobli-indigo); font-weight: 600; margin-bottom: 8px; }
         .btn-route { width: 100%; padding: 6px 10px; background: var(--cobli-indigo); color: #fff; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
-        .btn-route:hover { background: var(--cobli-blue); }
 
-        /* ──────────── MAP ──────────── */
         #map-container { flex: 1; position: relative; }
         #map { width: 100%; height: 100%; }
 
-        /* ──────────── MODALS ──────────── */
+        /* Modals & InfoWindow */
         .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(7,7,78,0.55); backdrop-filter: blur(3px); z-index: 200; justify-content: center; align-items: center; }
         .modal-backdrop.open { display: flex; }
-        .modal-backdrop[style*="flex"] { display: flex !important; }
-        .modal-box { background: #fff; border-radius: 12px; width: 460px; max-width: calc(100vw - 32px); max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(7,7,78,0.22); animation: modal-in 0.18s ease; }
-        @keyframes modal-in { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-box { background: #fff; border-radius: 12px; width: 460px; max-width: calc(100vw - 32px); max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(7,7,78,0.22); }
         .modal-box.wide { width: 560px; }
         .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
         .modal-head h3 { font-size: 15px; font-weight: 600; color: var(--cobli-navy); }
-        .modal-close { width: 28px; height: 28px; border-radius: 6px; background: var(--surface-muted); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; color: var(--text-muted); line-height: 1; transition: background 0.12s; }
-        .modal-close:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
+        .modal-close { width: 28px; height: 28px; border-radius: 6px; background: var(--surface-muted); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; color: var(--text-muted); }
         .modal-body { padding: 20px; }
-
-        /* ──────────── INFOWINDOW (Google Maps) ──────────── */
+        
         .gm-style-iw { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
         .gm-style-iw-d { overflow: hidden !important; }
         .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
@@ -270,20 +156,19 @@
         .iw-card { width: 270px; font-family: 'Inter','Segoe UI',sans-serif; }
         .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 14px 16px 12px; display: flex; align-items: center; gap: 10px; }
         .iw-head.destination { background: linear-gradient(135deg, #B01010 0%, #FF4633 100%); }
-        .iw-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; letter-spacing: 0.5px; }
+        .iw-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
         .iw-head-text { flex: 1; min-width: 0; }
         .iw-head-text h4 { font-size: 13px; font-weight: 600; color: #fff; line-height: 1.3; margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .iw-status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 2px 7px; }
         .iw-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; flex-shrink: 0; }
         .iw-body { padding: 12px 16px 14px; background: #fff; }
         .iw-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; font-size: 12px; }
-        .iw-row:last-of-type { margin-bottom: 0; }
         .iw-icon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; opacity: 0.45; }
         .iw-field { flex: 1; min-width: 0; }
         .iw-field-label { font-size: 10px; font-weight: 600; color: #9296B8; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 1px; }
         .iw-field-val { color: #07074E; font-weight: 500; line-height: 1.4; word-break: break-word; }
+        .iw-address-block { margin-top: 4px; padding: 8px 10px; background: #F5F6FA; border-radius: 6px; font-size: 11px; color: #4B4F7A; line-height: 1.5; }
 
-        /* Summary modal specifics */
         .summary-modal-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; }
         .summary-modal-total span:first-child { font-size: 13px; opacity: 0.8; }
         .summary-modal-total span:last-child { font-size: 26px; font-weight: 700; }
@@ -291,19 +176,20 @@
         .summary-status-cell { border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; text-align: center; background: var(--surface-muted); }
         .summary-status-cell .val { font-size: 20px; font-weight: 700; display: block; }
         .summary-status-cell .lbl { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; display: block; }
-        .modal-subtitle { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-light); }
+        .modal-subtitle { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-light); }
         .consultor-list { list-style: none; border: 1px solid var(--border-light); border-radius: 7px; overflow: hidden; }
         .consultor-list li { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); background: #fff; }
         .consultor-list li:last-child { border-bottom: none; }
         .consultor-list .count-badge { background: var(--cobli-lavender); color: var(--cobli-navy); font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 10px; }
 
-        /* ──────────── FILE INPUT ──────────── */
         .file-input-wrapper { position: relative; overflow: hidden; }
         .file-label { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1.5px dashed var(--border-mid); border-radius: 7px; cursor: pointer; font-size: 12px; color: var(--text-secondary); font-weight: 500; transition: border-color 0.15s, background 0.15s; }
         .file-label:hover { border-color: var(--cobli-violet); background: var(--cobli-lavender); color: var(--cobli-navy); }
         .file-label input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        #loading-indicator { display: none; text-align: center; color: var(--cobli-blue); font-size: 13px; font-weight: 600; padding: 10px; }
     </style>
-    <script src="base_prestadores.js"></script>
 </head>
 <body>
 
@@ -343,7 +229,7 @@
                     <button class="btn-icon" onclick="clearSearchName()" title="Limpar busca">✕</button>
                 </div>
                 <ul id="providers-list">
-                    <li style="list-style:none;"><div class="empty-state">Nenhum prestador carregado</div></li>
+                    <li style="list-style:none;"><div class="empty-state">Aguardando dados...</div></li>
                 </ul>
             </div>
         </div>
@@ -414,12 +300,12 @@
             <div class="section-header">
                 <div class="section-header-left">
                     <span class="section-number">4</span>
-                    <span class="section-title">Importar / Exportar (Avançado)</span>
+                    <span class="section-title">Importar Base (Avançado)</span>
                 </div>
             </div>
             <div class="section-body">
                 <div class="form-row">
-                    <label>1. Carregar planilha (.CSV)</label>
+                    <label>Subir Carga Inicial via Planilha (CSV)</label>
                     <div class="file-input-wrapper">
                         <div id="file-label-display" class="file-label">
                             <span style="font-size: 16px;">📂</span>
@@ -428,13 +314,7 @@
                         <input type="file" id="file-upload" accept=".csv,.xlsx,.xls">
                     </div>
                 </div>
-                
-                <hr style="border:none; border-top:1px dashed var(--border-mid); margin: 15px 0;">
-                
-                <div class="form-row">
-                    <label>2. Tornar alterações definitivas</label>
-                    <button class="btn btn-secondary btn-full" onclick="exportDataForGitHub()">📥 Exportar Base para o GitHub</button>
-                </div>
+                <div id="loading-indicator">Salvando registros no banco de dados... Aguarde.</div>
             </div>
         </div>
 
@@ -476,7 +356,7 @@
                     <div class="form-row"><label>CEP</label><select id="map-cep" class="map-dropdown"></select></div>
                     <div class="form-row" style="grid-column: span 2;"><label>Status *</label><select id="map-status" class="map-dropdown" required></select></div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full" style="margin-top: 12px;">Processar e exibir no mapa</button>
+                <button type="submit" class="btn btn-primary btn-full" style="margin-top: 12px;">Processar e Inserir no Banco</button>
             </form>
         </div>
     </div>
@@ -498,7 +378,7 @@
                 <div class="form-row"><label>Status *</label><select id="m-status" required></select></div>
                 <div class="btn-row" style="margin-top: 16px;">
                     <button type="button" class="btn btn-outline" onclick="closeModal('register-modal')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <button type="submit" class="btn btn-primary">Salvar no Banco</button>
                 </div>
             </form>
         </div>
@@ -529,24 +409,30 @@
     </div>
 </div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_AQUI&libraries=places,geometry&callback=initMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap" async defer></script>
 
 <script>
-    let map, markers = [], providersData = [], rawImportedData = [];
-    let directionsService, directionsRenderer, geocoder;
-    let clientMarker = null, infoWindowGlobal = null, clientInfoWindow = null;
-    let currentSearchRange = 50;
-    
-    let userRole = null; 
+    /* =========================================================================
+       CONFIGURAÇÃO DO BANCO DE DADOS SUPABASE
+       ========================================================================= */
+    const supabaseUrl = 'https://tmjmjrhgmyqamuphgdvi.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtam1qcmhnbXlxYW11cGhnZHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY4NzMsImV4cCI6MjA5MjcwMjg3M30.gjClWn46TOgfa-y4PAUMBg4ZxS4xhFjep1mk_DcU2QY';
+    const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    /* ── DEFINIÇÃO DOS EMAILS DE ADMINISTRAÇÃO ── */
+    /* ── LISTA DE E-MAILS AUTORIZADOS (ADMINS) ── */
     const ADMIN_EMAILS = [
-        'luiz.lackeski@cobli.com',
+        'seuemail@cobli.com',
         'gerente@cobli.com',
         'admin@cobli.com'
     ];
 
-    /* ── LÓGICA DE LOGIN (E-MAIL) ── */
+    let map, markers = [], providersData = [], rawImportedData = [];
+    let directionsService, directionsRenderer, geocoder;
+    let clientMarker = null, infoWindowGlobal = null, clientInfoWindow = null;
+    let currentSearchRange = 50;
+    let userRole = null; 
+
+    /* ── LOGIN E INICIALIZAÇÃO ── */
     function handleLogin(event) {
         event.preventDefault();
         const emailInput = document.getElementById('login-email').value.toLowerCase().trim();
@@ -556,25 +442,36 @@
         } else {
             userRole = 'common';
         }
-        initSystem();
-    }
-
-    function initSystem() {
         document.getElementById('login-overlay').style.display = 'none';
         
         if (userRole === 'common') {
             document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden-role'));
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
         }
+        
+        loadDataFromSupabase();
+    }
 
-        // CARREGA A BASE ESTÁTICA DO GITHUB
-        if(window.DATA_PRESTADORES_INICIAL && window.DATA_PRESTADORES_INICIAL.length > 0) {
-            providersData = window.DATA_PRESTADORES_INICIAL;
+    /* ── PUXAR DADOS DO SUPABASE ── */
+    async function loadDataFromSupabase() {
+        document.getElementById('providers-list').innerHTML = '<li style="list-style:none;"><div class="empty-state">Carregando banco de dados...</div></li>';
+        
+        const { data, error } = await _supabase.from('prestadores').select('*');
+        
+        if (error) {
+            console.error("Erro Supabase:", error);
+            alert("Erro ao conectar no banco de dados. Verifique a URL e Chave.");
+            return;
+        }
+
+        if (data && data.length > 0) {
+            providersData = data;
             providersData.forEach(p => { if(p.lat && p.lng) createMarker(p); });
             updateStatusFilter(); 
             updateConsultantFilter(); 
             applyFilters();
         } else {
+            document.getElementById('providers-list').innerHTML = '<li style="list-style:none;"><div class="empty-state">Banco de dados vazio. Importe uma planilha.</div></li>';
             updateStatusFilter();
         }
     }
@@ -613,7 +510,6 @@
         if(l==='inativo') return 'Inativo';
         if(l==='suspenso') return 'Suspenso';
         if(l==='free lance'||l==='freelance') return 'Free Lance';
-        
         if(l.includes('treinamento') || l.includes('fase final')) return 'Credenciado fase final';
         if(l.includes('contrato solicitado') || l.includes('aguardando assina') || l.includes('confirmando inform') || l === 'em credenciamento') return 'Em credenciamento';
         if(l==='descredenciado') return 'Descredenciado';
@@ -622,15 +518,7 @@
     }
 
     function getStatusColor(status) {
-        const map = {
-            'Ativo': '#00AE97',
-            'Suspenso': '#7F8DDB',
-            'Em credenciamento': '#001BB8',
-            'Credenciado fase final': '#3248C6',
-            'Descredenciado': '#FF4633',
-            'Inativo': '#F01A1A',
-            'Free Lance': '#3248C6'
-        };
+        const map = { 'Ativo': '#00AE97', 'Suspenso': '#7F8DDB', 'Em credenciamento': '#001BB8', 'Credenciado fase final': '#3248C6', 'Descredenciado': '#FF4633', 'Inativo': '#F01A1A', 'Free Lance': '#3248C6' };
         return map[status] || '#07074E';
     }
 
@@ -657,8 +545,7 @@
         ['m-status','e-status'].forEach(id => {
             const sel = document.getElementById(id);
             if(!sel) return;
-            let cur = sel.value;
-            sel.innerHTML = '';
+            let cur = sel.value; sel.innerHTML = '';
             Array.from(allStatuses).sort().forEach(st => {
                 let opt = document.createElement('option'); opt.value=st; opt.text=st; sel.appendChild(opt);
             });
@@ -694,18 +581,15 @@
         const selConsultors = getCheckedValues('consultor-items');
         
         let filteredList = [];
-
         markers.forEach(m => {
             let p = providersData.find(x => x.id === m.customId);
             if(!p) return;
             let showStatus = allowedStatuses.includes(p.status);
             let showConsultor = selConsultors.includes(p.consultorNorm) || p.consultorNorm === "SEM CONSULTOR";
-            
             let show = showStatus && showConsultor;
             m.setMap(show ? map : null);
             if(show) filteredList.push(p);
         });
-
         updateDashboardSummary(filteredList);
         renderProviderList(allowedStatuses); 
     }
@@ -715,29 +599,17 @@
         let counts = {};
         filteredData.forEach(p => { if(p.status) counts[p.status] = (counts[p.status]||0)+1; });
 
-        let html = `<div class="summary-total">
-            <span class="summary-total-label">Total exibido</span>
-            <span class="summary-total-value">${filteredData.length}</span>
-        </div>
-        <div class="summary-grid">`;
-
+        let html = `<div class="summary-total"><span class="summary-total-label">Total exibido</span><span class="summary-total-value">${filteredData.length}</span></div><div class="summary-grid">`;
         Object.keys(counts).sort().forEach(status => {
             let col = getStatusColor(status);
-            html += `<div class="summary-cell">
-                <span class="summary-cell-val" style="color:${col};">${counts[status]}</span>
-                <span class="summary-cell-lbl">${status}</span>
-            </div>`;
+            html += `<div class="summary-cell"><span class="summary-cell-val" style="color:${col};">${counts[status]}</span><span class="summary-cell-lbl">${status}</span></div>`;
         });
-        html += `</div>`;
-        box.innerHTML = html;
+        html += `</div>`; box.innerHTML = html;
     }
 
-    /* ── GEOCODE / MARKERS ── */
+    /* ── GEOCODE E MAPA ── */
     function initMap() {
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: -15.793889, lng: -47.882778 }, zoom: 4,
-            mapTypeControl: true, streetViewControl: false
-        });
+        map = new google.maps.Map(document.getElementById("map"), { center: { lat: -15.793889, lng: -47.882778 }, zoom: 4, mapTypeControl: true, streetViewControl: false });
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({ preserveViewport: true, suppressMarkers: true });
         directionsRenderer.setMap(map);
@@ -748,131 +620,71 @@
         const fileInput = document.getElementById('file-upload');
         fileInput.addEventListener('change', handleFileImport, false);
         fileInput.addEventListener('change', function() {
-            if(this.files && this.files[0]) {
-                document.getElementById('file-label-display').innerHTML =
-                    `<span style="font-size: 16px;">✅</span><span style="color:var(--cobli-navy);font-weight:600;">${this.files[0].name}</span>`;
-            }
+            if(this.files && this.files[0]) document.getElementById('file-label-display').innerHTML = `<span>✅</span><span style="color:var(--cobli-navy);font-weight:600;">${this.files[0].name}</span>`;
         });
     }
 
-    function geocodeAddress(prestador) {
-        geocoder.geocode({ address: prestador.endereco }, (results, status) => {
-            if(status === 'OK') {
-                prestador.lat = results[0].geometry.location.lat();
-                prestador.lng = results[0].geometry.location.lng();
-                createMarker(prestador);
-            }
+    // Função de geocoding com Promise para garantir a ordem antes de salvar no banco
+    function getGeocode(address) {
+        return new Promise((resolve) => {
+            geocoder.geocode({ address: address }, (results, status) => {
+                if(status === 'OK') resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
+                else resolve({ lat: null, lng: null });
+            });
         });
     }
 
     function createMarker(prestador) {
         let color = getStatusColor(prestador.status);
-        const pinSvg = {
-            path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
-            fillColor: color, fillOpacity: 1, strokeWeight: 1.5, strokeColor: '#ffffff',
-            scale: 1.5, anchor: new google.maps.Point(12, 22)
-        };
+        const pinSvg = { path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z", fillColor: color, fillOpacity: 1, strokeWeight: 1.5, strokeColor: '#ffffff', scale: 1.5, anchor: new google.maps.Point(12, 22) };
         const marker = new google.maps.Marker({ position: { lat: prestador.lat, lng: prestador.lng }, map, title: prestador.nome, icon: pinSvg, customId: prestador.id });
         marker.addListener("click", () => openProviderInfoWindow(marker.customId, marker));
         markers.push(marker);
     }
 
     function getInitials(nome) {
-        if(!nome) return '?';
-        const parts = nome.trim().split(/\s+/);
+        if(!nome) return '?'; const parts = nome.trim().split(/\s+/);
         if(parts.length === 1) return parts[0].substring(0,2).toUpperCase();
         return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
     }
 
     function openProviderInfoWindow(pId, markerRef = null) {
-        let p = providersData.find(x => x.id === pId);
-        if(!p) return;
+        let p = providersData.find(x => x.id === pId); if(!p) return;
         if(!markerRef) markerRef = markers.find(m => m.customId === pId);
-        let col = getStatusColor(p.status);
-        const initials = getInitials(p.nome);
+        let col = getStatusColor(p.status); const initials = getInitials(p.nome);
 
         const iconPerson   = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>`;
         const iconPhone    = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M3 2h3l1.5 3.5-1.75 1.25a8 8 0 004.5 4.5L11.5 9.5 15 11v3a1 1 0 01-1 1C5.16 15 1 10.84 1 3a1 1 0 011-1z"/></svg>`;
         const iconMail     = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 4l7 5 7-5"/></svg>`;
         const iconLocation = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.375 4.5 8.5 4.5 8.5S12.5 9.375 12.5 6c0-2.485-2.015-4.5-4.5-4.5z"/><circle cx="8" cy="6" r="1.5"/></svg>`;
 
-        const content = `<div class="iw-card">
-            <div class="iw-head">
-                <div class="iw-avatar">${initials}</div>
-                <div class="iw-head-text">
-                    <h4 title="${p.nome}">${p.nome}</h4>
-                    <span class="iw-status-pill">
-                        <span class="iw-status-dot" style="background:${col};"></span>
-                        ${p.status}
-                    </span>
-                </div>
-            </div>
-            <div class="iw-body">
-                ${p.consultor ? `<div class="iw-row">
-                    ${iconPerson}
-                    <div class="iw-field">
-                        <div class="iw-field-label">Consultor</div>
-                        <div class="iw-field-val">${p.consultor}</div>
-                    </div>
-                </div>` : ''}
-                ${p.contato ? `<div class="iw-row">
-                    ${iconPhone}
-                    <div class="iw-field">
-                        <div class="iw-field-label">Contato</div>
-                        <div class="iw-field-val">${p.contato}</div>
-                    </div>
-                </div>` : ''}
-                ${p.email ? `<div class="iw-row">
-                    ${iconMail}
-                    <div class="iw-field">
-                        <div class="iw-field-label">E-mail</div>
-                        <div class="iw-field-val" style="word-break:break-all;">${p.email}</div>
-                    </div>
-                </div>` : ''}
-                <div class="iw-row">
-                    ${iconLocation}
-                    <div class="iw-field">
-                        <div class="iw-field-label">Endereço</div>
-                        <div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-
-        infoWindowGlobal.setContent(content);
-        infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
+        const content = `<div class="iw-card"><div class="iw-head"><div class="iw-avatar">${initials}</div><div class="iw-head-text"><h4 title="${p.nome}">${p.nome}</h4><span class="iw-status-pill"><span class="iw-status-dot" style="background:${col};"></span>${p.status}</span></div></div><div class="iw-body">
+            ${p.consultor ? `<div class="iw-row">${iconPerson}<div class="iw-field"><div class="iw-field-label">Consultor</div><div class="iw-field-val">${p.consultor}</div></div></div>` : ''}
+            ${p.contato ? `<div class="iw-row">${iconPhone}<div class="iw-field"><div class="iw-field-label">Contato</div><div class="iw-field-val">${p.contato}</div></div></div>` : ''}
+            ${p.email ? `<div class="iw-row">${iconMail}<div class="iw-field"><div class="iw-field-label">E-mail</div><div class="iw-field-val" style="word-break:break-all;">${p.email}</div></div></div>` : ''}
+            <div class="iw-row">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div></div></div>
+        </div></div>`;
+        infoWindowGlobal.setContent(content); infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
     }
 
-    /* ── PROVIDER LIST ── */
     function renderProviderList(forcedStatuses = null) {
         const search = document.getElementById('search-provider').value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
         const selStatus = forcedStatuses ? forcedStatuses : getCheckedValues('status-items');
         const selConsultors = getCheckedValues('consultor-items');
-        const list = document.getElementById('providers-list');
-        list.innerHTML = "";
+        const list = document.getElementById('providers-list'); list.innerHTML = "";
 
         const filtered = providersData.filter(p => {
             let nm = p.nome.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().includes(search);
             return nm && selStatus.includes(p.status) && (selConsultors.includes(p.consultorNorm) || p.consultorNorm === "SEM CONSULTOR");
         });
 
-        if(!filtered.length) {
-            list.innerHTML = '<li style="list-style:none;"><div class="empty-state">Nenhum prestador encontrado</div></li>';
-            return;
-        }
+        if(!filtered.length) { list.innerHTML = '<li style="list-style:none;"><div class="empty-state">Nenhum prestador encontrado</div></li>'; return; }
 
         filtered.forEach(p => {
             let col = getStatusColor(p.status);
-            let li = document.createElement('li');
-            li.className = 'provider-item';
-            
+            let li = document.createElement('li'); li.className = 'provider-item';
             let btnEditHtml = userRole === 'admin' ? `<button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>` : '';
-
-            li.innerHTML = `
-                <span class="provider-dot" style="background:${col};"></span>
-                <span class="provider-name" onclick="centerMapOnProvider(${p.id})" title="${p.nome}">${p.nome}</span>
-                <span class="provider-status-badge" style="background:${col}22;color:${col};">${p.status}</span>
-                ${btnEditHtml}`;
+            li.innerHTML = `<span class="provider-dot" style="background:${col};"></span><span class="provider-name" onclick="centerMapOnProvider(${p.id})" title="${p.nome}">${p.nome}</span><span class="provider-status-badge" style="background:${col}22;color:${col};">${p.status}</span>${btnEditHtml}`;
             list.appendChild(li);
         });
     }
@@ -882,28 +694,7 @@
         if(p && p.lat) { map.setCenter({lat:p.lat,lng:p.lng}); map.setZoom(15); openProviderInfoWindow(p.id); }
     }
 
-    /* ── EXPORT DATA ── */
-    function exportDataForGitHub() {
-        if(providersData.length === 0) { 
-            alert("Não há prestadores carregados para exportar."); 
-            return; 
-        }
-        let cleanData = providersData.map(p => ({
-            id: p.id, nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm,
-            email: p.email, contato: p.contato, endereco: p.endereco, status: p.status, lat: p.lat, lng: p.lng
-        }));
-
-        let fileContent = `// Base Oficial de Prestadores - Cobli\nwindow.DATA_PRESTADORES_INICIAL = ${JSON.stringify(cleanData, null, 2)};`;
-        let blob = new Blob([fileContent], { type: "text/javascript;charset=utf-8" });
-        let link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "base_prestadores.js";
-        link.click();
-        
-        alert("O arquivo 'base_prestadores.js' foi baixado no seu computador!\n\nFaça o upload dele substituindo o antigo lá no seu repositório do GitHub.");
-    }
-
-    /* ── IMPORT ── */
+    /* ── IMPORTAÇÃO DE BASE INTEIRA ── */
     function fixStr(s) {
         if(!s) return s; let str = String(s);
         try { return decodeURIComponent(escape(str)); } catch(e) { return str; }
@@ -918,8 +709,7 @@
             let wb;
             try {
                 if(isCsv) {
-                    const text = ev.target.result;
-                    const hasGarbage = /Ã|â€|Ã§|Ã£|Ã¡|Ã©|Ã­|Ã³|Ãº/.test(text);
+                    const text = ev.target.result; const hasGarbage = /Ã|â€|Ã§|Ã£|Ã¡|Ã©|Ã­|Ã³|Ãº/.test(text);
                     if(hasGarbage) {
                         const reader2 = new FileReader();
                         reader2.onload = ev2 => {
@@ -927,13 +717,11 @@
                             wb = XLSX.read(data, { type: 'array', codepage: 1252 });
                             processWorkbook(wb);
                         };
-                        reader2.readAsArrayBuffer(file);
-                        return;
+                        reader2.readAsArrayBuffer(file); return;
                     }
                     wb = XLSX.read(text, { type: 'string' });
                 } else {
-                    const data = new Uint8Array(ev.target.result);
-                    wb = XLSX.read(data, { type: 'array', codepage: 1252 });
+                    const data = new Uint8Array(ev.target.result); wb = XLSX.read(data, { type: 'array', codepage: 1252 });
                 }
                 processWorkbook(wb);
             } catch(err) { alert("Erro ao ler o arquivo: " + err.message); }
@@ -952,8 +740,7 @@
         document.querySelectorAll('.map-dropdown').forEach(select => {
             select.innerHTML = '<option value="">— Deixar vazio —</option>';
             columns.forEach(col => {
-                const opt = document.createElement('option'); opt.value = col; opt.text = col;
-                const cl = String(col).toLowerCase();
+                const opt = document.createElement('option'); opt.value = col; opt.text = col; const cl = String(col).toLowerCase();
                 if(select.id==='map-nome' && (cl.includes('razao')||cl.includes('nome'))) opt.selected=true;
                 if(select.id==='map-consultor' && cl.includes('consultor')) opt.selected=true;
                 if(select.id==='map-email' && cl==='email') opt.selected=true;
@@ -970,32 +757,81 @@
         });
     }
 
-    function confirmMapping(event) {
+    // Importação envia tudo para o Supabase
+    async function confirmMapping(event) {
         event.preventDefault();
         const gv = id => document.getElementById(id).value;
         const [cN,cC,cE,cT,cL,cNum,cB,cCid,cEst,cCep,cS] = ['map-nome','map-consultor','map-email','map-telefone','map-logradouro','map-numero','map-bairro','map-cidade','map-estado','map-cep','map-status'].map(gv);
-        clearAllMarkers(); providersData = [];
-        rawImportedData.forEach((row,index) => {
+        
+        document.getElementById('loading-indicator').style.display = 'block';
+        closeModal('mapping-modal');
+        
+        // Formata os dados para o Supabase (ignorando id para o BD gerar)
+        let novosPrestadores = rawImportedData.map(row => {
             const f = col => fixStr(row[col] || "");
             let end = `${f(cL)}${cNum&&row[cNum]?`, ${f(cNum)}`:""}${cB&&row[cB]?` - ${f(cB)}`:""}, ${f(cCid)} - ${f(cEst)}${cCep&&row[cCep]?` (CEP: ${f(cCep)})` :""}`;
-            let nomeRaw   = cN ? fixStr(row[cN]) : "Sem Nome";
             let consultRaw = cC ? fixStr(row[cC]) : "";
-            let p = {
-                id: index+1, nome: nomeRaw || "Sem Nome", consultor: consultRaw, consultorNorm: normalizeStr(consultRaw),
-                email: cE ? fixStr(row[cE]) : "", contato: cT ? fixStr(row[cT]) : "", endereco: end,
-                status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"), lat: null, lng: null
+            
+            return {
+                nome: (cN ? fixStr(row[cN]) : "Sem Nome") || "Sem Nome",
+                consultor: consultRaw,
+                consultorNorm: normalizeStr(consultRaw),
+                email: cE ? fixStr(row[cE]) : "",
+                contato: cT ? fixStr(row[cT]) : "",
+                endereco: end,
+                status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
+                lat: null, 
+                lng: null
             };
-            providersData.push(p); geocodeAddress(p);
         });
-        updateStatusFilter(); updateConsultantFilter(); closeModal('mapping-modal'); setTimeout(applyFilters, 1000);
+
+        // Apaga a base antiga (Cuidado: isso deleta toda a tabela para colocar a nova carga)
+        await _supabase.from('prestadores').delete().neq('id', 0); 
+
+        // Insere a nova carga de dados
+        const { error } = await _supabase.from('prestadores').insert(novosPrestadores);
+        
+        document.getElementById('loading-indicator').style.display = 'none';
+        
+        if (error) {
+            alert("Erro ao salvar no Supabase. Os dados podem não ter sido importados completamente.");
+            console.error(error);
+        } else {
+            alert("Base de dados importada e salva no Supabase com sucesso!");
+            clearAllMarkers();
+            await loadDataFromSupabase(); // Recarrega os dados fresquinhos com os IDs gerados
+        }
     }
 
-    /* ── PROVIDERS CRUD ── */
-    function saveManualProvider(event) {
+    /* ── SALVAMENTO INDIVIDUAL (NOVO / EDITAR) NO SUPABASE ── */
+    async function saveManualProvider(event) {
         event.preventDefault();
         let cNome = document.getElementById('m-consultor').value;
-        let p = { id:providersData.length+1, nome:document.getElementById('m-nome').value, consultor:cNome, consultorNorm:normalizeStr(cNome), email:document.getElementById('m-email').value, contato:document.getElementById('m-contato').value, endereco:document.getElementById('m-endereco').value, status:formatStatus(document.getElementById('m-status').value), lat:null, lng:null };
-        providersData.push(p); geocodeAddress(p); updateStatusFilter(); updateConsultantFilter(); setTimeout(applyFilters,500); closeModal('register-modal');
+        let p = { 
+            nome: document.getElementById('m-nome').value,
+            consultor: cNome, 
+            consultorNorm: normalizeStr(cNome),
+            email: document.getElementById('m-email').value, 
+            contato: document.getElementById('m-contato').value,
+            endereco: document.getElementById('m-endereco').value, 
+            status: formatStatus(document.getElementById('m-status').value)
+        };
+        
+        // Pega as coordenadas antes de salvar
+        let coords = await getGeocode(p.endereco);
+        p.lat = coords.lat; p.lng = coords.lng;
+
+        // Salva no banco de dados e retorna o objeto gerado (com o ID)
+        const { data, error } = await _supabase.from('prestadores').insert([p]).select();
+        
+        if (error) {
+            alert("Erro ao salvar prestador no banco de dados.");
+        } else if (data && data.length > 0) {
+            providersData.push(data[0]); 
+            if(data[0].lat) createMarker(data[0]); 
+            updateStatusFilter(); updateConsultantFilter(); applyFilters(); 
+            closeModal('register-modal');
+        }
     }
 
     function openEditModal(id) {
@@ -1006,20 +842,53 @@
         document.getElementById('e-status').value=p.status||'Ativo'; openModal('edit-modal');
     }
 
-    function saveEditProvider(event) {
-        event.preventDefault(); const id = parseInt(document.getElementById('e-id').value); const p = providersData.find(x => x.id===id);
-        if(p) {
-            const oldEnd = p.endereco; p.nome=document.getElementById('e-nome').value; p.consultor=document.getElementById('e-consultor').value;
-            p.consultorNorm=normalizeStr(p.consultor); p.email=document.getElementById('e-email').value;
-            p.contato=document.getElementById('e-contato').value; p.endereco=document.getElementById('e-endereco').value;
-            p.status=formatStatus(document.getElementById('e-status').value);
-            if(oldEnd!==p.endereco) {
-                const mi=markers.findIndex(m=>m.customId===id); if(mi>-1){markers[mi].setMap(null);markers.splice(mi,1);} geocodeAddress(p);
-            } else {
-                const mk=markers.find(m=>m.customId===id); if(mk){let ic=mk.getIcon();ic.fillColor=getStatusColor(p.status);mk.setIcon(ic);}
-            }
+    async function saveEditProvider(event) {
+        event.preventDefault();
+        const id = parseInt(document.getElementById('e-id').value);
+        const pIndex = providersData.findIndex(x => x.id === id);
+        if (pIndex === -1) return;
+        
+        let p = providersData[pIndex];
+        const oldEnd = p.endereco;
+        
+        // Atualiza o objeto com dados do formulário
+        p.nome = document.getElementById('e-nome').value; 
+        p.consultor = document.getElementById('e-consultor').value;
+        p.consultorNorm = normalizeStr(p.consultor); 
+        p.email = document.getElementById('e-email').value;
+        p.contato = document.getElementById('e-contato').value; 
+        p.endereco = document.getElementById('e-endereco').value;
+        p.status = formatStatus(document.getElementById('e-status').value);
+
+        // Se mudou o endereço, busca a nova coordenada
+        let coordsChanged = false;
+        if (oldEnd !== p.endereco) {
+            let coords = await getGeocode(p.endereco);
+            p.lat = coords.lat; p.lng = coords.lng;
+            coordsChanged = true;
         }
-        updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('edit-modal');
+
+        // Salva a alteração no Supabase
+        const { error } = await _supabase.from('prestadores').update({
+            nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm,
+            email: p.email, contato: p.contato, endereco: p.endereco, 
+            status: p.status, lat: p.lat, lng: p.lng
+        }).eq('id', id);
+
+        if (error) {
+            alert("Erro ao atualizar o prestador no banco de dados.");
+        } else {
+            // Se salvou com sucesso, atualiza o mapa visualmente
+            if (coordsChanged) {
+                const mi = markers.findIndex(m => m.customId === id); 
+                if (mi > -1) { markers[mi].setMap(null); markers.splice(mi, 1); }
+                if(p.lat) createMarker(p);
+            } else {
+                const mk = markers.find(m => m.customId === id); 
+                if (mk) { mk.setTitle(p.nome); mk.customStatus = p.status; let ic = mk.getIcon(); ic.fillColor = getStatusColor(p.status); mk.setIcon(ic); }
+            }
+            updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('edit-modal');
+        }
     }
 
     /* ── ROUTING ── */
