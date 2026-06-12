@@ -49,6 +49,41 @@
             color: var(--text-primary);
         }
 
+        /* ──────────────────────────── TELA DE LOGIN (E-MAIL) ──────────────────────────── */
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--cobli-navy);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-box {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            width: 360px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .login-box h2 { color: var(--cobli-navy); margin-bottom: 10px; font-size: 20px; }
+        .login-box p { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-mid);
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .login-box input:focus { outline: none; border-color: var(--cobli-blue); }
+        .login-box .btn-primary { padding: 12px; font-size: 14px; width: 100%; }
+
+        /* Ocultar elementos de Admin */
+        .admin-only { display: none !important; }
+
         /* ──────────────────────────── SIDEBAR ──────────────────────────── */
         #sidebar {
             width: var(--sidebar-w);
@@ -60,7 +95,6 @@
             overflow: hidden;
         }
 
-        /* Top bar */
         .topbar {
             background: var(--cobli-navy);
             padding: 14px 18px;
@@ -88,7 +122,6 @@
         }
         .btn-ghost:hover { background: rgba(255,255,255,0.22); }
 
-        /* Scroll panel */
         .scroll-panel {
             flex: 1;
             overflow-y: auto;
@@ -121,79 +154,22 @@
             border-top-left-radius: 6px;
             border-top-right-radius: 9px;
         }
-        .section-header-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .section-header-left { display: flex; align-items: center; gap: 8px; }
         .section-number {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: var(--cobli-indigo);
-            border: 2px solid rgba(255,255,255,0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0;
+            width: 22px; height: 22px; border-radius: 50%; background: var(--cobli-indigo);
+            border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center;
+            justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
         }
-        .section-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            letter-spacing: 0.2px;
-        }
-
+        .section-title { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.2px; }
         .section-body { padding: 16px 16px 14px; }
 
         /* ──────────── FORM ELEMENTS ──────────── */
         .form-row { margin-bottom: 8px; }
-        .form-row label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-        .form-row input,
-        .form-row select {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid var(--border-mid);
-            border-radius: 6px;
-            font-size: 13px;
-            color: var(--text-primary);
-            background: #fff;
-            transition: border-color 0.15s, box-shadow 0.15s;
-            font-family: inherit;
-        }
-        .form-row input:focus,
-        .form-row select:focus {
-            outline: none;
-            border-color: var(--cobli-violet);
-            box-shadow: 0 0 0 3px rgba(127,141,219,0.18);
-        }
+        .form-row label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .form-row input, .form-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 13px; color: var(--text-primary); background: #fff; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit; }
+        .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--cobli-violet); box-shadow: 0 0 0 3px rgba(127,141,219,0.18); }
 
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: background 0.15s, transform 0.1s;
-            font-family: inherit;
-        }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s, transform 0.1s; font-family: inherit; }
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--cobli-blue); color: #fff; }
         .btn-primary:hover { background: var(--cobli-navy); }
@@ -201,322 +177,72 @@
         .btn-secondary:hover { background: var(--cobli-indigo); }
         .btn-danger { background: var(--cobli-red); color: #fff; }
         .btn-danger:hover { background: var(--cobli-red-dk); }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border-mid);
-            color: var(--text-secondary);
-        }
+        .btn-outline { background: transparent; border: 1px solid var(--border-mid); color: var(--text-secondary); }
         .btn-outline:hover { background: var(--surface-muted); color: var(--text-primary); }
         .btn-full { width: 100%; }
-
         .btn-row { display: flex; gap: 8px; }
         .btn-row .btn { flex: 1; }
 
         /* ──────────── RANGE PILLS ──────────── */
-        .range-group {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-        .btn-range {
-            flex: 1;
-            padding: 6px 4px;
-            font-size: 11px;
-            font-weight: 600;
-            border: 1px solid var(--border-mid);
-            background: var(--surface-muted);
-            color: var(--text-secondary);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
+        .range-group { display: flex; gap: 6px; margin-bottom: 10px; }
+        .btn-range { flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-mid); background: var(--surface-muted); color: var(--text-secondary); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
         .btn-range:hover { background: var(--cobli-lavender); color: var(--cobli-navy); }
-        .btn-range.active {
-            background: var(--cobli-blue);
-            color: #fff;
-            border-color: var(--cobli-blue);
-        }
+        .btn-range.active { background: var(--cobli-blue); color: #fff; border-color: var(--cobli-blue); }
 
         /* ──────────── SEARCH ROW ──────────── */
-        .search-row {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-        .search-row input {
-            flex: 1;
-            padding: 8px 10px;
-            border: 1px solid var(--border-mid);
-            border-radius: 6px;
-            font-size: 12px;
-            color: var(--text-primary);
-            font-family: inherit;
-        }
-        .search-row input:focus {
-            outline: none;
-            border-color: var(--cobli-violet);
-            box-shadow: 0 0 0 3px rgba(127,141,219,0.18);
-        }
-        .btn-icon {
-            width: 34px;
-            height: 34px;
-            flex-shrink: 0;
-            border: 1px solid var(--border-mid);
-            background: var(--surface-muted);
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            transition: background 0.15s;
-        }
+        .search-row { display: flex; gap: 6px; margin-bottom: 10px; }
+        .search-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; color: var(--text-primary); font-family: inherit; }
+        .search-row input:focus { outline: none; border-color: var(--cobli-violet); box-shadow: 0 0 0 3px rgba(127,141,219,0.18); }
+        .btn-icon { width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--border-mid); background: var(--surface-muted); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--text-secondary); transition: background 0.15s; }
         .btn-icon:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
 
         /* ──────────── PROVIDER LIST ──────────── */
-        #providers-list {
-            list-style: none;
-            max-height: 260px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            background: var(--surface-muted);
-            border: 1.5px solid var(--border-mid);
-            border-radius: 8px;
-            padding: 8px;
-        }
+        #providers-list { list-style: none; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; background: var(--surface-muted); border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 8px; }
         #providers-list::-webkit-scrollbar { width: 3px; }
         #providers-list::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
 
-        .provider-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
-            border: 1.5px solid var(--border-light);
-            border-radius: 8px;
-            background: #fff;
-            cursor: pointer;
-            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-        }
-        .provider-item:hover {
-            border-color: var(--cobli-violet);
-            background: #F5F6FF;
-            box-shadow: 0 2px 8px rgba(50,72,198,0.12);
-        }
-        .provider-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .provider-name {
-            flex: 1;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .provider-status-badge {
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 7px;
-            border-radius: 10px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .btn-edit {
-            flex-shrink: 0;
-            background: transparent;
-            border: 1px solid var(--border-mid);
-            border-radius: 5px;
-            padding: 3px 8px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.12s;
-            font-family: inherit;
-        }
+        .provider-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1.5px solid var(--border-light); border-radius: 8px; background: #fff; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+        .provider-item:hover { border-color: var(--cobli-violet); background: #F5F6FF; box-shadow: 0 2px 8px rgba(50,72,198,0.12); }
+        .provider-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .provider-name { flex: 1; font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .provider-status-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
+        .btn-edit { flex-shrink: 0; background: transparent; border: 1px solid var(--border-mid); border-radius: 5px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.12s; font-family: inherit; }
         .btn-edit:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
-
-        /* Empty state */
-        .empty-state {
-            padding: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-muted);
-            background: var(--surface-muted);
-            border: 1px dashed var(--border-mid);
-            border-radius: 7px;
-        }
+        .empty-state { padding: 20px; text-align: center; font-size: 12px; color: var(--text-muted); background: var(--surface-muted); border: 1px dashed var(--border-mid); border-radius: 7px; }
 
         /* ──────────── DROPDOWN MULTI SELECT ──────────── */
         .dropdown-check-list { position: relative; margin-bottom: 8px; }
-        .dropdown-anchor {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid var(--border-mid);
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fff;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-primary);
-            user-select: none;
-        }
-        .dropdown-anchor::after {
-            content: "▾";
-            font-size: 12px;
-            color: var(--text-muted);
-            flex-shrink: 0;
-        }
+        .dropdown-anchor { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; font-size: 12px; font-weight: 500; color: var(--text-primary); user-select: none; }
+        .dropdown-anchor::after { content: "▾"; font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
         .dropdown-anchor:hover { border-color: var(--cobli-violet); }
-        .dropdown-items {
-            display: none;
-            position: absolute;
-            background: #fff;
-            width: 100%;
-            border: 1px solid var(--cobli-violet);
-            border-top: none;
-            z-index: 100;
-            max-height: 180px;
-            overflow-y: auto;
-            box-shadow: 0 6px 20px rgba(7,7,78,0.12);
-            border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-        }
+        .dropdown-items { display: none; position: absolute; background: #fff; width: 100%; border: 1px solid var(--cobli-violet); border-top: none; z-index: 100; max-height: 180px; overflow-y: auto; box-shadow: 0 6px 20px rgba(7,7,78,0.12); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
         .dropdown-items.visible { display: block; }
-        .dropdown-items li {
-            list-style: none;
-            padding: 7px 10px;
-            font-size: 12px;
-            border-bottom: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
+        .dropdown-items li { list-style: none; padding: 7px 10px; font-size: 12px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .dropdown-items li:hover { background: var(--surface-muted); }
         .dropdown-items input[type="checkbox"] { cursor: pointer; }
-        .dropdown-actions {
-            display: flex;
-            gap: 6px;
-            padding: 7px 10px;
-            background: var(--surface-muted);
-            border-bottom: 1px solid var(--border-light);
-        }
-        .btn-dd-action {
-            background: transparent;
-            border: 1px solid var(--border-mid);
-            border-radius: 4px;
-            padding: 3px 8px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-family: inherit;
-        }
+        .dropdown-actions { display: flex; gap: 6px; padding: 7px 10px; background: var(--surface-muted); border-bottom: 1px solid var(--border-light); }
+        .btn-dd-action { background: transparent; border: 1px solid var(--border-mid); border-radius: 4px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
         .btn-dd-action:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
 
         /* ──────────── DASHBOARD SUMMARY ──────────── */
-        .summary-total {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--cobli-navy);
-            color: #fff;
-            padding: 11px 14px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-        }
+        .summary-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 11px 14px; border-radius: 8px; margin-bottom: 8px; }
         .summary-total-label { font-size: 11px; font-weight: 600; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
         .summary-total-value { font-size: 24px; font-weight: 700; }
-
-        #dashboard-summary {
-            margin-top: 12px;
-            background: var(--surface-muted);
-            border: 1.5px solid var(--border-mid);
-            border-radius: 8px;
-            padding: 10px;
-            overflow: visible;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-auto-rows: auto;
-            gap: 6px;
-        }
-        .summary-cell {
-            background: #fff;
-            border: 1px solid var(--border-light);
-            border-radius: 7px;
-            padding: 8px 6px;
-            text-align: center;
-            min-height: 0;
-        }
+        #dashboard-summary { margin-top: 12px; background: var(--surface-muted); border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 10px; overflow: visible; }
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: auto; gap: 6px; }
+        .summary-cell { background: #fff; border: 1px solid var(--border-light); border-radius: 7px; padding: 8px 6px; text-align: center; min-height: 0; }
         .summary-cell-val { font-size: 17px; font-weight: 700; display: block; line-height: 1.2; }
         .summary-cell-lbl { font-size: 9px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 3px; display: block; line-height: 1.3; word-break: break-word; }
 
         /* ──────────── ROUTING RESULTS ──────────── */
-        #routing-result {
-            margin-top: 10px;
-            max-height: 320px;
-            overflow-y: auto;
-        }
+        #routing-result { margin-top: 10px; max-height: 320px; overflow-y: auto; }
         #routing-result::-webkit-scrollbar { width: 3px; }
         #routing-result::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
-        .result-section-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-top: 1px solid var(--border-light);
-            padding-top: 10px;
-            margin-bottom: 8px;
-        }
-        .result-card {
-            background: #fff;
-            border: 1.5px solid var(--border-light);
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
-        }
-        .result-card-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 3px;
-        }
-        .result-card-dist {
-            font-size: 11px;
-            color: var(--cobli-indigo);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .btn-route {
-            width: 100%;
-            padding: 6px 10px;
-            background: var(--cobli-indigo);
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s;
-            font-family: inherit;
-        }
+        .result-section-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid var(--border-light); padding-top: 10px; margin-bottom: 8px; }
+        .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
+        .result-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+        .result-card-dist { font-size: 11px; color: var(--cobli-indigo); font-weight: 600; margin-bottom: 8px; }
+        .btn-route { width: 100%; padding: 6px 10px; background: var(--cobli-indigo); color: #fff; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
         .btn-route:hover { background: var(--cobli-blue); }
 
         /* ──────────── MAP ──────────── */
@@ -524,64 +250,16 @@
         #map { width: 100%; height: 100%; }
 
         /* ──────────── MODALS ──────────── */
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(7,7,78,0.55);
-            backdrop-filter: blur(3px);
-            z-index: 200;
-            justify-content: center;
-            align-items: center;
-        }
+        .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(7,7,78,0.55); backdrop-filter: blur(3px); z-index: 200; justify-content: center; align-items: center; }
         .modal-backdrop.open { display: flex; }
         .modal-backdrop[style*="flex"] { display: flex !important; }
-
-        .modal-box {
-            background: #fff;
-            border-radius: 12px;
-            width: 460px;
-            max-width: calc(100vw - 32px);
-            max-height: 88vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(7,7,78,0.22);
-            animation: modal-in 0.18s ease;
-        }
-        @keyframes modal-in {
-            from { opacity: 0; transform: scale(0.96) translateY(8px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
+        .modal-box { background: #fff; border-radius: 12px; width: 460px; max-width: calc(100vw - 32px); max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(7,7,78,0.22); animation: modal-in 0.18s ease; }
+        @keyframes modal-in { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-box.wide { width: 560px; }
-
-        .modal-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-light);
-        }
-        .modal-head h3 {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--cobli-navy);
-        }
-        .modal-close {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            background: var(--surface-muted);
-            border: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
-            color: var(--text-muted);
-            line-height: 1;
-            transition: background 0.12s;
-        }
+        .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
+        .modal-head h3 { font-size: 15px; font-weight: 600; color: var(--cobli-navy); }
+        .modal-close { width: 28px; height: 28px; border-radius: 6px; background: var(--surface-muted); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; color: var(--text-muted); line-height: 1; transition: background 0.12s; }
         .modal-close:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
-
         .modal-body { padding: 20px; }
 
         /* ──────────── INFOWINDOW (Google Maps) ──────────── */
@@ -589,207 +267,56 @@
         .gm-style-iw-d { overflow: hidden !important; }
         .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
         .gm-ui-hover-effect { top: 6px !important; right: 6px !important; opacity: 0.7 !important; }
-
         .iw-card { width: 270px; font-family: 'Inter','Segoe UI',sans-serif; }
-
-        .iw-head {
-            background: linear-gradient(135deg, #07074E 0%, #3248C6 100%);
-            padding: 14px 16px 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .iw-head.destination {
-            background: linear-gradient(135deg, #B01010 0%, #FF4633 100%);
-        }
-        .iw-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0;
-            letter-spacing: 0.5px;
-        }
+        .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 14px 16px 12px; display: flex; align-items: center; gap: 10px; }
+        .iw-head.destination { background: linear-gradient(135deg, #B01010 0%, #FF4633 100%); }
+        .iw-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; letter-spacing: 0.5px; }
         .iw-head-text { flex: 1; min-width: 0; }
-        .iw-head-text h4 {
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            line-height: 1.3;
-            margin: 0 0 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .iw-status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            color: #fff;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            padding: 2px 7px;
-        }
-        .iw-status-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #fff;
-            flex-shrink: 0;
-        }
-
+        .iw-head-text h4 { font-size: 13px; font-weight: 600; color: #fff; line-height: 1.3; margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .iw-status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 2px 7px; }
+        .iw-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; flex-shrink: 0; }
         .iw-body { padding: 12px 16px 14px; background: #fff; }
-        .iw-divider { height: 1px; background: #E2E5F0; margin: 8px 0; }
-
-        .iw-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 7px;
-            font-size: 12px;
-        }
+        .iw-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; font-size: 12px; }
         .iw-row:last-of-type { margin-bottom: 0; }
-        .iw-icon {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-            margin-top: 1px;
-            opacity: 0.45;
-        }
+        .iw-icon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; opacity: 0.45; }
         .iw-field { flex: 1; min-width: 0; }
-        .iw-field-label {
-            font-size: 10px;
-            font-weight: 600;
-            color: #9296B8;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            margin-bottom: 1px;
-        }
-        .iw-field-val {
-            color: #07074E;
-            font-weight: 500;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-        .iw-address-block {
-            margin-top: 4px;
-            padding: 8px 10px;
-            background: #F5F6FA;
-            border-radius: 6px;
-            font-size: 11px;
-            color: #4B4F7A;
-            line-height: 1.5;
-        }
+        .iw-field-label { font-size: 10px; font-weight: 600; color: #9296B8; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 1px; }
+        .iw-field-val { color: #07074E; font-weight: 500; line-height: 1.4; word-break: break-word; }
 
         /* Summary modal specifics */
-        .summary-modal-total {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--cobli-navy);
-            color: #fff;
-            padding: 14px 18px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
+        .summary-modal-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; }
         .summary-modal-total span:first-child { font-size: 13px; opacity: 0.8; }
         .summary-modal-total span:last-child { font-size: 26px; font-weight: 700; }
-
-        .summary-status-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        .summary-status-cell {
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            background: var(--surface-muted);
-        }
+        .summary-status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+        .summary-status-cell { border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; text-align: center; background: var(--surface-muted); }
         .summary-status-cell .val { font-size: 20px; font-weight: 700; display: block; }
         .summary-status-cell .lbl { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; display: block; }
-
-        .modal-subtitle {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-light);
-        }
-
+        .modal-subtitle { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-light); }
         .consultor-list { list-style: none; border: 1px solid var(--border-light); border-radius: 7px; overflow: hidden; }
-        .consultor-list li {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 12px;
-            font-size: 12px;
-            border-bottom: 1px solid var(--border-light);
-            color: var(--text-primary);
-            background: #fff;
-        }
+        .consultor-list li { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); background: #fff; }
         .consultor-list li:last-child { border-bottom: none; }
-        .consultor-list .count-badge {
-            background: var(--cobli-lavender);
-            color: var(--cobli-navy);
-            font-size: 11px;
-            font-weight: 700;
-            padding: 2px 9px;
-            border-radius: 10px;
-        }
+        .consultor-list .count-badge { background: var(--cobli-lavender); color: var(--cobli-navy); font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 10px; }
 
-        /* ──────────── FILE INPUT STYLE ──────────── */
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-        }
-        .file-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 12px;
-            border: 1.5px dashed var(--border-mid);
-            border-radius: 7px;
-            cursor: pointer;
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            transition: border-color 0.15s, background 0.15s;
-        }
+        /* ──────────── FILE INPUT ──────────── */
+        .file-input-wrapper { position: relative; overflow: hidden; }
+        .file-label { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1.5px dashed var(--border-mid); border-radius: 7px; cursor: pointer; font-size: 12px; color: var(--text-secondary); font-weight: 500; transition: border-color 0.15s, background 0.15s; }
         .file-label:hover { border-color: var(--cobli-violet); background: var(--cobli-lavender); color: var(--cobli-navy); }
-        .file-label input[type="file"] {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-
-        /* Error text */
-        .err-text { color: var(--cobli-red); font-size: 12px; }
-
-        /* Mapping form grid */
-        .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
+        .file-label input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     </style>
     <script src="base_prestadores.js"></script>
 </head>
 <body>
+
+<div id="login-overlay">
+    <div class="login-box">
+        <h2>Cobli Logística</h2>
+        <p>Digite seu e-mail corporativo para acessar a gestão de prestadores.</p>
+        <form onsubmit="handleLogin(event)">
+            <input type="email" id="login-email" placeholder="seu.email@cobli.com" required>
+            <button type="submit" class="btn btn-primary">Acessar Sistema</button>
+        </form>
+    </div>
+</div>
 
 <div id="sidebar">
     <div class="topbar">
@@ -808,7 +335,7 @@
                     <span class="section-number">1</span>
                     <span class="section-title">Lista de Prestadores</span>
                 </div>
-                <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="openModal('register-modal')">+ Novo</button>
+                <button class="btn btn-secondary admin-only" style="padding: 5px 10px; font-size: 11px;" onclick="openModal('register-modal')">+ Novo</button>
             </div>
             <div class="section-body">
                 <div class="search-row">
@@ -855,7 +382,7 @@
                 </div>
             </div>
             <div class="section-body">
-                <div class="dropdown-check-list">
+                <div id="dd-status-container" class="dropdown-check-list admin-only">
                     <div class="dropdown-anchor" onclick="toggleDropdown('status-items')">
                         <span id="status-anchor-label">Filtro de status</span>
                     </div>
@@ -883,16 +410,16 @@
             </div>
         </div>
 
-        <div class="section-card">
+        <div class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
                     <span class="section-number">4</span>
-                    <span class="section-title">Importar / Exportar Base</span>
+                    <span class="section-title">Importar / Exportar (Avançado)</span>
                 </div>
             </div>
             <div class="section-body">
                 <div class="form-row">
-                    <label>Nova carga (CSV/Excel)</label>
+                    <label>1. Carregar planilha (.CSV)</label>
                     <div class="file-input-wrapper">
                         <div id="file-label-display" class="file-label">
                             <span style="font-size: 16px;">📂</span>
@@ -905,8 +432,8 @@
                 <hr style="border:none; border-top:1px dashed var(--border-mid); margin: 15px 0;">
                 
                 <div class="form-row">
-                    <label>Salvar alterações no GitHub</label>
-                    <button class="btn btn-secondary btn-full" onclick="exportDataForGitHub()">📥 Exportar Base Atualizada (base_prestadores.js)</button>
+                    <label>2. Tornar alterações definitivas</label>
+                    <button class="btn btn-secondary btn-full" onclick="exportDataForGitHub()">📥 Exportar Base para o GitHub</button>
                 </div>
             </div>
         </div>
@@ -1002,13 +529,55 @@
     </div>
 </div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap&libraries=places,geometry&callback=initMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_AQUI&libraries=places,geometry&callback=initMap" async defer></script>
 
 <script>
     let map, markers = [], providersData = [], rawImportedData = [];
     let directionsService, directionsRenderer, geocoder;
     let clientMarker = null, infoWindowGlobal = null, clientInfoWindow = null;
     let currentSearchRange = 50;
+    
+    let userRole = null; 
+
+    /* ── DEFINIÇÃO DOS EMAILS DE ADMINISTRAÇÃO ── */
+    const ADMIN_EMAILS = [
+        'luiz.lackeski@cobli.com',
+        'gerente@cobli.com',
+        'admin@cobli.com'
+    ];
+
+    /* ── LÓGICA DE LOGIN (E-MAIL) ── */
+    function handleLogin(event) {
+        event.preventDefault();
+        const emailInput = document.getElementById('login-email').value.toLowerCase().trim();
+        
+        if (ADMIN_EMAILS.includes(emailInput)) {
+            userRole = 'admin';
+        } else {
+            userRole = 'common';
+        }
+        initSystem();
+    }
+
+    function initSystem() {
+        document.getElementById('login-overlay').style.display = 'none';
+        
+        if (userRole === 'common') {
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden-role'));
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        }
+
+        // CARREGA A BASE ESTÁTICA DO GITHUB
+        if(window.DATA_PRESTADORES_INICIAL && window.DATA_PRESTADORES_INICIAL.length > 0) {
+            providersData = window.DATA_PRESTADORES_INICIAL;
+            providersData.forEach(p => { if(p.lat && p.lng) createMarker(p); });
+            updateStatusFilter(); 
+            updateConsultantFilter(); 
+            applyFilters();
+        } else {
+            updateStatusFilter();
+        }
+    }
 
     /* ── UI HELPERS ── */
     function toggleDropdown(id) {
@@ -1039,14 +608,16 @@
     function formatStatus(raw) {
         if(!raw) return 'Ativo';
         let s = String(raw).trim(), l = s.toLowerCase();
+        
         if(l==='ativo') return 'Ativo';
         if(l==='inativo') return 'Inativo';
         if(l==='suspenso') return 'Suspenso';
-        if(l==='em credenciamento') return 'Em Credenciamento';
-        if(l==='descredenciado') return 'Descredenciado';
         if(l==='free lance'||l==='freelance') return 'Free Lance';
-        if(l.includes('confirmando inform')) return 'Conf. informações';
-        if(l.includes('aguardando assina')) return 'Ag. assinatura';
+        
+        if(l.includes('treinamento') || l.includes('fase final')) return 'Credenciado fase final';
+        if(l.includes('contrato solicitado') || l.includes('aguardando assina') || l.includes('confirmando inform') || l === 'em credenciamento') return 'Em credenciamento';
+        if(l==='descredenciado') return 'Descredenciado';
+        
         return s.charAt(0).toUpperCase()+s.slice(1).toLowerCase();
     }
 
@@ -1054,7 +625,8 @@
         const map = {
             'Ativo': '#00AE97',
             'Suspenso': '#7F8DDB',
-            'Em Credenciamento': '#001BB8',
+            'Em credenciamento': '#001BB8',
+            'Credenciado fase final': '#3248C6',
             'Descredenciado': '#FF4633',
             'Inativo': '#F01A1A',
             'Free Lance': '#3248C6'
@@ -1067,7 +639,7 @@
         const ul = document.getElementById('status-items');
         let statusSet = new Set();
         providersData.forEach(p => { if(p.status) statusSet.add(p.status.trim()); });
-        if(!statusSet.size) ['Ativo','Suspenso','Em Credenciamento','Descredenciado','Free Lance','Inativo'].forEach(s => statusSet.add(s));
+        if(!statusSet.size) ['Ativo','Inativo','Suspenso','Em credenciamento','Credenciado fase final','Descredenciado','Free Lance'].forEach(s => statusSet.add(s));
 
         ul.querySelectorAll('li').forEach(li => li.remove());
         Array.from(statusSet).sort().forEach(s => {
@@ -1080,7 +652,7 @@
         });
         document.getElementById('status-anchor-label').textContent = `Filtro de status (${statusSet.size})`;
 
-        const defaultStatuses = ['Ativo','Inativo','Suspenso','Em Credenciamento','Descredenciado','Free Lance'];
+        const defaultStatuses = ['Ativo','Inativo','Suspenso','Em credenciamento','Credenciado fase final','Descredenciado','Free Lance'];
         let allStatuses = new Set([...defaultStatuses, ...statusSet]);
         ['m-status','e-status'].forEach(id => {
             const sel = document.getElementById(id);
@@ -1118,20 +690,24 @@
     }
 
     function applyFilters() {
-        const selStatus = getCheckedValues('status-items');
+        let allowedStatuses = userRole === 'common' ? ['Ativo'] : getCheckedValues('status-items');
         const selConsultors = getCheckedValues('consultor-items');
+        
         let filteredList = [];
 
         markers.forEach(m => {
             let p = providersData.find(x => x.id === m.customId);
             if(!p) return;
-            let show = selStatus.includes(p.status) && (selConsultors.includes(p.consultorNorm) || p.consultorNorm === "SEM CONSULTOR");
+            let showStatus = allowedStatuses.includes(p.status);
+            let showConsultor = selConsultors.includes(p.consultorNorm) || p.consultorNorm === "SEM CONSULTOR";
+            
+            let show = showStatus && showConsultor;
             m.setMap(show ? map : null);
             if(show) filteredList.push(p);
         });
 
         updateDashboardSummary(filteredList);
-        renderProviderList();
+        renderProviderList(allowedStatuses); 
     }
 
     function updateDashboardSummary(filteredData) {
@@ -1177,17 +753,6 @@
                     `<span style="font-size: 16px;">✅</span><span style="color:var(--cobli-navy);font-weight:600;">${this.files[0].name}</span>`;
             }
         });
-
-        // 🟢 CHECA SE EXISTE BASE SALVA NO GITHUB (Arquivo base_prestadores.js)
-        if(window.DATA_PRESTADORES_INICIAL && window.DATA_PRESTADORES_INICIAL.length > 0) {
-            providersData = window.DATA_PRESTADORES_INICIAL;
-            providersData.forEach(p => { if(p.lat && p.lng) createMarker(p); });
-            updateStatusFilter(); 
-            updateConsultantFilter(); 
-            applyFilters();
-        } else {
-            updateStatusFilter();
-        }
     }
 
     function geocodeAddress(prestador) {
@@ -1279,9 +844,9 @@
     }
 
     /* ── PROVIDER LIST ── */
-    function renderProviderList() {
+    function renderProviderList(forcedStatuses = null) {
         const search = document.getElementById('search-provider').value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
-        const selStatus = getCheckedValues('status-items');
+        const selStatus = forcedStatuses ? forcedStatuses : getCheckedValues('status-items');
         const selConsultors = getCheckedValues('consultor-items');
         const list = document.getElementById('providers-list');
         list.innerHTML = "";
@@ -1300,11 +865,14 @@
             let col = getStatusColor(p.status);
             let li = document.createElement('li');
             li.className = 'provider-item';
+            
+            let btnEditHtml = userRole === 'admin' ? `<button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>` : '';
+
             li.innerHTML = `
                 <span class="provider-dot" style="background:${col};"></span>
                 <span class="provider-name" onclick="centerMapOnProvider(${p.id})" title="${p.nome}">${p.nome}</span>
                 <span class="provider-status-badge" style="background:${col}22;color:${col};">${p.status}</span>
-                <button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>`;
+                ${btnEditHtml}`;
             list.appendChild(li);
         });
     }
@@ -1314,51 +882,36 @@
         if(p && p.lat) { map.setCenter({lat:p.lat,lng:p.lng}); map.setZoom(15); openProviderInfoWindow(p.id); }
     }
 
-    /* ── EXPORTAÇÃO DA BASE PARA O GITHUB ── */
+    /* ── EXPORT DATA ── */
     function exportDataForGitHub() {
         if(providersData.length === 0) { 
-            alert("Não há prestadores carregados na base para exportar."); 
+            alert("Não há prestadores carregados para exportar."); 
             return; 
         }
-        
-        // Limpa a base para remover propriedades do Google Maps que quebram o JSON
         let cleanData = providersData.map(p => ({
-            id: p.id, 
-            nome: p.nome, 
-            consultor: p.consultor, 
-            consultorNorm: p.consultorNorm,
-            email: p.email, 
-            contato: p.contato, 
-            endereco: p.endereco, 
-            status: p.status, 
-            lat: p.lat, 
-            lng: p.lng
+            id: p.id, nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm,
+            email: p.email, contato: p.contato, endereco: p.endereco, status: p.status, lat: p.lat, lng: p.lng
         }));
 
-        // Cria a string JS exata que será lida no arquivo base_prestadores.js
         let fileContent = `// Base Oficial de Prestadores - Cobli\nwindow.DATA_PRESTADORES_INICIAL = ${JSON.stringify(cleanData, null, 2)};`;
-        
         let blob = new Blob([fileContent], { type: "text/javascript;charset=utf-8" });
         let link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = "base_prestadores.js";
         link.click();
         
-        alert("O arquivo 'base_prestadores.js' foi baixado no seu computador!\n\nAgora, vá no seu repositório do GitHub e faça o upload desse arquivo substituindo o antigo. Em poucos minutos a base do site será atualizada para todos.");
+        alert("O arquivo 'base_prestadores.js' foi baixado no seu computador!\n\nFaça o upload dele substituindo o antigo lá no seu repositório do GitHub.");
     }
 
     /* ── IMPORT ── */
     function fixStr(s) {
-        if(!s) return s;
-        let str = String(s);
+        if(!s) return s; let str = String(s);
         try { return decodeURIComponent(escape(str)); } catch(e) { return str; }
     }
 
     function handleFileImport(e) {
-        const files = e.target.files;
-        if(!files.length) return;
-        const file = files[0];
-        const isCsv = file.name.toLowerCase().endsWith('.csv');
+        const files = e.target.files; if(!files.length) return;
+        const file = files[0]; const isCsv = file.name.toLowerCase().endsWith('.csv');
         const reader = new FileReader();
 
         reader.onload = ev => {
@@ -1383,18 +936,13 @@
                     wb = XLSX.read(data, { type: 'array', codepage: 1252 });
                 }
                 processWorkbook(wb);
-            } catch(err) {
-                alert("Erro ao ler o arquivo: " + err.message);
-            }
+            } catch(err) { alert("Erro ao ler o arquivo: " + err.message); }
         };
-
-        if(isCsv) reader.readAsText(file, 'UTF-8');
-        else reader.readAsArrayBuffer(file);
+        if(isCsv) reader.readAsText(file, 'UTF-8'); else reader.readAsArrayBuffer(file);
     }
 
     function processWorkbook(wb) {
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        if(!ws) { alert("Erro ao ler a planilha."); return; }
+        const ws = wb.Sheets[wb.SheetNames[0]]; if(!ws) { alert("Erro ao ler a planilha."); return; }
         const headers = XLSX.utils.sheet_to_json(ws, {header:1})[0];
         rawImportedData = XLSX.utils.sheet_to_json(ws, {defval:""});
         if(headers && headers.length) { populateMappingDropdowns(headers); openModal('mapping-modal'); }
@@ -1433,15 +981,9 @@
             let nomeRaw   = cN ? fixStr(row[cN]) : "Sem Nome";
             let consultRaw = cC ? fixStr(row[cC]) : "";
             let p = {
-                id: index+1,
-                nome: nomeRaw || "Sem Nome",
-                consultor: consultRaw,
-                consultorNorm: normalizeStr(consultRaw),
-                email: cE ? fixStr(row[cE]) : "",
-                contato: cT ? fixStr(row[cT]) : "",
-                endereco: end,
-                status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
-                lat: null, lng: null
+                id: index+1, nome: nomeRaw || "Sem Nome", consultor: consultRaw, consultorNorm: normalizeStr(consultRaw),
+                email: cE ? fixStr(row[cE]) : "", contato: cT ? fixStr(row[cT]) : "", endereco: end,
+                status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"), lat: null, lng: null
             };
             providersData.push(p); geocodeAddress(p);
         });
@@ -1465,12 +1007,9 @@
     }
 
     function saveEditProvider(event) {
-        event.preventDefault();
-        const id = parseInt(document.getElementById('e-id').value);
-        const p = providersData.find(x => x.id===id);
+        event.preventDefault(); const id = parseInt(document.getElementById('e-id').value); const p = providersData.find(x => x.id===id);
         if(p) {
-            const oldEnd = p.endereco;
-            p.nome=document.getElementById('e-nome').value; p.consultor=document.getElementById('e-consultor').value;
+            const oldEnd = p.endereco; p.nome=document.getElementById('e-nome').value; p.consultor=document.getElementById('e-consultor').value;
             p.consultorNorm=normalizeStr(p.consultor); p.email=document.getElementById('e-email').value;
             p.contato=document.getElementById('e-contato').value; p.endereco=document.getElementById('e-endereco').value;
             p.status=formatStatus(document.getElementById('e-status').value);
@@ -1504,19 +1043,20 @@
                 clientMarker.addListener("click", () => { clientInfoWindow.setContent(destContent); clientInfoWindow.open({anchor:clientMarker,map,shouldFocus:false}); });
 
                 map.setCenter(loc); map.setZoom(10);
-                const selStatus = getCheckedValues('status-items');
+                
+                let allowedStatuses = userRole === 'common' ? ['Ativo'] : getCheckedValues('status-items');
                 const selConsultors = getCheckedValues('consultor-items');
                 let distances = [];
 
                 providersData.forEach(p => {
                     if(!p.lat||!p.lng) return;
-                    if(!selStatus.includes(p.status)) return;
+                    if(!allowedStatuses.includes(p.status)) return;
                     if(!selConsultors.includes(p.consultorNorm) && p.consultorNorm!=="SEM CONSULTOR") return;
                     let dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat,p.lng));
                     if(dist<=currentSearchRange*1000) distances.push({prestador:p,distance:dist});
                 });
 
-                if(!distances.length) { resultDiv.innerHTML=`<p class="err-text">Nenhum prestador neste raio.</p>`; return; }
+                if(!distances.length) { resultDiv.innerHTML=`<p class="err-text">Nenhum prestador neste raio com os filtros ativos.</p>`; return; }
                 distances.sort((a,b)=>a.distance-b.distance);
 
                 let html = `<p class="result-section-title">${distances.length} encontrado${distances.length!==1?'s':''}</p>`;
@@ -1547,9 +1087,9 @@
                 openProviderInfoWindow(pId);
                 if(clientMarker) {
                     const dc = `<div class="iw-card"><div class="iw-head destination"><h4>Destino solicitado</h4></div><div class="iw-body">
-                        <div class="iw-row"><span class="iw-label" style="color:#F01A1A;">Distância</span><span class="iw-val">${response.routes[0].legs[0].distance.text}</span></div>
-                        <div class="iw-row"><span class="iw-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-val">${response.routes[0].legs[0].duration.text}</span></div>
-                        <div class="iw-address"><strong>Endereço:</strong><br>${clientAddress}</div>
+                        <div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div>
+                        <div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div>
+                        <div class="iw-address-block"><strong>Endereço:</strong><br>${clientAddress}</div>
                     </div></div>`;
                     setTimeout(()=>{ clientInfoWindow.setContent(dc); clientInfoWindow.open({anchor:clientMarker,map,shouldFocus:false}); },200);
                 }
@@ -1572,8 +1112,11 @@
             document.getElementById('summary-content').innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:13px;">Nenhum prestador na base.</p>`;
             openModal('summary-modal'); return;
         }
+        
         let countStatus = {}, consultoresMap = new Map();
-        providersData.forEach(p => {
+        let dataToSummarize = userRole === 'common' ? providersData.filter(p => p.status === 'Ativo') : providersData;
+
+        dataToSummarize.forEach(p => {
             countStatus[p.status] = (countStatus[p.status]||0)+1;
             let norm = p.consultorNorm;
             if(!consultoresMap.has(norm)) consultoresMap.set(norm, {display: p.consultor.trim()||"Sem Consultor", count:0});
@@ -1590,7 +1133,7 @@
             .map(c => `<li><span>${c.display}</span><span class="count-badge">${c.count}</span></li>`).join('');
 
         document.getElementById('summary-content').innerHTML = `
-            <div class="summary-modal-total"><span>Total na base</span><span>${providersData.length}</span></div>
+            <div class="summary-modal-total"><span>Total exibido para seu perfil</span><span>${dataToSummarize.length}</span></div>
             <p class="modal-subtitle">Por status</p>
             <div class="summary-status-grid" style="margin-bottom:20px;">${statusHtml}</div>
             <p class="modal-subtitle">Por consultor</p>
@@ -1599,22 +1142,11 @@
     }
 
     /* ── MODAL UTILS ── */
-    function openModal(id) {
-        const el = document.getElementById(id);
-        el.style.display = 'flex';
-    }
-    function closeModal(id) {
-        const el = document.getElementById(id);
-        el.style.display = 'none';
-        el.classList.remove('open');
-    }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { const el=document.getElementById(id); el.style.display='none'; el.classList.remove('open'); }
     function clearAllMarkers() { markers.forEach(m=>m.setMap(null)); markers=[]; }
 
-    // Close modal on backdrop click
-    document.querySelectorAll('.modal-backdrop').forEach(m => {
-        m.addEventListener('click', e => { if(e.target === m) closeModal(m.id); });
-    });
-
+    document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if(e.target === m) closeModal(m.id); }); });
     document.getElementById('btn-summary').addEventListener('click', openSummaryModal);
 </script>
 </body>
