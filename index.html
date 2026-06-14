@@ -917,9 +917,8 @@
         </div>
     </div>
 
-    <div class="scroll-panel">
+<div class="scroll-panel">
 
-        <!-- SECTION 1: Lista -->
         <div id="bloco-1" class="section-card">
             <div class="section-header">
                 <div class="section-header-left">
@@ -939,7 +938,6 @@
             </div>
         </div>
 
-        <!-- SECTION 2: Buscar Técnicos -->
         <div id="bloco-2" class="section-card">
             <div class="section-header">
                 <div class="section-header-left">
@@ -966,7 +964,6 @@
             </div>
         </div>
 
-        <!-- SECTION 3: Filtros Dinâmicos -->
         <div id="bloco-3" class="section-card">
             <div class="section-header">
                 <div class="section-header-left">
@@ -976,13 +973,11 @@
             </div>
             <div class="section-body">
                 
-                <!-- Toggle Piloto -->
                 <div class="form-row" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="filter-piloto" onchange="applyFilters()" style="margin: 0; width: auto; transform: scale(1.2); cursor: pointer;">
                     <label for="filter-piloto" style="margin: 0; cursor: pointer; text-transform: none; color: var(--cobli-navy); font-size: 12px;">Mostrar <strong>apenas</strong> Prestadores Piloto ⭐</label>
                 </div>
 
-                <!-- Dropdown Status -->
                 <div id="dd-status-container" class="dropdown-check-list admin-only">
                     <div class="dropdown-anchor" onclick="toggleDropdown('status-items')">
                         <span id="status-anchor-label">Filtro de status</span>
@@ -995,7 +990,6 @@
                     </ul>
                 </div>
 
-                <!-- Dropdown Consultor -->
                 <div class="dropdown-check-list">
                     <div class="dropdown-anchor" onclick="toggleDropdown('consultor-items')">
                         <span id="consultor-anchor-label">Filtro por consultor</span>
@@ -1012,7 +1006,6 @@
             </div>
         </div>
 
-        <!-- SECTION 4: Transferência por Estado (Apenas Admin) -->
         <div id="bloco-4" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
@@ -1051,7 +1044,6 @@
             </div>
         </div>
 
-        <!-- SECTION 5: Substituição de Consultor Geral (Apenas Admin) -->
         <div id="bloco-5" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
@@ -1081,7 +1073,6 @@
             </div>
         </div>
 
-        <!-- SECTION 6: Importar Base (Apenas Admin - Movido pro final) -->
         <div id="bloco-6" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
@@ -1100,6 +1091,38 @@
                         <input type="file" id="file-upload" accept=".csv,.xlsx,.xls">
                     </div>
                 </div>
+                <div id="loading-indicator">Processando...</div>
+            </div>
+        </div>
+
+        <div id="bloco-7" class="section-card admin-only">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <span class="section-number">7</span>
+                    <span class="section-title">Gerenciar Acessos</span>
+                </div>
+                <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="loadUsersTable()">Atualizar Lista</button>
+            </div>
+            <div class="section-body">
+                <div class="table-wrap" style="max-height: 250px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>E-mail</th>
+                                <th>Perfil</th>
+                                <th style="text-align:center;">Pode Editar?</th>
+                                <th style="text-align:center;">Ver Credenc.?</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr><td colspan="4" style="text-align:center; padding:15px; color:var(--text-muted);">Clique em "Atualizar Lista" para carregar os usuários cadastrados.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
                 <div id="loading-indicator">Processando...</div>
             </div>
         </div>
@@ -1221,35 +1244,15 @@
     </div>
 </div>
 
-
-
 <script>
-    /* =========================================================================
+/* =========================================================================
        CONFIGURAÇÃO DO BANCO DE DADOS SUPABASE
        ========================================================================= */
-    const supabaseUrl = 'https://tmjmjrhgmyqamuphgdvi.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtam1qcmhnbXlxYW11cGhnZHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY4NzMsImV4cCI6MjA5MjcwMjg3M30.gjClWn46TOgfa-y4PAUMBg4ZxS4xhFjep1mk_DcU2QY';
+    const supabaseUrl = 'SUA CHAVE AQUI';
+    const supabaseKey = 'SUA CHAVE AQUI';
     const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-/* =========================================================================
-       JSON DE PERMISSÕES E VARIÁVEIS GERAIS
-       ========================================================================= */
-    // Você pode hospedar este JSON no Git e usar um fetch() depois, 
-    // mas deixá-lo aqui já resolve seu problema 100%
-    const PERMISSOES_USUARIOS = {
-        "luiz.lackeski@cobli.co": { perfil: "admin", editar: true, verCredenciamento: true, blocos: [1,2,3,4,5,6] },
-        "admin@cobli.com": { perfil: "admin", editar: true, verCredenciamento: true, blocos: [1,2,3,4,5,6] },
-        
-        // Exemplo: Pessoa que edita e vê credenciamento, mas só acessa os blocos 1, 2 e 3
-        "lider@cobli.com": { perfil: "comum", editar: true, verCredenciamento: true, blocos: [1,2,3] },
-        
-        // Exemplo: Pessoa que SÓ vê o mapa e pesquisa, não edita nem filtra nada
-        "pesquisa@cobli.com": { perfil: "comum", editar: false, verCredenciamento: false, blocos: [1,2] }
-    };
-
-    // Quem logar e não estiver na lista acima, cai nesta regra:
-    const PERMISSAO_PADRAO = { perfil: "comum", editar: false, verCredenciamento: false, blocos: [1,2,3] };
-
+    // Variáveis globais do sistema e do Mapa
     let map;
     let markers = [];
     let providersData = [];
@@ -1262,14 +1265,15 @@
     let clientInfoWindow = null;
     let currentSearchRange = 50;
     
-    let currentUser = null; // Guarda as permissões da pessoa logada
+    // Guarda as permissões da pessoa que está logada agora
+    let currentUser = null; 
 
     // Paleta de Cores Dinâmica para Consultores
     const PALETTE = ['#001BB8', '#00AE97', '#FF4633', '#7F8DDB', '#F01A1A', '#07074E', '#E455C6', '#228B22', '#D2691E'];
-    let consultantColors = {};
+    let consultantColors = {}; 
 
     /* =========================================================================
-       INICIALIZAÇÃO E SESSÃO
+       INICIALIZAÇÃO E SESSÃO (LOGIN VIA SUPABASE)
        ========================================================================= */
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), { 
@@ -1294,22 +1298,56 @@
             }
         });
 
-        const savedRole = localStorage.getItem('userRole');
-        if (savedRole) {
-            userRole = savedRole;
+        const savedConfig = localStorage.getItem('userConfig');
+        if (savedConfig) {
+            currentUser = JSON.parse(savedConfig);
             initSystem();
         }
     }
 
-function handleLogin(event) {
+    async function handleLogin(event) {
         event.preventDefault();
         const emailInput = document.getElementById('login-email').value.toLowerCase().trim();
         
-        // Puxa as regras do JSON ou aplica a padrão
-        const userConfig = PERMISSOES_USUARIOS[emailInput] || PERMISSAO_PADRAO;
-        
-        localStorage.setItem('userConfig', JSON.stringify(userConfig));
+        // 1. O botão vira "Carregando..."
+        const btnLogin = event.target.querySelector('button');
+        btnLogin.innerText = "Verificando acesso...";
+        btnLogin.disabled = true;
+
+        // 2. Procura o usuário no Supabase
+        let { data: userDb, error } = await _supabase.from('usuarios').select('*').eq('email', emailInput).single();
+
+        // 3. Se não achou (é a primeira vez que loga), cadastra automático como "comum"
+        if (!userDb) {
+            const newUser = {
+                email: emailInput,
+                perfil: 'comum',
+                pode_editar: false,
+                ver_cred: false,
+                blocos: '1,2,3'
+            };
+            
+            // Lógica de segurança: Se for o SEU email, já entra como admin de cara pra você não ficar trancado de fora do próprio sistema
+            if (emailInput.includes('luiz.lackeski') || emailInput.includes('admin@cobli')) {
+                newUser.perfil = 'admin';
+                newUser.pode_editar = true;
+                newUser.ver_cred = true;
+                newUser.blocos = '1,2,3,4,5,6,7';
+            }
+
+            await _supabase.from('usuarios').insert([newUser]);
+            userDb = newUser;
+        }
+
+        // 4. Salva no navegador e entra
+        localStorage.setItem('userConfig', JSON.stringify(userDb));
         localStorage.setItem('userEmail', emailInput);
+        
+        // Devolve o texto do botão caso a pessoa deslogue depois
+        btnLogin.innerText = "Acessar Sistema";
+        btnLogin.disabled = false;
+        
+        currentUser = userDb;
         initSystem();
     }
 
@@ -1321,29 +1359,23 @@ function handleLogin(event) {
 
     function initSystem() {
         document.getElementById('login-overlay').style.display = 'none';
-        
-        const savedConfig = localStorage.getItem('userConfig');
-        if (savedConfig) {
-            currentUser = JSON.parse(savedConfig);
-        } else {
-            currentUser = PERMISSAO_PADRAO;
-        }
 
-        // Esconde áreas de admin se não for admin
+        // Lógica de perfil Comum vs Admin
         if (currentUser.perfil === 'comum') {
             document.body.classList.add('is-common');
+            
             // Oculta o botão "+ Novo" na lista se a pessoa não puder editar
             const btnNovo = document.querySelector('#bloco-1 .btn-secondary');
-            if (btnNovo) btnNovo.style.display = currentUser.editar ? 'inline-flex' : 'none';
+            if (btnNovo) btnNovo.style.display = currentUser.pode_editar ? 'inline-flex' : 'none';
         } else {
             document.body.classList.remove('is-common');
         }
 
-        // Lógica dos Blocos: Mostra ou esconde de acordo com a lista no JSON
-        for(let i = 1; i <= 6; i++) {
+        // Lógica dos Blocos: Mostra ou esconde de acordo com a numeração na coluna 'blocos' do banco
+        for(let i = 1; i <= 7; i++) {
             const bloco = document.getElementById(`bloco-${i}`);
             if (bloco) {
-                if (currentUser.blocos.includes(i) || currentUser.perfil === 'admin') {
+                if ((currentUser.blocos && currentUser.blocos.includes(i.toString())) || currentUser.perfil === 'admin') {
                     bloco.style.display = 'block';
                 } else {
                     bloco.style.display = 'none';
