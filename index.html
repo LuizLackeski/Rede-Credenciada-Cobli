@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rede de Prestadores — Cobli</title>
     
+    <!-- Bibliotecas Externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -859,6 +860,7 @@
 </head>
 <body>
 
+<!-- ──────────────────────────── LOGIN OVERLAY ──────────────────────────── -->
 <div id="login-overlay">
     <div class="login-box">
         <h2>Cobli Logística</h2>
@@ -870,6 +872,7 @@
     </div>
 </div>
 
+<!-- ──────────────────────────── SIDEBAR E MENUS ──────────────────────────── -->
 <div id="sidebar">
     <div class="topbar">
         <div class="topbar-brand">
@@ -884,6 +887,7 @@
 
     <div class="scroll-panel">
 
+        <!-- SECTION 1: Lista -->
         <div class="section-card">
             <div class="section-header">
                 <div class="section-header-left">
@@ -903,6 +907,7 @@
             </div>
         </div>
 
+        <!-- SECTION 2: Buscar Técnicos -->
         <div class="section-card">
             <div class="section-header">
                 <div class="section-header-left">
@@ -929,6 +934,7 @@
             </div>
         </div>
 
+        <!-- SECTION 3: Filtros Dinâmicos -->
         <div class="section-card">
             <div class="section-header">
                 <div class="section-header-left">
@@ -938,11 +944,13 @@
             </div>
             <div class="section-body">
                 
+                <!-- Toggle Piloto -->
                 <div class="form-row" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="filter-piloto" onchange="applyFilters()" style="margin: 0; width: auto; transform: scale(1.2); cursor: pointer;">
                     <label for="filter-piloto" style="margin: 0; cursor: pointer; text-transform: none; color: var(--cobli-navy); font-size: 12px;">Mostrar <strong>apenas</strong> Prestadores Piloto ⭐</label>
                 </div>
 
+                <!-- Dropdown Status (Visível para Admin. Usuário Comum só vê "Ativo" e a flag de piloto) -->
                 <div id="dd-status-container" class="dropdown-check-list admin-only">
                     <div class="dropdown-anchor" onclick="toggleDropdown('status-items')">
                         <span id="status-anchor-label">Filtro de status</span>
@@ -955,6 +963,7 @@
                     </ul>
                 </div>
 
+                <!-- Dropdown Consultor -->
                 <div class="dropdown-check-list">
                     <div class="dropdown-anchor" onclick="toggleDropdown('consultor-items')">
                         <span id="consultor-anchor-label">Filtro por consultor</span>
@@ -971,6 +980,7 @@
             </div>
         </div>
 
+        <!-- SECTION 4: Importar Base (Apenas Admin) -->
         <div class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
@@ -989,10 +999,12 @@
                         <input type="file" id="file-upload" accept=".csv,.xlsx,.xls">
                     </div>
                 </div>
+                <!-- Indicador de processamento (Muito importante para evitar travamentos) -->
                 <div id="loading-indicator">Processando...</div>
             </div>
         </div>
 
+        <!-- SECTION 5: Transferência de Carteira (Em Lote) - Apenas Admin -->
         <div class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
@@ -1002,9 +1014,9 @@
             </div>
             <div class="section-body">
                 <div class="form-row">
-                    <label>UF (Estado)</label>
+                    <label>UF da Carteira (Estado) *</label>
                     <select id="bulk-uf">
-                        <option value="">-- Todos os estados --</option>
+                        <option value="">-- Selecione o estado --</option>
                         <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
                         <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
                         <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
@@ -1017,13 +1029,7 @@
                     </select>
                 </div>
                 <div class="form-row">
-                    <label>Consultor Atual *</label>
-                    <select id="bulk-old-consultant">
-                        <option value="">-- Aguardando base --</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <label>Novo Consultor *</label>
+                    <label>Atribuir ao Consultor *</label>
                     <div style="display: flex; gap: 8px;">
                         <select id="bulk-new-consultant-select" style="flex: 1;">
                             <option value="">-- Aguardando base --</option>
@@ -1040,10 +1046,14 @@
     </div>
 </div>
 
+<!-- ──────────────────────────── MAPA ──────────────────────────── -->
 <div id="map-container">
     <div id="map"></div>
 </div>
 
+<!-- ──────────────────────────── MODAIS DO SISTEMA ──────────────────────────── -->
+
+<!-- Modal Resumo -->
 <div id="summary-modal" class="modal-backdrop">
     <div class="modal-box wide">
         <div class="modal-head">
@@ -1054,6 +1064,7 @@
     </div>
 </div>
 
+<!-- Modal Mapeamento de Planilha -->
 <div id="mapping-modal" class="modal-backdrop">
     <div class="modal-box">
         <div class="modal-head">
@@ -1082,6 +1093,7 @@
     </div>
 </div>
 
+<!-- Modal Novo Prestador -->
 <div id="register-modal" class="modal-backdrop">
     <div class="modal-box">
         <div class="modal-head">
@@ -1097,6 +1109,7 @@
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="m-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="m-status" required></select></div>
                 
+                <!-- Flag Piloto Cadastro -->
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="m-piloto" style="margin: 0; width: auto; transform: scale(1.2);">
                     <label for="m-piloto" style="margin: 0; color: var(--cobli-navy); font-size: 12px; text-transform: none;">⭐ Prestador Piloto (Casos Críticos)</label>
@@ -1111,6 +1124,7 @@
     </div>
 </div>
 
+<!-- Modal Editar Prestador -->
 <div id="edit-modal" class="modal-backdrop">
     <div class="modal-box">
         <div class="modal-head">
@@ -1127,6 +1141,7 @@
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="e-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="e-status" required></select></div>
                 
+                <!-- Flag Piloto Edição -->
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="e-piloto" style="margin: 0; width: auto; transform: scale(1.2);">
                     <label for="e-piloto" style="margin: 0; color: var(--cobli-navy); font-size: 12px; text-transform: none;">⭐ Prestador Piloto (Casos Críticos)</label>
@@ -1141,14 +1156,15 @@
     </div>
 </div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap" async defer></script>
+<!-- ──────────────────────────── SCRIPTS PRINCIPAIS ──────────────────────────── -->
+<script src="https://maps.googleapis.com/maps/api/js?key=SUA CHAVE AQUI&libraries=places,geometry&callback=initMap" async defer></script>
 
 <script>
     /* =========================================================================
        CONFIGURAÇÃO DO BANCO DE DADOS SUPABASE
        ========================================================================= */
-    const supabaseUrl = 'https://tmjmjrhgmyqamuphgdvi.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtam1qcmhnbXlxYW11cGhnZHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY4NzMsImV4cCI6MjA5MjcwMjg3M30.gjClWn46TOgfa-y4PAUMBg4ZxS4xhFjep1mk_DcU2QY';
+    const supabaseUrl = 'SUA CHAVE AQUI';
+    const supabaseKey = 'SUA CHAVE AQUI';
     const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     /* ── LISTA DE E-MAILS AUTORIZADOS (ADMINS) ── */
@@ -1200,7 +1216,6 @@
             }
         });
 
-        // Verifica a sessão salva no navegador
         const savedRole = localStorage.getItem('userRole');
         if (savedRole) {
             userRole = savedRole;
@@ -1298,7 +1313,6 @@
         applyFilters(); 
     }
 
-    // Função de limpeza chama o applyFilters para reavaliar todos os checkboxes do Admin
     function clearSearchName() { 
         document.getElementById('search-provider').value = ''; 
         applyFilters(); 
@@ -1418,7 +1432,7 @@
         
         providersData.forEach(p => {
             let norm = p.consultorNorm;
-            if (!consultoresMap.has(norm) && p.consultor.trim()) {
+            if (!consultoresMap.has(norm) && p.consultor && p.consultor.trim() !== '') {
                 consultoresMap.set(norm, p.consultor.trim());
             }
         });
@@ -1446,7 +1460,6 @@
     }
 
     function applyFilters() {
-        // Usuário comum tem a trava de exibir SÓ os ativos. Admin usa os checkboxes.
         let allowedStatuses = userRole === 'common' ? ['Ativo'] : getCheckedValues('status-items');
         const selConsultors = getCheckedValues('consultor-items');
         const showOnlyPiloto = document.getElementById('filter-piloto').checked;
@@ -1463,7 +1476,6 @@
             let showConsultor = selConsultors.includes(p.consultorNorm) || p.consultorNorm === "SEM CONSULTOR";
             let showPiloto = showOnlyPiloto ? p.piloto === true : true; 
             
-            // Centralizamos todas as validações (Incluindo a busca do Admin que estava falhando antes)
             let show = matchName && showStatus && showConsultor && showPiloto;
             
             m.setMap(show ? map : null);
@@ -1553,7 +1565,6 @@
     function createMarker(prestador) {
         let color = getStatusColor(prestador.status);
         
-        // Altera as bordas do pino se for piloto
         let sColor = prestador.piloto ? '#FFD700' : '#ffffff';
         let sWeight = prestador.piloto ? 3.5 : 1.5;
         let pScale = prestador.piloto ? 1.7 : 1.5; 
@@ -1671,21 +1682,20 @@
        TRANSFERÊNCIA DE CARTEIRA (EM LOTE)
        ========================================================================= */
     function populateBulkConsultants() {
-        const selOld = document.getElementById('bulk-old-consultant');
         const selNew = document.getElementById('bulk-new-consultant-select');
-        if (!selOld || !selNew) return;
+        if (!selNew) return;
         
-        let consultoresSet = new Set();
+        let consultoresMap = new Map();
         providersData.forEach(p => {
-            if (p.consultor && p.consultor.trim() !== '') {
-                consultoresSet.add(p.consultor.trim());
+            let norm = p.consultorNorm;
+            if (!consultoresMap.has(norm) && p.consultor && p.consultor.trim() !== '') {
+                consultoresMap.set(norm, p.consultor.trim());
             }
         });
         
         const optsHtml = '<option value="">-- Selecione o consultor --</option>' + 
-            Array.from(consultoresSet).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+            Array.from(consultoresMap.values()).sort().map(c => `<option value="${c}">${c}</option>`).join('');
 
-        selOld.innerHTML = optsHtml;
         selNew.innerHTML = optsHtml;
     }
 
@@ -1705,34 +1715,33 @@
 
     async function executeBulkUpdate() {
         const uf = document.getElementById('bulk-uf').value;
-        const oldConsultant = document.getElementById('bulk-old-consultant').value;
         const selectNew = document.getElementById('bulk-new-consultant-select');
         const inputNew = document.getElementById('bulk-new-consultant-input');
         
         let newConsultant = selectNew.disabled ? inputNew.value.trim() : selectNew.value;
 
-        if (!oldConsultant || !newConsultant) {
-            alert("Por favor, selecione o consultor atual e o novo consultor.");
+        if (!uf) {
+            alert("Por favor, selecione a UF (Estado) da carteira que deseja transferir.");
             return;
         }
 
-        // Filtra os prestadores do consultor
+        if (!newConsultant) {
+            alert("Por favor, selecione ou digite o nome do consultor que irá assumir a carteira.");
+            return;
+        }
+
+        // Filtra os prestadores apenas pela UF (checando o final do endereço ou tags comuns do estado)
         let toUpdate = providersData.filter(p => {
-            let matchConsultant = p.consultor.trim() === oldConsultant;
-            let matchUf = true;
-            if (uf) {
-                // Tenta achar a sigla do estado no endereço final
-                matchUf = p.endereco.toUpperCase().includes(`- ${uf}`);
-            }
-            return matchConsultant && matchUf;
+            let endUpper = p.endereco.toUpperCase();
+            return endUpper.includes(`- ${uf}`) || endUpper.includes(` ${uf} `) || endUpper.includes(` ${uf}(`) || endUpper.endsWith(uf);
         });
 
         if (toUpdate.length === 0) {
-            alert("Nenhum prestador encontrado com esses critérios na base.");
+            alert(`Nenhum prestador encontrado para o estado de ${uf}.`);
             return;
         }
 
-        if (!confirm(`Você está prestes a transferir a carteira de ${toUpdate.length} prestador(es) para "${newConsultant}". Confirma essa ação?`)) {
+        if (!confirm(`Você está prestes a transferir a carteira de ${toUpdate.length} prestador(es) do estado de ${uf} para "${newConsultant}". Confirma essa ação?`)) {
             return;
         }
 
@@ -1752,11 +1761,12 @@
             alert("Erro ao transferir carteira no banco de dados: " + error.message);
             console.error(error);
         } else {
-            alert(`Sucesso! Carteira de ${toUpdate.length} prestador(es) foi transferida para ${newConsultant}.`);
+            alert(`Sucesso! Carteira de ${toUpdate.length} prestador(es) em ${uf} foi transferida para ${newConsultant}.`);
             
             // Limpa os campos da tela de transferência
             selectNew.value = '';
             inputNew.value = '';
+            document.getElementById('bulk-uf').value = '';
             if (selectNew.disabled) toggleNewConsultant(); // Volta o botão novo para o padrão
             
             clearAllMarkers();
