@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rede de Prestadores — Cobli</title>
     
-    <!-- Bibliotecas Externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -703,7 +702,7 @@
 
         .btn-route:hover { background: var(--cobli-blue); }
 
-    /* =====================================================================
+        /* =====================================================================
            MAPA E LEGENDAS
            ===================================================================== */
         #map-container { flex: 1; position: relative; }
@@ -892,7 +891,6 @@
 </head>
 <body>
 
-<!-- ──────────────────────────── LOGIN OVERLAY ──────────────────────────── -->
 <div id="login-overlay">
     <div class="login-box">
         <h2>Cobli Logística</h2>
@@ -904,7 +902,6 @@
     </div>
 </div>
 
-<!-- ──────────────────────────── SIDEBAR E MENUS ──────────────────────────── -->
 <div id="sidebar">
     <div class="topbar">
         <div class="topbar-brand">
@@ -917,7 +914,7 @@
         </div>
     </div>
 
-<div class="scroll-panel">
+    <div class="scroll-panel">
 
         <div id="bloco-1" class="section-card">
             <div class="section-header">
@@ -1123,14 +1120,8 @@
         </div>
 
     </div>
-                <div id="loading-indicator">Processando...</div>
-            </div>
-        </div>
-
-    </div>
 </div>
 
-<!-- ──────────────────────────── MAPA ──────────────────────────── -->
 <div id="map-container">
     <div id="map"></div>
     <div class="map-legend" id="map-legend-box" style="display:none;">
@@ -1139,9 +1130,6 @@
     </div>
 </div>
 
-<!-- ──────────────────────────── MODAIS DO SISTEMA ──────────────────────────── -->
-
-<!-- Modal Resumo -->
 <div id="summary-modal" class="modal-backdrop">
     <div class="modal-box wide">
         <div class="modal-head">
@@ -1152,7 +1140,6 @@
     </div>
 </div>
 
-<!-- Modal Mapeamento de Planilha -->
 <div id="mapping-modal" class="modal-backdrop">
     <div class="modal-box">
         <div class="modal-head">
@@ -1181,7 +1168,6 @@
     </div>
 </div>
 
-<!-- Modal Novo Prestador -->
 <div id="register-modal" class="modal-backdrop">
     <div class="modal-box">
         <div class="modal-head">
@@ -1197,7 +1183,6 @@
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="m-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="m-status" required></select></div>
                 
-                <!-- Flag Piloto Cadastro -->
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="m-piloto" style="margin: 0; width: auto; transform: scale(1.2);">
                     <label for="m-piloto" style="margin: 0; color: var(--cobli-navy); font-size: 12px; text-transform: none;">⭐ Prestador Piloto (Casos Críticos)</label>
@@ -1212,7 +1197,6 @@
     </div>
 </div>
 
-<!-- Modal Editar Prestador -->
 <div id="edit-modal" class="modal-backdrop">
     <div class="modal-box">
         <div class="modal-head">
@@ -1229,7 +1213,6 @@
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="e-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="e-status" required></select></div>
                 
-                <!-- Flag Piloto Edição -->
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="e-piloto" style="margin: 0; width: auto; transform: scale(1.2);">
                     <label for="e-piloto" style="margin: 0; color: var(--cobli-navy); font-size: 12px; text-transform: none;">⭐ Prestador Piloto (Casos Críticos)</label>
@@ -1245,14 +1228,13 @@
 </div>
 
 <script>
-/* =========================================================================
-       CONFIGURAÇÃO DO BANCO DE DADOS SUPABASE
+    /* =========================================================================
+       CONFIGURAÇÃO DO BANCO DE DADOS SUPABASE E VARIÁVEIS GLOBAIS
        ========================================================================= */
     const supabaseUrl = 'https://tmjmjrhgmyqamuphgdvi.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtam1qcmhnbXlxYW11cGhnZHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY4NzMsImV4cCI6MjA5MjcwMjg3M30.gjClWn46TOgfa-y4PAUMBg4ZxS4xhFjep1mk_DcU2QY';
     const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Variáveis globais do sistema e do Mapa
     let map;
     let markers = [];
     let providersData = [];
@@ -1265,7 +1247,7 @@
     let clientInfoWindow = null;
     let currentSearchRange = 50;
     
-    // Guarda as permissões da pessoa que está logada agora
+    // Guarda as permissões da pessoa logada
     let currentUser = null; 
 
     // Paleta de Cores Dinâmica para Consultores
@@ -1291,12 +1273,14 @@
         clientInfoWindow = new google.maps.InfoWindow();
         
         const fileInput = document.getElementById('file-upload');
-        fileInput.addEventListener('change', handleFileImport, false);
-        fileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                document.getElementById('file-label-display').innerHTML = `<span>✅</span><span style="color:var(--cobli-navy);font-weight:600;">${this.files[0].name}</span>`;
-            }
-        });
+        if(fileInput) {
+            fileInput.addEventListener('change', handleFileImport, false);
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    document.getElementById('file-label-display').innerHTML = `<span>✅</span><span style="color:var(--cobli-navy);font-weight:600;">${this.files[0].name}</span>`;
+                }
+            });
+        }
 
         const savedConfig = localStorage.getItem('userConfig');
         if (savedConfig) {
@@ -1309,15 +1293,14 @@
         event.preventDefault();
         const emailInput = document.getElementById('login-email').value.toLowerCase().trim();
         
-        // 1. O botão vira "Carregando..."
         const btnLogin = event.target.querySelector('button');
-        btnLogin.innerText = "Verificando acesso...";
-        btnLogin.disabled = true;
+        if(btnLogin){
+            btnLogin.innerText = "Verificando acesso...";
+            btnLogin.disabled = true;
+        }
 
-        // 2. Procura o usuário no Supabase
         let { data: userDb, error } = await _supabase.from('usuarios').select('*').eq('email', emailInput).single();
 
-        // 3. Se não achou (é a primeira vez que loga), cadastra automático como "comum"
         if (!userDb) {
             const newUser = {
                 email: emailInput,
@@ -1327,8 +1310,8 @@
                 blocos: '1,2,3'
             };
             
-            // Lógica de segurança: Se for o SEU email, já entra como admin de cara pra você não ficar trancado de fora do próprio sistema
-            if (emailInput.includes('luiz.lackeski') || emailInput.includes('admin@cobli')) {
+            // Administradores nativos
+            if (emailInput.includes('luiz.lackeski') || emailInput.includes('admin@cobli') || emailInput.includes('gerente@cobli')) {
                 newUser.perfil = 'admin';
                 newUser.pode_editar = true;
                 newUser.ver_cred = true;
@@ -1339,13 +1322,13 @@
             userDb = newUser;
         }
 
-        // 4. Salva no navegador e entra
         localStorage.setItem('userConfig', JSON.stringify(userDb));
         localStorage.setItem('userEmail', emailInput);
         
-        // Devolve o texto do botão caso a pessoa deslogue depois
-        btnLogin.innerText = "Acessar Sistema";
-        btnLogin.disabled = false;
+        if(btnLogin){
+            btnLogin.innerText = "Acessar Sistema";
+            btnLogin.disabled = false;
+        }
         
         currentUser = userDb;
         initSystem();
@@ -1358,20 +1341,18 @@
     }
 
     function initSystem() {
-        document.getElementById('login-overlay').style.display = 'none';
+        const loginOverlay = document.getElementById('login-overlay');
+        if(loginOverlay) loginOverlay.style.display = 'none';
 
-        // Lógica de perfil Comum vs Admin
         if (currentUser.perfil === 'comum') {
             document.body.classList.add('is-common');
-            
-            // Oculta o botão "+ Novo" na lista se a pessoa não puder editar
             const btnNovo = document.querySelector('#bloco-1 .btn-secondary');
             if (btnNovo) btnNovo.style.display = currentUser.pode_editar ? 'inline-flex' : 'none';
         } else {
             document.body.classList.remove('is-common');
         }
 
-        // Lógica dos Blocos: Mostra ou esconde de acordo com a numeração na coluna 'blocos' do banco
+        // Exibe ou oculta blocos de acordo com a base de dados
         for(let i = 1; i <= 7; i++) {
             const bloco = document.getElementById(`bloco-${i}`);
             if (bloco) {
@@ -1391,7 +1372,7 @@
        ========================================================================= */
     async function loadDataFromSupabase() {
         const listElement = document.getElementById('providers-list');
-        listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Carregando banco de dados...</div></li>';
+        if(listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Carregando banco de dados...</div></li>';
         
         const { data, error } = await _supabase.from('prestadores').select('*');
         
@@ -1404,10 +1385,8 @@
         if (data && data.length > 0) {
             providersData = data;
             
-            // 1. Define as cores dos consultores primeiro
             generateConsultantColors(providersData);
             
-            // 2. Só depois cria os marcadores para que já puxem a cor certa
             providersData.forEach(p => { 
                 if (p.lat && p.lng) {
                     createMarker(p);
@@ -1419,13 +1398,13 @@
             populateBulkConsultants();
             applyFilters();
         } else {
-            listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Banco de dados vazio. Importe uma planilha.</div></li>';
+            if(listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Banco de dados vazio. Importe uma planilha.</div></li>';
             updateStatusFilter();
         }
     }
 
     /* =========================================================================
-       GERENCIAMENTO DE CORES DOS CONSULTORES
+       GERENCIAMENTO DE CORES DOS CONSULTORES E LEGENDA DO MAPA
        ========================================================================= */
     function generateConsultantColors(data) {
         consultantColors = {};
@@ -1450,6 +1429,8 @@
         const legendBox = document.getElementById('map-legend-box');
         const legendContent = document.getElementById('legend-content');
         
+        if (!legendBox || !legendContent) return;
+
         if(Object.keys(consultantColors).length === 0) {
             legendBox.style.display = 'none';
             return;
@@ -1458,7 +1439,6 @@
         legendBox.style.display = 'block';
         let html = '';
         
-        // Pega os consultores reais (display name) a partir da base
         let uniqueConsultants = {};
         providersData.forEach(p => {
             let norm = p.consultorNorm || "SEM CONSULTOR";
@@ -1480,6 +1460,7 @@
        ========================================================================= */
     function toggleDropdown(id) {
         const el = document.getElementById(id);
+        if(!el) return;
         document.querySelectorAll('.dropdown-items').forEach(i => { 
             if(i.id !== id) i.classList.remove('visible'); 
         });
@@ -1497,15 +1478,20 @@
     }
 
     function clearSearchName() { 
-        document.getElementById('search-provider').value = ''; 
+        const searchInput = document.getElementById('search-provider');
+        if(searchInput) searchInput.value = ''; 
         applyFilters(); 
     }
 
     function setRange(val, btn) {
         currentSearchRange = val;
         document.querySelectorAll('.btn-range').forEach(b => { b.classList.remove('active'); });
-        btn.classList.add('active');
-        if (document.getElementById('client-address').value.trim()) findClosestProviders();
+        if(btn) btn.classList.add('active');
+        
+        const addressInput = document.getElementById('client-address');
+        if (addressInput && addressInput.value.trim()) {
+            findClosestProviders();
+        }
     }
 
     document.addEventListener('click', e => {
@@ -1544,7 +1530,7 @@
             'Inativo': '#F01A1A', 
             'Free Lance': '#3248C6' 
         };
-        return map[status] || '#9296B8'; // Neutro para status
+        return map[status] || '#9296B8';
     }
 
     /* =========================================================================
@@ -1552,8 +1538,9 @@
        ========================================================================= */
     function updateStatusFilter() {
         const ul = document.getElementById('status-items');
+        if(!ul) return;
+
         let statusSet = new Set();
-        
         providersData.forEach(p => { 
             if (p.status) statusSet.add(p.status.trim());
         });
@@ -1565,7 +1552,6 @@
         ul.querySelectorAll('li').forEach(li => li.remove());
         
         Array.from(statusSet).sort().forEach(s => {
-            // O filtro de status continua com as cores tradicionais para facilitar a leitura visual do texto
             let col = getStatusColor(s); 
             let li = document.createElement('li');
             li.innerHTML = `
@@ -1576,7 +1562,8 @@
             ul.appendChild(li);
         });
         
-        document.getElementById('status-anchor-label').textContent = `Filtro de status (${statusSet.size})`;
+        const anchorLabel = document.getElementById('status-anchor-label');
+        if(anchorLabel) anchorLabel.textContent = `Filtro de status (${statusSet.size})`;
 
         const defaultStatuses = ['Ativo','Inativo','Suspenso','Em credenciamento','Credenciado fase final','Descredenciado','Free Lance'];
         let allStatuses = new Set([...defaultStatuses, ...statusSet]);
@@ -1597,8 +1584,9 @@
 
     function updateConsultantFilter() {
         const ul = document.getElementById('consultor-items');
+        if(!ul) return;
+
         let consultoresMap = new Map();
-        
         providersData.forEach(p => {
             let norm = p.consultorNorm || "SEM CONSULTOR";
             if (!consultoresMap.has(norm)) {
@@ -1619,7 +1607,8 @@
             ul.appendChild(li);
         });
         
-        document.getElementById('consultor-anchor-label').textContent = `Filtro por consultor (${consultoresMap.size})`;
+        const anchorLabel = document.getElementById('consultor-anchor-label');
+        if(anchorLabel) anchorLabel.textContent = `Filtro por consultor (${consultoresMap.size})`;
     }
 
     function getCheckedValues(id) {
@@ -1628,21 +1617,24 @@
         return vals;
     }
 
-function applyFilters() {
-        // Se for admin, pega dos checkboxes. Se for comum, valida o JSON de credenciamento
+    function applyFilters() {
         let allowedStatuses = [];
         if (currentUser.perfil === 'admin') {
             allowedStatuses = getCheckedValues('status-items');
         } else {
             allowedStatuses = ['Ativo'];
-            if (currentUser.verCredenciamento) {
+            if (currentUser.ver_cred) {
                 allowedStatuses.push('Em credenciamento', 'Credenciado fase final');
             }
         }
 
         const selConsultors = getCheckedValues('consultor-items');
-        const showOnlyPiloto = document.getElementById('filter-piloto').checked;
-        const searchText = document.getElementById('search-provider').value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+        
+        const togglePiloto = document.getElementById('filter-piloto');
+        const showOnlyPiloto = togglePiloto ? togglePiloto.checked : false;
+        
+        const searchInput = document.getElementById('search-provider');
+        const searchText = searchInput ? searchInput.value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase() : '';
         
         let filteredList = [];
         
@@ -1668,8 +1660,41 @@ function applyFilters() {
         renderFilteredList(filteredList); 
     }
 
+    function updateDashboardSummary(filteredData) {
+        const box = document.getElementById('dashboard-summary');
+        if(!box) return;
+
+        let counts = {};
+        filteredData.forEach(p => { 
+            if(p.status) counts[p.status] = (counts[p.status] || 0) + 1; 
+        });
+
+        let html = `
+            <div class="summary-total">
+                <span class="summary-total-label">Total exibido</span>
+                <span class="summary-total-value">${filteredData.length}</span>
+            </div>
+            <div class="summary-grid">
+        `;
+        
+        Object.keys(counts).sort().forEach(status => {
+            let col = getStatusColor(status);
+            html += `
+                <div class="summary-cell">
+                    <span class="summary-cell-val" style="color:${col};">${counts[status]}</span>
+                    <span class="summary-cell-lbl">${status}</span>
+                </div>
+            `;
+        });
+        
+        html += `</div>`; 
+        box.innerHTML = html;
+    }
+
     function renderFilteredList(filtered) {
         const list = document.getElementById('providers-list'); 
+        if(!list) return;
+
         list.innerHTML = "";
 
         if (!filtered.length) { 
@@ -1683,8 +1708,7 @@ function applyFilters() {
             let li = document.createElement('li'); 
             li.className = 'provider-item';
             
-            // Aparece o botão Editar se for Admin ou se estiver marcado 'editar: true' no JSON
-            let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.editar) 
+            let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar) 
                 ? `<button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>` 
                 : '';
 
@@ -1715,21 +1739,18 @@ function applyFilters() {
         });
     }
 
-    // Função que limpa e prepara telefone para API do WhatsApp (ex: remove ( ) - e espaços)
     function getWhatsappLink(phoneStr) {
         if (!phoneStr) return null;
-        let numbers = phoneStr.replace(/\D/g, ''); // Deixa só números
+        let numbers = phoneStr.replace(/\D/g, ''); 
         if (numbers.length >= 10) {
-            if (!numbers.startsWith('55')) numbers = '55' + numbers; // Adiciona DDI Brasil se não tiver
+            if (!numbers.startsWith('55')) numbers = '55' + numbers; 
             return `https://wa.me/${numbers}`;
         }
         return null;
     }
 
     function createMarker(prestador) {
-        // AGORA A COR DO PINO É A COR DO CONSULTOR
         let color = getConsultantColor(prestador.consultorNorm);
-        
         let sColor = prestador.piloto ? '#FFD700' : '#ffffff';
         let sWeight = prestador.piloto ? 3.5 : 1.5;
         let pScale = prestador.piloto ? 1.7 : 1.5; 
@@ -1780,7 +1801,6 @@ function applyFilters() {
         const iconMail     = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 4l7 5 7-5"/></svg>`;
         const iconLocation = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.375 4.5 8.5 4.5 8.5S12.5 9.375 12.5 6c0-2.485-2.015-4.5-4.5-4.5z"/><circle cx="8" cy="6" r="1.5"/></svg>`;
 
-        // Gerar o link do WhatsApp se houver telefone válido
         const wappUrl = getWhatsappLink(p.contato);
         let phoneHtml = `<div class="iw-field-val">${p.contato}</div>`;
         if (wappUrl) {
@@ -1797,7 +1817,6 @@ function applyFilters() {
                             ${pilotoBadge}
                         </div>
                     </div>
-                    <!-- STATUS SUPER DESTACADO AQUI -->
                     <div>
                         <span class="iw-status-pill">
                             <span class="iw-status-dot" style="background:${statusColor};"></span>
@@ -1854,6 +1873,176 @@ function applyFilters() {
     }
 
     /* =========================================================================
+       CALCULADOR DE ROTAS E MAPA DE CLIENTE
+       ========================================================================= */
+    function findClosestProviders() {
+        const clientAddress = document.getElementById('client-address').value;
+        const resultDiv = document.getElementById('routing-result');
+        
+        if (!clientAddress) { 
+            resultDiv.innerHTML = `<p class="err-text">Digite o CEP ou endereço.</p>`; 
+            return; 
+        }
+        
+        resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Calculando…</p>`;
+        directionsRenderer.setDirections({routes:[]});
+
+        geocoder.geocode({address: clientAddress}, (results, status) => {
+            if (status === 'OK') {
+                const loc = results[0].geometry.location;
+                if (clientMarker) clientMarker.setMap(null);
+
+                const destIcon = { 
+                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z", 
+                    fillColor: '#FF4633', 
+                    fillOpacity: 1, 
+                    strokeWeight: 2, 
+                    strokeColor: '#ffffff', 
+                    scale: 1.5, 
+                    anchor: new google.maps.Point(12, 22) 
+                };
+                
+                clientMarker = new google.maps.Marker({ position: loc, map, title: "Destino solicitado", icon: destIcon });
+
+                let formattedAddr = results[0].formatted_address;
+                const destContent = `
+                <div class="iw-card">
+                    <div class="iw-head destination"><h4>Destino solicitado</h4></div>
+                    <div class="iw-body">
+                        <div class="iw-address" style="border:none;padding:0;margin:0;">${formattedAddr}</div>
+                    </div>
+                </div>`;
+                
+                clientMarker.addListener("click", () => { 
+                    clientInfoWindow.setContent(destContent); 
+                    clientInfoWindow.open({anchor: clientMarker, map, shouldFocus: false}); 
+                });
+
+                map.setCenter(loc); 
+                map.setZoom(10);
+                
+                let allowedStatuses = [];
+                if (currentUser.perfil === 'admin') {
+                    allowedStatuses = getCheckedValues('status-items');
+                } else {
+                    allowedStatuses = ['Ativo'];
+                    if (currentUser.ver_cred) {
+                        allowedStatuses.push('Em credenciamento', 'Credenciado fase final');
+                    }
+                }
+                const selConsultors = getCheckedValues('consultor-items');
+                const togglePiloto = document.getElementById('filter-piloto');
+                const showOnlyPiloto = togglePiloto ? togglePiloto.checked : false;
+
+                let distances = [];
+
+                providersData.forEach(p => {
+                    if (!p.lat || !p.lng) return;
+                    if (!allowedStatuses.includes(p.status)) return;
+                    let pConsNorm = p.consultorNorm || "SEM CONSULTOR";
+                    if (!selConsultors.includes(pConsNorm)) return;
+                    
+                    let isPilotoMatch = showOnlyPiloto ? p.piloto === true : true;
+                    if (!isPilotoMatch) return;
+                    
+                    let dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat,p.lng));
+                    if (dist <= currentSearchRange * 1000) {
+                        distances.push({ prestador: p, distance: dist });
+                    }
+                });
+
+                if (!distances.length) { 
+                    resultDiv.innerHTML=`<p class="err-text">Nenhum prestador neste raio com os filtros ativos.</p>`; 
+                    return; 
+                }
+                
+                distances.sort((a,b) => a.distance - b.distance);
+
+                let html = `<p class="result-section-title">${distances.length} encontrado${distances.length!==1?'s':''}</p>`;
+                
+                // INSERINDO O STATUS NO CARD DE ROTA
+                distances.slice(0, 50).forEach((item, i) => {
+                    const km = (item.distance/1000).toFixed(1);
+                    const sa = formattedAddr.replace(/'/g,"\\'").replace(/"/g,"&quot;");
+                    let colStatus = getStatusColor(item.prestador.status);
+                    
+                    html += `
+                    <div class="result-card">
+                        <div class="result-card-name" style="display:flex; align-items:center; gap:6px;">
+                            ${i+1}. ${item.prestador.nome} 
+                            ${item.prestador.piloto ? '<span class="badge-piloto">⭐</span>' : ''}
+                            <span class="provider-status-badge" style="background:${colStatus}22; color:${colStatus};">${item.prestador.status}</span>
+                        </div>
+                        <div class="result-card-dist">⬦ ${km} km (raio linear)</div>
+                        <button class="btn-route" onclick="traceRealRoute(${item.prestador.id},${item.prestador.lat},${item.prestador.lng},'${sa}')">Traçar rota de carro</button>
+                    </div>`;
+                });
+                
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.innerHTML = `<p class="err-text">Endereço não localizado.</p>`;
+            }
+        });
+    }
+
+    function traceRealRoute(pId, pLat, pLng, clientAddress) {
+        const origin = new google.maps.LatLng(pLat, pLng);
+        directionsService.route({ origin, destination: clientAddress, travelMode: google.maps.TravelMode.DRIVING }, (response, status) => {
+            if (status === 'OK') {
+                directionsRenderer.setDirections(response);
+                
+                const bounds = new google.maps.LatLngBounds();
+                bounds.extend(origin); 
+                bounds.extend(response.routes[0].legs[0].end_location);
+                map.fitBounds(bounds);
+                
+                openProviderInfoWindow(pId);
+                
+                if (clientMarker) {
+                    const dc = `
+                    <div class="iw-card">
+                        <div class="iw-head destination"><h4>Destino solicitado</h4></div>
+                        <div class="iw-body">
+                            <div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div>
+                            <div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div>
+                            <div class="iw-address-block"><strong>Endereço:</strong><br>${clientAddress}</div>
+                        </div>
+                    </div>`;
+                    setTimeout(() => { 
+                        clientInfoWindow.setContent(dc); 
+                        clientInfoWindow.open({anchor: clientMarker, map, shouldFocus: false}); 
+                    }, 200);
+                }
+            } else { 
+                alert('Erro ao traçar rota real. Pode não haver caminho terrestre válido.'); 
+            }
+        });
+    }
+
+    function clearRoutingAndSearch() {
+        const addrInput = document.getElementById('client-address');
+        if(addrInput) addrInput.value = "";
+        
+        const resultDiv = document.getElementById('routing-result');
+        if(resultDiv) resultDiv.innerHTML = "";
+        
+        directionsRenderer.setDirections({routes:[]});
+        
+        if (clientMarker) { 
+            clientMarker.setMap(null); 
+            clientMarker = null; 
+        }
+        
+        if(infoWindowGlobal) infoWindowGlobal.close(); 
+        if(clientInfoWindow) clientInfoWindow.close();
+        
+        if (markers.length && map) { 
+            map.setZoom(4); 
+            map.setCenter({lat: -15.793889, lng: -47.882778}); 
+        }
+    }
+
+    /* =========================================================================
        TRANSFERÊNCIA DE CARTEIRA E SUBSTITUIÇÃO DE CONSULTOR EM LOTE
        ========================================================================= */
     function populateBulkConsultants() {
@@ -1879,7 +2068,6 @@ function applyFilters() {
         if(selReplaceNew) selReplaceNew.innerHTML = optsHtml;
     }
 
-    // Gerencia o botão "+ Novo" que existe em ambas as seções
     function toggleNewConsultant(sectionType) {
         const prefix = sectionType === 'bulk' ? 'bulk' : 'replace';
         const input = document.getElementById(`${prefix}-new-consultant-input`);
@@ -1904,29 +2092,16 @@ function applyFilters() {
         
         let newConsultant = selectNew.disabled ? inputNew.value.trim() : selectNew.value;
 
-        if (!uf) {
-            alert("Por favor, selecione a UF (Estado) da carteira que deseja transferir.");
-            return;
-        }
-
-        if (!newConsultant) {
-            alert("Por favor, selecione ou digite o nome do consultor que irá assumir a carteira do Estado.");
-            return;
-        }
+        if (!uf) { alert("Por favor, selecione a UF (Estado) da carteira que deseja transferir."); return; }
+        if (!newConsultant) { alert("Por favor, selecione ou digite o nome do consultor que irá assumir a carteira do Estado."); return; }
 
         let toUpdate = providersData.filter(p => {
             let endUpper = p.endereco.toUpperCase();
             return endUpper.includes(`- ${uf}`) || endUpper.includes(` ${uf} `) || endUpper.includes(` ${uf}(`) || endUpper.endsWith(uf);
         });
 
-        if (toUpdate.length === 0) {
-            alert(`Nenhum prestador encontrado para o estado de ${uf}.`);
-            return;
-        }
-
-        if (!confirm(`Você está prestes a transferir a carteira de ${toUpdate.length} prestador(es) do estado de ${uf} para "${newConsultant}". Confirma essa ação?`)) {
-            return;
-        }
+        if (toUpdate.length === 0) { alert(`Nenhum prestador encontrado para o estado de ${uf}.`); return; }
+        if (!confirm(`Você está prestes a transferir a carteira de ${toUpdate.length} prestador(es) do estado de ${uf} para "${newConsultant}". Confirma essa ação?`)) return;
 
         const indicator = document.getElementById('bulk-loading-indicator');
         indicator.style.display = 'block';
@@ -1942,15 +2117,10 @@ function applyFilters() {
 
         if (error) {
             alert("Erro ao transferir carteira no banco de dados: " + error.message);
-            console.error(error);
         } else {
             alert(`Sucesso! Carteira de ${toUpdate.length} prestador(es) em ${uf} foi transferida para ${newConsultant}.`);
-            
-            selectNew.value = '';
-            inputNew.value = '';
-            document.getElementById('bulk-uf').value = '';
+            selectNew.value = ''; inputNew.value = ''; document.getElementById('bulk-uf').value = '';
             if (selectNew.disabled) toggleNewConsultant('bulk'); 
-            
             clearAllMarkers();
             await loadDataFromSupabase();
         }
@@ -1964,31 +2134,14 @@ function applyFilters() {
 
         let newConsultant = selectNew.disabled ? inputNew.value.trim() : selectNew.value;
 
-        if (!oldConsultant) {
-            alert("Por favor, selecione o consultor atual que será substituído.");
-            return;
-        }
-
-        if (!newConsultant) {
-            alert("Por favor, selecione ou digite o nome do novo consultor.");
-            return;
-        }
-
-        if (oldConsultant === newConsultant) {
-            alert("O consultor atual e o novo não podem ser a mesma pessoa.");
-            return;
-        }
+        if (!oldConsultant) { alert("Por favor, selecione o consultor atual que será substituído."); return; }
+        if (!newConsultant) { alert("Por favor, selecione ou digite o nome do novo consultor."); return; }
+        if (oldConsultant === newConsultant) { alert("O consultor atual e o novo não podem ser a mesma pessoa."); return; }
 
         let toUpdate = providersData.filter(p => p.consultor && p.consultor.trim() === oldConsultant);
 
-        if (toUpdate.length === 0) {
-            alert(`Nenhum prestador encontrado para o consultor ${oldConsultant}.`);
-            return;
-        }
-
-        if (!confirm(`Você está prestes a transferir TODA a carteira (${toUpdate.length} prestadores) de "${oldConsultant}" para "${newConsultant}". Confirma essa ação?`)) {
-            return;
-        }
+        if (toUpdate.length === 0) { alert(`Nenhum prestador encontrado para o consultor ${oldConsultant}.`); return; }
+        if (!confirm(`Você está prestes a transferir TODA a carteira (${toUpdate.length} prestadores) de "${oldConsultant}" para "${newConsultant}". Confirma essa ação?`)) return;
 
         const indicator = document.getElementById('replace-loading-indicator');
         indicator.style.display = 'block';
@@ -2004,15 +2157,10 @@ function applyFilters() {
 
         if (error) {
             alert("Erro ao substituir consultor no banco de dados: " + error.message);
-            console.error(error);
         } else {
             alert(`Sucesso! Toda a carteira de ${oldConsultant} foi transferida para ${newConsultant}.`);
-
-            document.getElementById('replace-old-consultant').value = '';
-            selectNew.value = '';
-            inputNew.value = '';
+            document.getElementById('replace-old-consultant').value = ''; selectNew.value = ''; inputNew.value = '';
             if (selectNew.disabled) toggleNewConsultant('replace');
-
             clearAllMarkers();
             await loadDataFromSupabase();
         }
@@ -2048,7 +2196,6 @@ function applyFilters() {
             console.error(error);
         } else if (data && data.length > 0) {
             providersData.push(data[0]); 
-            // Atualiza cores se for consultor novo
             generateConsultantColors(providersData);
             
             if (data[0].lat) {
@@ -2121,7 +2268,7 @@ function applyFilters() {
             alert("Erro ao atualizar o prestador no banco de dados.");
             console.error(error);
         } else {
-            generateConsultantColors(providersData); // Recalcula se o consultor for novo
+            generateConsultantColors(providersData); 
             
             if (coordsChanged) {
                 const mi = markers.findIndex(m => m.customId === id); 
@@ -2136,7 +2283,7 @@ function applyFilters() {
                     mk.setTitle(p.nome); 
                     
                     let ic = mk.getIcon(); 
-                    ic.fillColor = getConsultantColor(p.consultorNorm); // Atualiza cor do pino se trocou consultor
+                    ic.fillColor = getConsultantColor(p.consultorNorm); 
                     ic.strokeColor = p.piloto ? '#FFD700' : '#ffffff';
                     ic.strokeWeight = p.piloto ? 3.5 : 1.5;
                     ic.scale = p.piloto ? 1.7 : 1.5;
@@ -2151,201 +2298,8 @@ function applyFilters() {
     }
 
     /* =========================================================================
-       CALCULADOR DE ROTAS E MAPA DE CLIENTE
+       IMPORTAÇÃO DE ARQUIVO EM LOTE (PLANILHA) E INSERÇÃO NO SUPABASE
        ========================================================================= */
-    function findClosestProviders() {
-        const clientAddress = document.getElementById('client-address').value;
-        const resultDiv = document.getElementById('routing-result');
-        
-        if (!clientAddress) { 
-            resultDiv.innerHTML = `<p class="err-text">Digite o CEP ou endereço.</p>`; 
-            return; 
-        }
-        
-        resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Calculando…</p>`;
-        directionsRenderer.setDirections({routes:[]});
-
-        geocoder.geocode({address: clientAddress}, (results, status) => {
-            if (status === 'OK') {
-                const loc = results[0].geometry.location;
-                if (clientMarker) clientMarker.setMap(null);
-
-                const destIcon = { 
-                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z", 
-                    fillColor: '#FF4633', 
-                    fillOpacity: 1, 
-                    strokeWeight: 2, 
-                    strokeColor: '#ffffff', 
-                    scale: 1.5, 
-                    anchor: new google.maps.Point(12, 22) 
-                };
-                
-                clientMarker = new google.maps.Marker({ position: loc, map, title: "Destino solicitado", icon: destIcon });
-
-                let formattedAddr = results[0].formatted_address;
-                const destContent = `
-                <div class="iw-card">
-                    <div class="iw-head destination"><h4>Destino solicitado</h4></div>
-                    <div class="iw-body">
-                        <div class="iw-address" style="border:none;padding:0;margin:0;">${formattedAddr}</div>
-                    </div>
-                </div>`;
-                
-                clientMarker.addListener("click", () => { 
-                    clientInfoWindow.setContent(destContent); 
-                    clientInfoWindow.open({anchor: clientMarker, map, shouldFocus: false}); 
-                });
-
-                map.setCenter(loc); 
-                map.setZoom(10);
-                
-                let allowedStatuses = userRole === 'common' ? ['Ativo'] : getCheckedValues('status-items');
-                const selConsultors = getCheckedValues('consultor-items');
-                const showOnlyPiloto = document.getElementById('filter-piloto').checked;
-
-                let distances = [];
-
-                providersData.forEach(p => {
-                    if (!p.lat || !p.lng) return;
-                    if (!allowedStatuses.includes(p.status)) return;
-                    let pConsNorm = p.consultorNorm || "SEM CONSULTOR";
-                    if (!selConsultors.includes(pConsNorm)) return;
-                    
-                    let isPilotoMatch = showOnlyPiloto ? p.piloto === true : true;
-                    if (!isPilotoMatch) return;
-                    
-                    let dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat,p.lng));
-                    if (dist <= currentSearchRange * 1000) {
-                        distances.push({ prestador: p, distance: dist });
-                    }
-                });
-
-                if (!distances.length) { 
-                    resultDiv.innerHTML=`<p class="err-text">Nenhum prestador neste raio com os filtros ativos.</p>`; 
-                    return; 
-                }
-                
-                distances.sort((a,b) => a.distance - b.distance);
-
-                let html = `<p class="result-section-title">${distances.length} encontrado${distances.length!==1?'s':''}</p>`;
-            distances.slice(0, 50).forEach((item, i) => {
-                    const km = (item.distance/1000).toFixed(1);
-                    const sa = formattedAddr.replace(/'/g,"\\'").replace(/"/g,"&quot;");
-                    let colStatus = getStatusColor(item.prestador.status);
-                    
-                    html += `
-                    <div class="result-card">
-                        <div class="result-card-name" style="display:flex; align-items:center; gap:6px;">
-                            ${i+1}. ${item.prestador.nome} 
-                            ${item.prestador.piloto ? '<span class="badge-piloto">⭐</span>' : ''}
-                            <span class="provider-status-badge" style="background:${colStatus}22; color:${colStatus};">${item.prestador.status}</span>
-                        </div>
-                        <div class="result-card-dist">⬦ ${km} km (raio linear)</div>
-                        <button class="btn-route" onclick="traceRealRoute(${item.prestador.id},${item.prestador.lat},${item.prestador.lng},'${sa}')">Traçar rota de carro</button>
-                    </div>`;
-                });
-                resultDiv.innerHTML = html;
-            } else {
-                resultDiv.innerHTML = `<p class="err-text">Endereço não localizado.</p>`;
-            }
-        });
-    }
-
-    function traceRealRoute(pId, pLat, pLng, clientAddress) {
-        const origin = new google.maps.LatLng(pLat, pLng);
-        directionsService.route({ origin, destination: clientAddress, travelMode: google.maps.TravelMode.DRIVING }, (response, status) => {
-            if (status === 'OK') {
-                directionsRenderer.setDirections(response);
-                
-                const bounds = new google.maps.LatLngBounds();
-                bounds.extend(origin); 
-                bounds.extend(response.routes[0].legs[0].end_location);
-                map.fitBounds(bounds);
-                
-                openProviderInfoWindow(pId);
-                
-                if (clientMarker) {
-                    const dc = `
-                    <div class="iw-card">
-                        <div class="iw-head destination"><h4>Destino solicitado</h4></div>
-                        <div class="iw-body">
-                            <div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div>
-                            <div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div>
-                            <div class="iw-address-block"><strong>Endereço:</strong><br>${clientAddress}</div>
-                        </div>
-                    </div>`;
-                    setTimeout(() => { 
-                        clientInfoWindow.setContent(dc); 
-                        clientInfoWindow.open({anchor: clientMarker, map, shouldFocus: false}); 
-                    }, 200);
-                }
-            } else { 
-                alert('Erro ao traçar rota real. Pode não haver caminho terrestre válido.'); 
-            }
-        });
-    }
-
-    function clearRoutingAndSearch() {
-        document.getElementById('client-address').value = "";
-        document.getElementById('routing-result').innerHTML = "";
-        directionsRenderer.setDirections({routes:[]});
-        
-        if (clientMarker) { 
-            clientMarker.setMap(null); 
-            clientMarker = null; 
-        }
-        
-        infoWindowGlobal.close(); 
-        clientInfoWindow.close();
-        
-        if (markers.length) { 
-            map.setZoom(4); 
-            map.setCenter({lat: -15.793889, lng: -47.882778}); 
-        }
-    }
-
-    /* =========================================================================
-       MODAL DE RESUMO (DASHBOARD) E EVENTOS DE IMPORTAÇÃO
-       ========================================================================= */
-    function openSummaryModal() {
-        if (!providersData.length) {
-            document.getElementById('summary-content').innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:13px;">Nenhum prestador na base.</p>`;
-            openModal('summary-modal'); 
-            return;
-        }
-        
-        let countStatus = {};
-        let consultoresMap = new Map();
-        let dataToSummarize = userRole === 'common' ? providersData.filter(p => p.status === 'Ativo') : providersData;
-
-        dataToSummarize.forEach(p => {
-            countStatus[p.status] = (countStatus[p.status] || 0) + 1;
-            let norm = p.consultorNorm || "SEM CONSULTOR";
-            if (!consultoresMap.has(norm)) {
-                consultoresMap.set(norm, {display: p.consultor ? p.consultor.trim() : "Sem Consultor", count: 0});
-            }
-            consultoresMap.get(norm).count++;
-        });
-
-        let statusHtml = '';
-        Object.keys(countStatus).forEach(s => {
-            let col = getStatusColor(s);
-            statusHtml += `<div class="summary-status-cell"><span class="val" style="color:${col};">${countStatus[s]}</span><span class="lbl">${s}</span></div>`;
-        });
-
-        let consultorRows = Array.from(consultoresMap.values()).sort((a,b) => b.count - a.count)
-            .map(c => `<li><span>${c.display}</span><span class="count-badge">${c.count}</span></li>`).join('');
-
-        document.getElementById('summary-content').innerHTML = `
-            <div class="summary-modal-total"><span>Total exibido para seu perfil</span><span>${dataToSummarize.length}</span></div>
-            <p class="modal-subtitle">Por status</p>
-            <div class="summary-status-grid" style="margin-bottom:20px;">${statusHtml}</div>
-            <p class="modal-subtitle">Por consultor</p>
-            <ul class="consultor-list" style="max-height:180px;overflow-y:auto;">${consultorRows}</ul>`;
-        
-        openModal('summary-modal');
-    }
-
     function fixStr(s) {
         if (!s) return s; 
         let str = String(s);
@@ -2489,19 +2443,54 @@ function applyFilters() {
         }
     }
 
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { const el = document.getElementById(id); el.style.display = 'none'; el.classList.remove('open'); }
-    function clearAllMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
+    /* =========================================================================
+       MODAL DE RESUMO (DASHBOARD)
+       ========================================================================= */
+    function openSummaryModal() {
+        if (!providersData.length) {
+            document.getElementById('summary-content').innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:13px;">Nenhum prestador na base.</p>`;
+            openModal('summary-modal'); 
+            return;
+        }
+        
+        let countStatus = {};
+        let consultoresMap = new Map();
+        let dataToSummarize = userRole === 'common' ? providersData.filter(p => p.status === 'Ativo') : providersData;
 
-    document.querySelectorAll('.modal-backdrop').forEach(m => { 
-        m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }); 
-    });
-    
-    document.getElementById('btn-summary').addEventListener('click', openSummaryModal);
+        dataToSummarize.forEach(p => {
+            countStatus[p.status] = (countStatus[p.status] || 0) + 1;
+            let norm = p.consultorNorm || "SEM CONSULTOR";
+            if (!consultoresMap.has(norm)) {
+                consultoresMap.set(norm, {display: p.consultor ? p.consultor.trim() : "Sem Consultor", count: 0});
+            }
+            consultoresMap.get(norm).count++;
+        });
 
-// Carrega todos os usuários na tela de gestão
+        let statusHtml = '';
+        Object.keys(countStatus).forEach(s => {
+            let col = getStatusColor(s);
+            statusHtml += `<div class="summary-status-cell"><span class="val" style="color:${col};">${countStatus[s]}</span><span class="lbl">${s}</span></div>`;
+        });
+
+        let consultorRows = Array.from(consultoresMap.values()).sort((a,b) => b.count - a.count)
+            .map(c => `<li><span>${c.display}</span><span class="count-badge">${c.count}</span></li>`).join('');
+
+        document.getElementById('summary-content').innerHTML = `
+            <div class="summary-modal-total"><span>Total exibido para seu perfil</span><span>${dataToSummarize.length}</span></div>
+            <p class="modal-subtitle">Por status</p>
+            <div class="summary-status-grid" style="margin-bottom:20px;">${statusHtml}</div>
+            <p class="modal-subtitle">Por consultor</p>
+            <ul class="consultor-list" style="max-height:180px;overflow-y:auto;">${consultorRows}</ul>`;
+        
+        openModal('summary-modal');
+    }
+
+    /* =========================================================================
+       GESTÃO DE ACESSOS (USUÁRIOS)
+       ========================================================================= */
     async function loadUsersTable() {
         const tbody = document.getElementById('users-table-body');
+        if(!tbody) return;
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>';
         
         const { data, error } = await _supabase.from('usuarios').select('*').order('email');
@@ -2529,12 +2518,10 @@ function applyFilters() {
         `).join('');
     }
 
-    // Salva a alteração no banco na hora que você clica
     async function updateUserAccess(email, campo, valor) {
         let updateData = {};
         updateData[campo] = valor;
         
-        // Se virou admin, libera todos os blocos automático. Se não, volta pro básico.
         if (campo === 'perfil') {
             updateData['blocos'] = valor === 'admin' ? '1,2,3,4,5,6,7' : '1,2,3';
         }
@@ -2544,6 +2531,34 @@ function applyFilters() {
             alert('Erro ao atualizar permissão!');
         }
     }
+
+    /* =========================================================================
+       UTILITÁRIOS FINAIS DE MODAL
+       ========================================================================= */
+    function openModal(id) { 
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'flex'; 
+    }
+    
+    function closeModal(id) { 
+        const el = document.getElementById(id); 
+        if(el) {
+            el.style.display = 'none'; 
+            el.classList.remove('open');
+        }
+    }
+    
+    function clearAllMarkers() { 
+        markers.forEach(m => m.setMap(null)); 
+        markers = []; 
+    }
+
+    document.querySelectorAll('.modal-backdrop').forEach(m => { 
+        m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }); 
+    });
+    
+    const btnSummary = document.getElementById('btn-summary');
+    if(btnSummary) btnSummary.addEventListener('click', openSummaryModal);
 
 </script>
 
