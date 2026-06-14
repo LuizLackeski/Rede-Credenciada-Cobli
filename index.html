@@ -703,11 +703,11 @@
 
         .btn-route:hover { background: var(--cobli-blue); }
 
-        /* =====================================================================
+    /* =====================================================================
            MAPA E LEGENDAS
            ===================================================================== */
         #map-container { flex: 1; position: relative; }
-        #map { width: 100%; height: 100%; }
+        #map { width: 100%; height: 100%; z-index: 1;}
 
         .map-legend { 
             position: absolute; 
@@ -717,16 +717,21 @@
             padding: 12px; 
             border-radius: 8px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            z-index: 0; 
+            z-index: 100; /* Mantém a legenda acima dos botões do Google Maps */
             font-size: 11px;
             font-family: var(--font-sans);
             border: 1px solid var(--border-light);
-            max-width: 200px;
+            max-width: 250px;
+            max-height: 300px;
+            overflow-y: auto; /* Adiciona barra de rolagem se tiver muitos consultores */
         }
+        .map-legend::-webkit-scrollbar { width: 4px; }
+        .map-legend::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+
         .map-legend-title { font-weight: 700; color: var(--cobli-navy); margin-bottom: 8px; text-transform: uppercase; font-size: 10px;}
-        .map-legend div { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;}
-        .map-legend div:last-child { margin-bottom: 0; }
-        .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);}
+        #legend-content div { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;}
+        #legend-content div:last-child { margin-bottom: 0; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;}
 
         /* =====================================================================
            MODAIS E INFOWINDOW
