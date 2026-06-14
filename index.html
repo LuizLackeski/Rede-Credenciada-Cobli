@@ -950,7 +950,7 @@
                     <label for="filter-piloto" style="margin: 0; cursor: pointer; text-transform: none; color: var(--cobli-navy); font-size: 12px;">Mostrar <strong>apenas</strong> Prestadores Piloto ⭐</label>
                 </div>
 
-                <!-- Dropdown Status (Visível para Admin. Usuário Comum só vê "Ativo" e a flag de piloto) -->
+                <!-- Dropdown Status -->
                 <div id="dd-status-container" class="dropdown-check-list admin-only">
                     <div class="dropdown-anchor" onclick="toggleDropdown('status-items')">
                         <span id="status-anchor-label">Filtro de status</span>
@@ -999,17 +999,16 @@
                         <input type="file" id="file-upload" accept=".csv,.xlsx,.xls">
                     </div>
                 </div>
-                <!-- Indicador de processamento (Muito importante para evitar travamentos) -->
                 <div id="loading-indicator">Processando...</div>
             </div>
         </div>
 
-        <!-- SECTION 5: Transferência de Carteira (Em Lote) - Apenas Admin -->
+        <!-- SECTION 5: Transferência por Estado (Apenas Admin) -->
         <div class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
                     <span class="section-number">5</span>
-                    <span class="section-title">Transferência de Carteira</span>
+                    <span class="section-title">Transferência por Estado (UF)</span>
                 </div>
             </div>
             <div class="section-body">
@@ -1029,17 +1028,47 @@
                     </select>
                 </div>
                 <div class="form-row">
-                    <label>Atribuir ao Consultor *</label>
+                    <label>Atribuir ao Novo Consultor *</label>
                     <div style="display: flex; gap: 8px;">
                         <select id="bulk-new-consultant-select" style="flex: 1;">
                             <option value="">-- Aguardando base --</option>
                         </select>
-                        <button type="button" class="btn btn-outline" onclick="toggleNewConsultant()" style="padding: 4px 8px;">+ Novo</button>
+                        <button type="button" class="btn btn-outline" onclick="toggleNewConsultant('bulk')" style="padding: 4px 8px;">+ Novo</button>
                     </div>
                     <input type="text" id="bulk-new-consultant-input" placeholder="Digite o nome do novo consultor" style="display: none; margin-top: 8px;">
                 </div>
-                <button class="btn btn-primary btn-full" style="margin-top: 10px;" onclick="executeBulkUpdate()">🔄 Transferir Prestadores</button>
+                <button class="btn btn-primary btn-full" style="margin-top: 10px;" onclick="executeBulkUpdate()">🔄 Transferir por Estado</button>
                 <div id="bulk-loading-indicator" style="display: none; text-align: center; color: var(--cobli-blue); font-size: 12px; margin-top: 10px; font-weight: bold;">Transferindo... Aguarde.</div>
+            </div>
+        </div>
+
+        <!-- SECTION 6: Substituição de Consultor Geral (Apenas Admin) -->
+        <div class="section-card admin-only">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <span class="section-number">6</span>
+                    <span class="section-title">Substituição de Consultor (Geral)</span>
+                </div>
+            </div>
+            <div class="section-body">
+                <div class="form-row">
+                    <label>Consultor a ser substituído (Atual) *</label>
+                    <select id="replace-old-consultant">
+                        <option value="">-- Aguardando base --</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Atribuir ao Novo Consultor *</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="replace-new-consultant-select" style="flex: 1;">
+                            <option value="">-- Aguardando base --</option>
+                        </select>
+                        <button type="button" class="btn btn-outline" onclick="toggleNewConsultant('replace')" style="padding: 4px 8px;">+ Novo</button>
+                    </div>
+                    <input type="text" id="replace-new-consultant-input" placeholder="Digite o nome do novo consultor" style="display: none; margin-top: 8px;">
+                </div>
+                <button class="btn btn-secondary btn-full" style="margin-top: 10px;" onclick="executeConsultantReplacement()">🔄 Substituir Consultor em toda a carteira</button>
+                <div id="replace-loading-indicator" style="display: none; text-align: center; color: var(--cobli-blue); font-size: 12px; margin-top: 10px; font-weight: bold;">Substituindo... Aguarde.</div>
             </div>
         </div>
 
@@ -1679,11 +1708,14 @@
     }
 
     /* =========================================================================
-       TRANSFERÊNCIA DE CARTEIRA (EM LOTE)
+       TRANSFERÊNCIA DE CARTEIRA E SUBSTITUIÇÃO DE CONSULTOR EM LOTE
        ========================================================================= */
     function populateBulkConsultants() {
-        const selNew = document.getElementById('bulk-new-consultant-select');
-        if (!selNew) return;
+        const selStateNew = document.getElementById('bulk-new-consultant-select');
+        const selReplaceOld = document.getElementById('replace-old-consultant');
+        const selReplaceNew = document.getElementById('replace-new-consultant-select');
+        
+        if (!selStateNew) return;
         
         let consultoresMap = new Map();
         providersData.forEach(p => {
@@ -1696,12 +1728,17 @@
         const optsHtml = '<option value="">-- Selecione o consultor --</option>' + 
             Array.from(consultoresMap.values()).sort().map(c => `<option value="${c}">${c}</option>`).join('');
 
-        selNew.innerHTML = optsHtml;
+        selStateNew.innerHTML = optsHtml;
+        if(selReplaceOld) selReplaceOld.innerHTML = optsHtml;
+        if(selReplaceNew) selReplaceNew.innerHTML = optsHtml;
     }
 
-    function toggleNewConsultant() {
-        const input = document.getElementById('bulk-new-consultant-input');
-        const select = document.getElementById('bulk-new-consultant-select');
+    // Gerencia o botão "+ Novo" que existe em ambas as seções
+    function toggleNewConsultant(sectionType) {
+        const prefix = sectionType === 'bulk' ? 'bulk' : 'replace';
+        const input = document.getElementById(`${prefix}-new-consultant-input`);
+        const select = document.getElementById(`${prefix}-new-consultant-select`);
+        
         if (input.style.display === 'none') {
             input.style.display = 'block';
             select.disabled = true;
@@ -1713,6 +1750,7 @@
         }
     }
 
+    // Seção 5: Transferência por Estado (UF)
     async function executeBulkUpdate() {
         const uf = document.getElementById('bulk-uf').value;
         const selectNew = document.getElementById('bulk-new-consultant-select');
@@ -1726,11 +1764,10 @@
         }
 
         if (!newConsultant) {
-            alert("Por favor, selecione ou digite o nome do consultor que irá assumir a carteira.");
+            alert("Por favor, selecione ou digite o nome do consultor que irá assumir a carteira do Estado.");
             return;
         }
 
-        // Filtra os prestadores apenas pela UF (checando o final do endereço ou tags comuns do estado)
         let toUpdate = providersData.filter(p => {
             let endUpper = p.endereco.toUpperCase();
             return endUpper.includes(`- ${uf}`) || endUpper.includes(` ${uf} `) || endUpper.includes(` ${uf}(`) || endUpper.endsWith(uf);
@@ -1763,12 +1800,73 @@
         } else {
             alert(`Sucesso! Carteira de ${toUpdate.length} prestador(es) em ${uf} foi transferida para ${newConsultant}.`);
             
-            // Limpa os campos da tela de transferência
             selectNew.value = '';
             inputNew.value = '';
             document.getElementById('bulk-uf').value = '';
-            if (selectNew.disabled) toggleNewConsultant(); // Volta o botão novo para o padrão
+            if (selectNew.disabled) toggleNewConsultant('bulk'); 
             
+            clearAllMarkers();
+            await loadDataFromSupabase();
+        }
+    }
+
+    // Seção 6: Substituição Direta de Consultor (Toda a Carteira)
+    async function executeConsultantReplacement() {
+        const oldConsultant = document.getElementById('replace-old-consultant').value;
+        const selectNew = document.getElementById('replace-new-consultant-select');
+        const inputNew = document.getElementById('replace-new-consultant-input');
+
+        let newConsultant = selectNew.disabled ? inputNew.value.trim() : selectNew.value;
+
+        if (!oldConsultant) {
+            alert("Por favor, selecione o consultor atual que será substituído.");
+            return;
+        }
+
+        if (!newConsultant) {
+            alert("Por favor, selecione ou digite o nome do novo consultor.");
+            return;
+        }
+
+        if (oldConsultant === newConsultant) {
+            alert("O consultor atual e o novo não podem ser a mesma pessoa.");
+            return;
+        }
+
+        let toUpdate = providersData.filter(p => p.consultor && p.consultor.trim() === oldConsultant);
+
+        if (toUpdate.length === 0) {
+            alert(`Nenhum prestador encontrado para o consultor ${oldConsultant}.`);
+            return;
+        }
+
+        if (!confirm(`Você está prestes a transferir TODA a carteira (${toUpdate.length} prestadores) de "${oldConsultant}" para "${newConsultant}". Confirma essa ação?`)) {
+            return;
+        }
+
+        const indicator = document.getElementById('replace-loading-indicator');
+        indicator.style.display = 'block';
+
+        const idsToUpdate = toUpdate.map(p => p.id);
+        const normNew = normalizeStr(newConsultant);
+
+        const { error } = await _supabase.from('prestadores')
+            .update({ consultor: newConsultant, consultorNorm: normNew })
+            .in('id', idsToUpdate);
+
+        indicator.style.display = 'none';
+
+        if (error) {
+            alert("Erro ao substituir consultor no banco de dados: " + error.message);
+            console.error(error);
+        } else {
+            alert(`Sucesso! Toda a carteira de ${oldConsultant} foi transferida para ${newConsultant}.`);
+
+            document.getElementById('replace-old-consultant').value = '';
+            selectNew.value = '';
+            inputNew.value = '';
+            if (selectNew.disabled) toggleNewConsultant('replace');
+
             clearAllMarkers();
             await loadDataFromSupabase();
         }
