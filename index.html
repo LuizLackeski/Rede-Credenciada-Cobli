@@ -2499,8 +2499,54 @@ function applyFilters() {
     
     document.getElementById('btn-summary').addEventListener('click', openSummaryModal);
 
+// Carrega todos os usuários na tela de gestão
+    async function loadUsersTable() {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>';
+        
+        const { data, error } = await _supabase.from('usuarios').select('*').order('email');
+        if (error) {
+            tbody.innerHTML = `<tr><td colspan="4" class="err-text">Erro ao carregar usuários</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(u => `
+            <tr>
+                <td><strong>${u.email}</strong></td>
+                <td>
+                    <select onchange="updateUserAccess('${u.email}', 'perfil', this.value)" style="padding:4px; font-size:11px;">
+                        <option value="comum" ${u.perfil === 'comum' ? 'selected' : ''}>Comum</option>
+                        <option value="admin" ${u.perfil === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                </td>
+                <td style="text-align:center;">
+                    <input type="checkbox" onchange="updateUserAccess('${u.email}', 'pode_editar', this.checked)" ${u.pode_editar ? 'checked' : ''} style="transform: scale(1.3); cursor:pointer;">
+                </td>
+                <td style="text-align:center;">
+                    <input type="checkbox" onchange="updateUserAccess('${u.email}', 'ver_cred', this.checked)" ${u.ver_cred ? 'checked' : ''} style="transform: scale(1.3); cursor:pointer;">
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Salva a alteração no banco na hora que você clica
+    async function updateUserAccess(email, campo, valor) {
+        let updateData = {};
+        updateData[campo] = valor;
+        
+        // Se virou admin, libera todos os blocos automático. Se não, volta pro básico.
+        if (campo === 'perfil') {
+            updateData['blocos'] = valor === 'admin' ? '1,2,3,4,5,6,7' : '1,2,3';
+        }
+
+        const { error } = await _supabase.from('usuarios').update(updateData).eq('email', email);
+        if (error) {
+            alert('Erro ao atualizar permissão!');
+        }
+    }
+
 </script>
-    <!-- ──────────────────────────── SCRIPTS PRINCIPAIS ──────────────────────────── -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap" async defer></script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=SUA CHAVE AQUI&libraries=places,geometry&callback=initMap" async defer></script>
 </body>
 </html>
