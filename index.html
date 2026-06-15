@@ -418,7 +418,7 @@
 
 <div id="login-overlay">
     <div class="login-box">
-        <h2>MAPA | Rede Credenciada</h2>
+        <h2>Cobli Logística</h2>
         <p>Digite seu e-mail corporativo para acessar a gestão de prestadores.</p>
         <form onsubmit="handleLogin(event)">
             <input type="email" id="login-email" placeholder="seu.email@cobli.com" required>
@@ -528,6 +528,30 @@
             <div class="section-header">
                 <div class="section-header-left">
                     <span class="section-number">4</span>
+                    <span class="section-title">Gerenciar Acessos</span>
+                </div>
+                <button class="btn-ghost" style="font-size: 11px;" onclick="loadUsersTable()">↻ Atualizar</button>
+            </div>
+            <div class="section-body" style="padding: 12px;">
+                <div class="search-row" style="margin-bottom:10px;">
+                    <input type="text" id="user-search-input" placeholder="Pesquisar por e-mail…" oninput="filterUsersCards()" style="flex:1;padding:8px 10px;border:1px solid var(--border-mid);border-radius:6px;font-size:12px;font-family:inherit;">
+                    <button class="btn-icon" onclick="document.getElementById('user-search-input').value='';filterUsersCards()" title="Limpar">✕</button>
+                </div>
+                <div id="users-cards-container">
+                    <div class="users-empty">Clique em "Atualizar" para carregar os usuários.</div>
+                </div>
+                <div id="users-load-more" style="display:none; margin-top:8px;">
+                    <button onclick="showMoreUsers()" style="width:100%;padding:8px;background:var(--surface-muted);border:1px solid var(--border-mid);border-radius:7px;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;">
+                        ↓ Ver mais usuários
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="bloco-5" class="section-card admin-only">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <span class="section-number">5</span>
                     <span class="section-title">Transferência por Estado (UF)</span>
                 </div>
             </div>
@@ -560,10 +584,10 @@
             </div>
         </div>
 
-        <div id="bloco-5" class="section-card admin-only">
+        <div id="bloco-6" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
-                    <span class="section-number">5</span>
+                    <span class="section-number">6</span>
                     <span class="section-title">Substituição de Consultor (Geral)</span>
                 </div>
             </div>
@@ -585,10 +609,10 @@
             </div>
         </div>
 
-        <div id="bloco-6" class="section-card admin-only">
+        <div id="bloco-7" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
-                    <span class="section-number">6</span>
+                    <span class="section-number">7</span>
                     <span class="section-title">Importar Base (Avançado)</span>
                 </div>
             </div>
@@ -607,23 +631,7 @@
             </div>
         </div>
 
-        <!-- ================================================================
-             BLOCO 7 — GERENCIAR ACESSOS (REDESIGNED)
-             ================================================================ -->
-        <div id="bloco-7" class="section-card admin-only">
-            <div class="section-header">
-                <div class="section-header-left">
-                    <span class="section-number">7</span>
-                    <span class="section-title">Gerenciar Acessos</span>
-                </div>
-                <button class="btn-ghost" style="font-size: 11px;" onclick="loadUsersTable()">↻ Atualizar</button>
-            </div>
-            <div class="section-body" style="padding: 12px;">
-                <div id="users-cards-container">
-                    <div class="users-empty">Clique em "Atualizar" para carregar os usuários.</div>
-                </div>
-            </div>
-        </div>
+    
 
     </div>
 </div>
@@ -751,29 +759,84 @@
         1: { icon: '📋', name: 'Lista de Prestadores' },
         2: { icon: '🗺️', name: 'Buscar Técnicos Próximos' },
         3: { icon: '🔍', name: 'Filtros Dinâmicos' },
-        4: { icon: '🔄', name: 'Transferência por UF' },
-        5: { icon: '👤', name: 'Substituição de Consultor' },
-        6: { icon: '📂', name: 'Importar Base' },
-        7: { icon: '🔐', name: 'Gerenciar Acessos' }
+        4: { icon: '🔐', name: 'Gerenciar Acessos' },
+        5: { icon: '🔄', name: 'Transferência por UF' },
+        6: { icon: '👤', name: 'Substituição de Consultor' },
+        7: { icon: '📂', name: 'Importar Base' }
     };
 
     const ALL_STATUSES = ['Ativo', 'Inativo', 'Suspenso', 'Em credenciamento', 'Credenciado fase final', 'Descredenciado', 'Free Lance'];
+
+    // Users pagination state
+    let allUsersData = [];
+    let usersDisplayCount = 5;
 
     async function loadUsersTable() {
         const container = document.getElementById('users-cards-container');
         if (!container) return;
         container.innerHTML = '<div class="users-empty">⏳ Carregando usuários...</div>';
+        usersDisplayCount = 5;
 
-        const { data, error } = await _supabase.from('usuarios').select('*').order('email');
+        // Order by created_at desc (most recent first), fallback to email
+        const { data, error } = await _supabase.from('usuarios').select('*').order('created_at', { ascending: false, nullsFirst: false });
         if (error) {
-            container.innerHTML = `<div class="users-empty" style="color:var(--cobli-red);">Erro: ${error.message}</div>`;
-            return;
+            // Fallback: try without created_at ordering
+            const { data: data2, error: error2 } = await _supabase.from('usuarios').select('*').order('email');
+            if (error2) {
+                container.innerHTML = `<div class="users-empty" style="color:var(--cobli-red);">Erro: ${error2.message}</div>`;
+                return;
+            }
+            allUsersData = data2 || [];
+        } else {
+            allUsersData = data || [];
         }
-        if (!data || !data.length) {
+
+        if (!allUsersData.length) {
             container.innerHTML = '<div class="users-empty">Nenhum usuário cadastrado ainda.</div>';
             return;
         }
-        container.innerHTML = data.map(u => buildUserCard(u)).join('');
+
+        renderUsersCards();
+    }
+
+    function filterUsersCards() {
+        usersDisplayCount = 5;
+        renderUsersCards();
+    }
+
+    function showMoreUsers() {
+        usersDisplayCount += 5;
+        renderUsersCards();
+    }
+
+    function renderUsersCards() {
+        const container = document.getElementById('users-cards-container');
+        const loadMoreBtn = document.getElementById('users-load-more');
+        const searchVal = (document.getElementById('user-search-input')?.value || '').toLowerCase().trim();
+
+        let filtered = allUsersData;
+        if (searchVal) {
+            filtered = allUsersData.filter(u => u.email.toLowerCase().includes(searchVal));
+        }
+
+        if (!filtered.length) {
+            container.innerHTML = '<div class="users-empty">Nenhum usuário encontrado.</div>';
+            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+            return;
+        }
+
+        const visible = filtered.slice(0, usersDisplayCount);
+        container.innerHTML = visible.map(u => buildUserCard(u)).join('');
+
+        if (loadMoreBtn) {
+            const remaining = filtered.length - usersDisplayCount;
+            if (remaining > 0) {
+                loadMoreBtn.style.display = 'block';
+                loadMoreBtn.querySelector('button').textContent = `↓ Ver mais ${Math.min(remaining, 5)} usuários (${remaining} restantes)`;
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
+        }
     }
 
     function buildUserCard(u) {
@@ -837,6 +900,7 @@
                 <span class="uac-perfil-badge ${isAdmin ? 'admin' : 'comum'}" id="badge-perfil-${emailId}">
                     ${isAdmin ? '⚙️ Admin' : '👁️ Comum'}
                 </span>
+                <button onclick="event.stopPropagation(); deleteUser('${u.email}')" title="Remover acesso" style="background:rgba(255,70,51,0.25);border:1px solid rgba(255,70,51,0.5);color:#fff;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,70,51,0.7)'" onmouseout="this.style.background='rgba(255,70,51,0.25)'">🗑️</button>
                 <span class="uac-chevron" id="chevron-${emailId}">▾</span>
             </div>
             <div class="uac-body" id="body-${emailId}">
@@ -877,6 +941,18 @@
                 </button>
             </div>
         </div>`;
+    }
+
+    async function deleteUser(email) {
+        if (!confirm(`Remover o acesso de "${email}"?\n\nO usuário não conseguirá mais entrar no sistema.`)) return;
+        const { error } = await _supabase.from('usuarios').delete().eq('email', email);
+        if (error) {
+            alert('Erro ao remover usuário: ' + error.message);
+        } else {
+            // Remove from local array and re-render
+            allUsersData = allUsersData.filter(u => u.email !== email);
+            renderUsersCards();
+        }
     }
 
     function toggleUserCard(emailId) {
