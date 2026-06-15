@@ -1458,8 +1458,8 @@
     function createMarker(prestador) {
         let color = getConsultantColor(prestador.consultorNorm);
         const iconUrl = makeMarkerSvg(color, prestador.piloto);
-        const iconSize = prestador.piloto ? new google.maps.Size(48, 62) : new google.maps.Size(40, 52);
-        const iconAnchor = prestador.piloto ? new google.maps.Point(24, 60) : new google.maps.Point(20, 50);
+        const iconSize = prestador.piloto ? new google.maps.Size(30, 39) : new google.maps.Size(24, 32);
+        const iconAnchor = prestador.piloto ? new google.maps.Point(15, 37) : new google.maps.Point(12, 30);
 
         const marker = new google.maps.Marker({
             position: { lat: prestador.lat, lng: prestador.lng },
@@ -1556,8 +1556,8 @@
                 </svg>`;
                 const destIcon = {
                     url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(destSvg),
-                    scaledSize: new google.maps.Size(44, 56),
-                    anchor: new google.maps.Point(22, 54)
+                    scaledSize: new google.maps.Size(28, 36),
+                    anchor: new google.maps.Point(14, 34)
                 };
                 clientMarker = new google.maps.Marker({ position: loc, map, title: "Destino solicitado", icon: destIcon });
                 let formattedAddr = results[0].formatted_address;
