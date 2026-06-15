@@ -11,17 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* =====================================================================
-           RESET E VARIÁVEIS GERAIS
-           ===================================================================== */
-        *, *::before, *::after { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            /* Cobli Brand */
             --cobli-navy:    #07074E;
             --cobli-blue:    #001BB8;
             --cobli-indigo:  #3248C6;
@@ -30,296 +22,59 @@
             --cobli-red:     #FF4633;
             --cobli-red-dk:  #F01A1A;
             --cobli-teal:    #00AE97;
-            --cobli-gold:    #FFD700; /* Destaque Piloto */
-            
-            /* Surface */
+            --cobli-gold:    #FFD700;
             --surface-page:  #D8DCF0;
             --surface-card:  #FFFFFF;
             --surface-muted: #F5F6FA;
-            
-            /* Text */
             --text-primary:  #07074E;
             --text-secondary:#4B4F7A;
             --text-muted:    #9296B8;
-            
-            /* Border */
             --border-light:  #E2E5F0;
             --border-mid:    #C4C9E0;
-            
-            /* Sidebar */
             --sidebar-w: 400px;
         }
 
-        body { 
-            font-family: 'Inter', 'Segoe UI', sans-serif; 
-            display: flex; 
-            height: 100vh; 
-            background: var(--surface-page); 
-            overflow: hidden; 
-            color: var(--text-primary); 
-        }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; display: flex; height: 100vh; background: var(--surface-page); overflow: hidden; color: var(--text-primary); }
 
-        /* =====================================================================
-           LOGIN OVERLAY
-           ===================================================================== */
-        #login-overlay { 
-            position: fixed; 
-            inset: 0; 
-            background: var(--cobli-navy); 
-            z-index: 9999; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
+        #login-overlay { position: fixed; inset: 0; background: var(--cobli-navy); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: #fff; padding: 40px; border-radius: 12px; width: 360px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; }
+        .login-box h2 { color: var(--cobli-navy); margin-bottom: 10px; font-size: 20px; }
+        .login-box p { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+        .login-box input { width: 100%; padding: 12px; border: 1px solid var(--border-mid); border-radius: 6px; margin-bottom: 15px; font-size: 14px; text-align: center; }
+        .login-box input:focus { outline: none; border-color: var(--cobli-blue); }
+        .login-box .btn-primary { padding: 12px; font-size: 14px; width: 100%; }
 
-        .login-box { 
-            background: #fff; 
-            padding: 40px; 
-            border-radius: 12px; 
-            width: 360px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
-            text-align: center; 
-        }
+        body.is-common .admin-only { display: none !important; }
 
-        .login-box h2 { 
-            color: var(--cobli-navy); 
-            margin-bottom: 10px; 
-            font-size: 20px; 
-        }
-
-        .login-box p { 
-            color: var(--text-secondary); 
-            font-size: 13px; 
-            margin-bottom: 20px; 
-        }
-
-        .login-box input { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid var(--border-mid); 
-            border-radius: 6px; 
-            margin-bottom: 15px; 
-            font-size: 14px; 
-            text-align: center; 
-        }
-
-        .login-box input:focus { 
-            outline: none; 
-            border-color: var(--cobli-blue); 
-        }
-
-        .login-box .btn-primary { 
-            padding: 12px; 
-            font-size: 14px; 
-            width: 100%; 
-        }
-
-        /* Oculta áreas de admin dinamicamente se o usuário for Comum */
-        body.is-common .admin-only { 
-            display: none !important; 
-        }
-
-        /* =====================================================================
-           SIDEBAR E LAYOUT PRINCIPAL
-           ===================================================================== */
-        #sidebar { 
-            width: var(--sidebar-w); 
-            background: var(--surface-page); 
-            display: flex; 
-            flex-direction: column; 
-            z-index: 10; 
-            border-right: 1px solid var(--border-light); 
-            overflow: hidden; 
-        }
-
-        .topbar { 
-            background: var(--cobli-navy); 
-            padding: 14px 18px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            flex-shrink: 0; 
-        }
-
-        .topbar-brand { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 2px; 
-        }
-
-        .topbar-brand h1 { 
-            font-size: 15px; 
-            font-weight: 600; 
-            color: #fff; 
-            letter-spacing: -0.2px; 
-        }
-
-        .topbar-brand p { 
-            font-size: 11px; 
-            color: var(--cobli-lavender); 
-            opacity: 0.8; 
-        }
-
-        .btn-ghost { 
-            background: rgba(255,255,255,0.12); 
-            color: #fff; 
-            border: 1px solid rgba(255,255,255,0.2); 
-            padding: 6px 12px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 11px; 
-            font-weight: 600; 
-            letter-spacing: 0.2px; 
-            transition: background 0.15s; 
-            white-space: nowrap; 
-        }
-
-        .btn-ghost:hover { 
-            background: rgba(255,255,255,0.22); 
-        }
-
-        .btn-logout { 
-            background: rgba(255,70,51,0.2); 
-            border-color: rgba(255,70,51,0.4); 
-        }
-
-        .btn-logout:hover { 
-            background: rgba(255,70,51,0.6); 
-        }
+        #sidebar { width: var(--sidebar-w); background: var(--surface-page); display: flex; flex-direction: column; z-index: 10; border-right: 1px solid var(--border-light); overflow: hidden; }
+        .topbar { background: var(--cobli-navy); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .topbar-brand { display: flex; flex-direction: column; gap: 2px; }
+        .topbar-brand h1 { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.2px; }
+        .topbar-brand p { font-size: 11px; color: var(--cobli-lavender); opacity: 0.8; }
+        .btn-ghost { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; transition: background 0.15s; white-space: nowrap; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.22); }
+        .btn-logout { background: rgba(255,70,51,0.2); border-color: rgba(255,70,51,0.4); }
+        .btn-logout:hover { background: rgba(255,70,51,0.6); }
         
-        .scroll-panel { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 18px 16px 32px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 18px; 
-            background: var(--surface-page); 
-        }
+        .scroll-panel { flex: 1; overflow-y: auto; padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 18px; background: var(--surface-page); }
+        .scroll-panel::-webkit-scrollbar { width: 4px; }
+        .scroll-panel::-webkit-scrollbar-track { background: transparent; }
+        .scroll-panel::-webkit-scrollbar-thumb { background: var(--cobli-lavender); border-radius: 2px; }
 
-        .scroll-panel::-webkit-scrollbar { 
-            width: 4px; 
-        }
+        .section-card { background: var(--surface-card); border: 1px solid var(--border-mid); border-left: 4px solid var(--cobli-indigo); border-radius: 10px; box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06); }
+        .section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 12px 14px; background: var(--cobli-navy); border-bottom: 3px solid var(--cobli-indigo); border-top-left-radius: 6px; border-top-right-radius: 9px; }
+        .section-header-left { display: flex; align-items: center; gap: 8px; }
+        .section-number { width: 22px; height: 22px; border-radius: 50%; background: var(--cobli-indigo); border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .section-title { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.2px; }
+        .section-body { padding: 16px 16px 14px; }
 
-        .scroll-panel::-webkit-scrollbar-track { 
-            background: transparent; 
-        }
-
-        .scroll-panel::-webkit-scrollbar-thumb { 
-            background: var(--cobli-lavender); 
-            border-radius: 2px; 
-        }
-
-        /* =====================================================================
-           SECTION CARDS
-           ===================================================================== */
-        .section-card { 
-            background: var(--surface-card); 
-            border: 1px solid var(--border-mid); 
-            border-left: 4px solid var(--cobli-indigo); 
-            border-radius: 10px; 
-            box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06); 
-        }
-
-        .section-header { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 12px 16px 12px 14px; 
-            background: var(--cobli-navy); 
-            border-bottom: 3px solid var(--cobli-indigo); 
-            border-top-left-radius: 6px; 
-            border-top-right-radius: 9px; 
-        }
-
-        .section-header-left { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-        }
-
-        .section-number { 
-            width: 22px; 
-            height: 22px; 
-            border-radius: 50%; 
-            background: var(--cobli-indigo); 
-            border: 2px solid rgba(255,255,255,0.25); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 10px; 
-            font-weight: 700; 
-            color: #fff; 
-            flex-shrink: 0; 
-        }
-
-        .section-title { 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: #fff; 
-            letter-spacing: 0.2px; 
-        }
-
-        .section-body { 
-            padding: 16px 16px 14px; 
-        }
-
-        /* =====================================================================
-           FORM ELEMENTS E BOTÕES
-           ===================================================================== */
         .form-row { margin-bottom: 8px; }
-        
-        .form-row label { 
-            display: block; 
-            font-size: 11px; 
-            font-weight: 600; 
-            color: var(--text-secondary); 
-            margin-bottom: 4px; 
-            text-transform: uppercase; 
-            letter-spacing: 0.4px; 
-        }
+        .form-row label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .form-row input[type="text"], .form-row input[type="email"], .form-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 13px; color: var(--text-primary); background: #fff; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit; }
+        .form-row input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
+        .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--cobli-violet); box-shadow: 0 0 0 3px rgba(127,141,219,0.18); }
 
-        .form-row input[type="text"],
-        .form-row input[type="email"],
-        .form-row select { 
-            width: 100%; 
-            padding: 8px 10px; 
-            border: 1px solid var(--border-mid); 
-            border-radius: 6px; 
-            font-size: 13px; 
-            color: var(--text-primary); 
-            background: #fff; 
-            transition: border-color 0.15s, box-shadow 0.15s; 
-            font-family: inherit; 
-        }
-
-        .form-row input[type="checkbox"] {
-            transform: scale(1.2);
-            cursor: pointer;
-        }
-
-        .form-row input:focus, 
-        .form-row select:focus { 
-            outline: none; 
-            border-color: var(--cobli-violet); 
-            box-shadow: 0 0 0 3px rgba(127,141,219,0.18); 
-        }
-
-        .btn { 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 5px; 
-            padding: 8px 14px; 
-            border-radius: 6px; 
-            font-size: 12px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            border: none; 
-            transition: background 0.15s, transform 0.1s; 
-            font-family: inherit; 
-        }
-
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s, transform 0.1s; font-family: inherit; }
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--cobli-blue); color: #fff; }
         .btn-primary:hover { background: var(--cobli-navy); }
@@ -327,521 +82,105 @@
         .btn-secondary:hover { background: var(--cobli-indigo); }
         .btn-danger { background: var(--cobli-red); color: #fff; }
         .btn-danger:hover { background: var(--cobli-red-dk); }
-        
-        .btn-outline { 
-            background: transparent; 
-            border: 1px solid var(--border-mid); 
-            color: var(--text-secondary); 
-        }
-        .btn-outline:hover { 
-            background: var(--surface-muted); 
-            color: var(--text-primary); 
-        }
-        
+        .btn-outline { background: transparent; border: 1px solid var(--border-mid); color: var(--text-secondary); }
+        .btn-outline:hover { background: var(--surface-muted); color: var(--text-primary); }
         .btn-full { width: 100%; }
         .btn-row { display: flex; gap: 8px; }
         .btn-row .btn { flex: 1; }
 
-        /* =====================================================================
-           RANGE PILLS (Distâncias)
-           ===================================================================== */
-        .range-group { 
-            display: flex; 
-            gap: 6px; 
-            margin-bottom: 10px; 
-        }
+        .range-group { display: flex; gap: 6px; margin-bottom: 10px; }
+        .btn-range { flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-mid); background: var(--surface-muted); color: var(--text-secondary); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+        .btn-range:hover { background: var(--cobli-lavender); color: var(--cobli-navy); }
+        .btn-range.active { background: var(--cobli-blue); color: #fff; border-color: var(--cobli-blue); }
 
-        .btn-range { 
-            flex: 1; 
-            padding: 6px 4px; 
-            font-size: 11px; 
-            font-weight: 600; 
-            border: 1px solid var(--border-mid); 
-            background: var(--surface-muted); 
-            color: var(--text-secondary); 
-            border-radius: 6px; 
-            cursor: pointer; 
-            transition: all 0.15s; 
-        }
+        .search-row { display: flex; gap: 6px; margin-bottom: 10px; }
+        .search-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; color: var(--text-primary); font-family: inherit; }
+        .search-row input:focus { outline: none; border-color: var(--cobli-violet); box-shadow: 0 0 0 3px rgba(127,141,219,0.18); }
+        .btn-icon { width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--border-mid); background: var(--surface-muted); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--text-secondary); transition: background 0.15s; }
+        .btn-icon:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
 
-        .btn-range:hover { 
-            background: var(--cobli-lavender); 
-            color: var(--cobli-navy); 
-        }
-
-        .btn-range.active { 
-            background: var(--cobli-blue); 
-            color: #fff; 
-            border-color: var(--cobli-blue); 
-        }
-
-        /* =====================================================================
-           BUSCA E PESQUISA
-           ===================================================================== */
-        .search-row { 
-            display: flex; 
-            gap: 6px; 
-            margin-bottom: 10px; 
-        }
-
-        .search-row input { 
-            flex: 1; 
-            padding: 8px 10px; 
-            border: 1px solid var(--border-mid); 
-            border-radius: 6px; 
-            font-size: 12px; 
-            color: var(--text-primary); 
-            font-family: inherit; 
-        }
-
-        .search-row input:focus { 
-            outline: none; 
-            border-color: var(--cobli-violet); 
-            box-shadow: 0 0 0 3px rgba(127,141,219,0.18); 
-        }
-
-        .btn-icon { 
-            width: 34px; 
-            height: 34px; 
-            flex-shrink: 0; 
-            border: 1px solid var(--border-mid); 
-            background: var(--surface-muted); 
-            border-radius: 6px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 13px; 
-            font-weight: 700; 
-            color: var(--text-secondary); 
-            transition: background 0.15s; 
-        }
-
-        .btn-icon:hover { 
-            background: var(--cobli-red); 
-            color: #fff; 
-            border-color: var(--cobli-red); 
-        }
-
-        /* =====================================================================
-           LISTA DE PRESTADORES
-           ===================================================================== */
-        #providers-list { 
-            list-style: none; 
-            max-height: 260px; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 6px; 
-            background: var(--surface-muted); 
-            border: 1.5px solid var(--border-mid); 
-            border-radius: 8px; 
-            padding: 8px; 
-        }
-
+        #providers-list { list-style: none; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; background: var(--surface-muted); border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 8px; }
         #providers-list::-webkit-scrollbar { width: 3px; }
         #providers-list::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
 
-        .provider-item { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            padding: 10px 12px; 
-            border: 1.5px solid var(--border-light); 
-            border-radius: 8px; 
-            background: #fff; 
-            cursor: pointer; 
-            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; 
-        }
+        .provider-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1.5px solid var(--border-light); border-radius: 8px; background: #fff; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+        .provider-item:hover { border-color: var(--cobli-violet); background: #F5F6FF; box-shadow: 0 2px 8px rgba(50,72,198,0.12); }
+        .provider-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
+        .provider-name { flex: 1; font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+        .provider-status-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
+        .badge-piloto { background: var(--cobli-gold); color: #000; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .btn-edit { flex-shrink: 0; background: transparent; border: 1px solid var(--border-mid); border-radius: 5px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.12s; font-family: inherit; }
+        .btn-edit:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
+        .empty-state { padding: 20px; text-align: center; font-size: 12px; color: var(--text-muted); background: var(--surface-muted); border: 1px dashed var(--border-mid); border-radius: 7px; }
 
-        .provider-item:hover { 
-            border-color: var(--cobli-violet); 
-            background: #F5F6FF; 
-            box-shadow: 0 2px 8px rgba(50,72,198,0.12); 
-        }
-
-        .provider-dot { 
-            width: 10px; 
-            height: 10px; 
-            border-radius: 50%; 
-            flex-shrink: 0;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-
-        .provider-name { 
-            flex: 1; 
-            font-size: 12px; 
-            font-weight: 500; 
-            color: var(--text-primary); 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .provider-status-badge { 
-            font-size: 10px; 
-            font-weight: 600; 
-            padding: 2px 7px; 
-            border-radius: 10px; 
-            white-space: nowrap; 
-            flex-shrink: 0; 
-        }
-
-        .badge-piloto {
-            background: var(--cobli-gold);
-            color: #000;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            flex-shrink: 0;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        .btn-edit { 
-            flex-shrink: 0; 
-            background: transparent; 
-            border: 1px solid var(--border-mid); 
-            border-radius: 5px; 
-            padding: 3px 8px; 
-            font-size: 10px; 
-            font-weight: 600; 
-            color: var(--text-secondary); 
-            cursor: pointer; 
-            transition: all 0.12s; 
-            font-family: inherit; 
-        }
-
-        .btn-edit:hover { 
-            background: var(--cobli-navy); 
-            color: #fff; 
-            border-color: var(--cobli-navy); 
-        }
-
-        .empty-state { 
-            padding: 20px; 
-            text-align: center; 
-            font-size: 12px; 
-            color: var(--text-muted); 
-            background: var(--surface-muted); 
-            border: 1px dashed var(--border-mid); 
-            border-radius: 7px; 
-        }
-
-        /* =====================================================================
-           DROPDOWN MULTI SELECT (Filtros)
-           ===================================================================== */
         .dropdown-check-list { position: relative; margin-bottom: 8px; }
-        
-        .dropdown-anchor { 
-            width: 100%; 
-            padding: 8px 10px; 
-            border: 1px solid var(--border-mid); 
-            border-radius: 6px; 
-            cursor: pointer; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: #fff; 
-            font-size: 12px; 
-            font-weight: 500; 
-            color: var(--text-primary); 
-            user-select: none; 
-        }
-
+        .dropdown-anchor { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; font-size: 12px; font-weight: 500; color: var(--text-primary); user-select: none; }
         .dropdown-anchor::after { content: "▾"; font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
         .dropdown-anchor:hover { border-color: var(--cobli-violet); }
-        
-        .dropdown-items { 
-            display: none; 
-            position: absolute; 
-            background: #fff; 
-            width: 100%; 
-            border: 1px solid var(--cobli-violet); 
-            border-top: none; 
-            z-index: 100; 
-            max-height: 180px; 
-            overflow-y: auto; 
-            box-shadow: 0 6px 20px rgba(7,7,78,0.12); 
-            border-bottom-left-radius: 6px; 
-            border-bottom-right-radius: 6px; 
-        }
-
+        .dropdown-items { display: none; position: absolute; background: #fff; width: 100%; border: 1px solid var(--cobli-violet); border-top: none; z-index: 100; max-height: 180px; overflow-y: auto; box-shadow: 0 6px 20px rgba(7,7,78,0.12); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
         .dropdown-items.visible { display: block; }
-        
-        .dropdown-items li { 
-            list-style: none; 
-            padding: 7px 10px; 
-            font-size: 12px; 
-            border-bottom: 1px solid var(--border-light); 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            cursor: pointer; 
-        }
-
+        .dropdown-items li { list-style: none; padding: 7px 10px; font-size: 12px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .dropdown-items li:hover { background: var(--surface-muted); }
         .dropdown-items input[type="checkbox"] { cursor: pointer; }
-        
-        .dropdown-actions { 
-            display: flex; 
-            gap: 6px; 
-            padding: 7px 10px; 
-            background: var(--surface-muted); 
-            border-bottom: 1px solid var(--border-light); 
-        }
+        .dropdown-actions { display: flex; gap: 6px; padding: 7px 10px; background: var(--surface-muted); border-bottom: 1px solid var(--border-light); }
+        .btn-dd-action { background: transparent; border: 1px solid var(--border-mid); border-radius: 4px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+        .btn-dd-action:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
 
-        .btn-dd-action { 
-            background: transparent; 
-            border: 1px solid var(--border-mid); 
-            border-radius: 4px; 
-            padding: 3px 8px; 
-            font-size: 10px; 
-            font-weight: 600; 
-            color: var(--text-secondary); 
-            cursor: pointer; 
-            font-family: inherit; 
-        }
-
-        .btn-dd-action:hover { 
-            background: var(--cobli-navy); 
-            color: #fff; 
-            border-color: var(--cobli-navy); 
-        }
-
-        /* =====================================================================
-           DASHBOARD E RESUMO (Summary)
-           ===================================================================== */
-        .summary-total { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            background: var(--cobli-navy); 
-            color: #fff; 
-            padding: 11px 14px; 
-            border-radius: 8px; 
-            margin-bottom: 8px; 
-        }
-
+        .summary-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 11px 14px; border-radius: 8px; margin-bottom: 8px; }
         .summary-total-label { font-size: 11px; font-weight: 600; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
         .summary-total-value { font-size: 24px; font-weight: 700; }
-        
-        #dashboard-summary { 
-            margin-top: 12px; 
-            background: var(--surface-muted); 
-            border: 1.5px solid var(--border-mid); 
-            border-radius: 8px; 
-            padding: 10px; 
-            overflow: visible; 
-        }
-
-        .summary-grid { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            grid-auto-rows: auto; 
-            gap: 6px; 
-        }
-
-        .summary-cell { 
-            background: #fff; 
-            border: 1px solid var(--border-light); 
-            border-radius: 7px; 
-            padding: 8px 6px; 
-            text-align: center; 
-            min-height: 0; 
-        }
-
+        #dashboard-summary { margin-top: 12px; background: var(--surface-muted); border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 10px; overflow: visible; }
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: auto; gap: 6px; }
+        .summary-cell { background: #fff; border: 1px solid var(--border-light); border-radius: 7px; padding: 8px 6px; text-align: center; min-height: 0; }
         .summary-cell-val { font-size: 17px; font-weight: 700; display: block; line-height: 1.2; }
         .summary-cell-lbl { font-size: 9px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 3px; display: block; line-height: 1.3; word-break: break-word; }
 
-        /* =====================================================================
-           RESULTADOS DE ROTA
-           ===================================================================== */
         #routing-result { margin-top: 10px; max-height: 320px; overflow-y: auto; }
         #routing-result::-webkit-scrollbar { width: 3px; }
         #routing-result::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
-        
-        .result-section-title { 
-            font-size: 11px; 
-            font-weight: 700; 
-            color: var(--text-secondary); 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            border-top: 1px solid var(--border-light); 
-            padding-top: 10px; 
-            margin-bottom: 8px; 
-        }
-
-        .result-card { 
-            background: #fff; 
-            border: 1.5px solid var(--border-light); 
-            border-radius: 8px; 
-            padding: 10px 12px; 
-            margin-bottom: 6px; 
-        }
-
+        .result-section-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid var(--border-light); padding-top: 10px; margin-bottom: 8px; }
+        .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
         .result-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
         .result-card-dist { font-size: 11px; color: var(--cobli-indigo); font-weight: 600; margin-bottom: 8px; }
-        
-        .btn-route { 
-            width: 100%; 
-            padding: 6px 10px; 
-            background: var(--cobli-indigo); 
-            color: #fff; 
-            border: none; 
-            border-radius: 5px; 
-            font-size: 11px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            transition: background 0.15s; 
-            font-family: inherit; 
-        }
-
+        .btn-route { width: 100%; padding: 6px 10px; background: var(--cobli-indigo); color: #fff; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
         .btn-route:hover { background: var(--cobli-blue); }
 
-        /* =====================================================================
-           MAPA E LEGENDAS
-           ===================================================================== */
         #map-container { flex: 1; position: relative; }
         #map { width: 100%; height: 100%; z-index: 1;}
-
-        .map-legend { 
-            position: absolute; 
-            bottom: 24px; 
-            right: 14px; 
-            background: rgba(255,255,255,0.95); 
-            padding: 12px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            z-index: 100; /* Mantém a legenda acima dos botões do Google Maps */
-            font-size: 11px;
-            font-family: var(--font-sans);
-            border: 1px solid var(--border-light);
-            max-width: 250px;
-            max-height: 300px;
-            overflow-y: auto; /* Adiciona barra de rolagem se tiver muitos consultores */
-        }
+        .map-legend { position: absolute; bottom: 24px; right: 14px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; font-size: 11px; font-family: var(--font-sans); border: 1px solid var(--border-light); max-width: 250px; max-height: 300px; overflow-y: auto; }
         .map-legend::-webkit-scrollbar { width: 4px; }
         .map-legend::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
-
         .map-legend-title { font-weight: 700; color: var(--cobli-navy); margin-bottom: 8px; text-transform: uppercase; font-size: 10px;}
         #legend-content div { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;}
         #legend-content div:last-child { margin-bottom: 0; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;}
 
-        /* =====================================================================
-           MODAIS E INFOWINDOW
-           ===================================================================== */
-        .modal-backdrop { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(7,7,78,0.55); 
-            backdrop-filter: blur(3px); 
-            z-index: 200; 
-            justify-content: center; 
-            align-items: center; 
-        }
-
+        .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(7,7,78,0.55); backdrop-filter: blur(3px); z-index: 200; justify-content: center; align-items: center; }
         .modal-backdrop.open { display: flex; }
         .modal-backdrop[style*="flex"] { display: flex !important; }
-
-        .modal-box { 
-            background: #fff; 
-            border-radius: 12px; 
-            width: 460px; 
-            max-width: calc(100vw - 32px); 
-            max-height: 88vh; 
-            overflow-y: auto; 
-            box-shadow: 0 20px 60px rgba(7,7,78,0.22); 
-            animation: modal-in 0.18s ease; 
-        }
-
-        @keyframes modal-in { 
-            from { opacity: 0; transform: scale(0.96) translateY(8px); } 
-            to   { opacity: 1; transform: scale(1) translateY(0); } 
-        }
-
+        .modal-box { background: #fff; border-radius: 12px; width: 460px; max-width: calc(100vw - 32px); max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(7,7,78,0.22); animation: modal-in 0.18s ease; }
+        @keyframes modal-in { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-box.wide { width: 560px; }
-
-        .modal-head { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 16px 20px; 
-            border-bottom: 1px solid var(--border-light); 
-        }
-
+        .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
         .modal-head h3 { font-size: 15px; font-weight: 600; color: var(--cobli-navy); }
-        
-        .modal-close { 
-            width: 28px; 
-            height: 28px; 
-            border-radius: 6px; 
-            background: var(--surface-muted); 
-            border: 1px solid var(--border-light); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 16px; 
-            cursor: pointer; 
-            color: var(--text-muted); 
-            line-height: 1; 
-            transition: background 0.12s; 
-        }
-
+        .modal-close { width: 28px; height: 28px; border-radius: 6px; background: var(--surface-muted); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; color: var(--text-muted); line-height: 1; transition: background 0.12s; }
         .modal-close:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
         .modal-body { padding: 20px; }
 
-        /* Estilização do InfoWindow do Google Maps */
         .gm-style-iw { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
         .gm-style-iw-d { overflow: hidden !important; }
         .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
         .gm-ui-hover-effect { top: 6px !important; right: 6px !important; opacity: 0.7 !important; background: rgba(255,255,255,0.8)!important; border-radius: 50%;}
-        
         .iw-card { width: 270px; font-family: 'Inter','Segoe UI',sans-serif; }
-        
-        .iw-head { 
-            background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); 
-            padding: 18px 16px 14px; 
-            display: flex; 
-            flex-direction: column;
-            gap: 10px; 
-        }
-
+        .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
         .iw-head.destination { background: linear-gradient(135deg, #B01010 0%, #FF4633 100%); flex-direction: row;}
-        
         .iw-head-top { display: flex; gap: 10px; align-items: flex-start; }
-
-        .iw-avatar { 
-            width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); 
-            border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; 
-            justify-content: center; font-size: 12px; font-weight: 700; color: #fff; 
-            flex-shrink: 0; letter-spacing: 0.5px; 
-        }
-
+        .iw-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; letter-spacing: 0.5px; }
         .iw-head-text { flex: 1; min-width: 0; }
-        
-        .iw-head-text h4 { 
-            font-size: 14px; font-weight: 700; color: #fff; line-height: 1.3; 
-            margin: 0 0 6px; white-space: normal; 
-        }
-
-        /* O Status ganhou muito destaque aqui */
-        .iw-status-pill { 
-            display: inline-flex; align-items: center; gap: 6px; font-size: 11px; 
-            font-weight: 800; color: var(--cobli-navy); background: #fff; 
-            border-radius: 4px; padding: 4px 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            text-transform: uppercase; letter-spacing: 0.3px;
-        }
-
+        .iw-head-text h4 { font-size: 14px; font-weight: 700; color: #fff; line-height: 1.3; margin: 0 0 6px; white-space: normal; }
+        .iw-status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: var(--cobli-navy); background: #fff; border-radius: 4px; padding: 4px 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 0.3px; }
         .iw-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        
         .iw-body { padding: 16px; background: #fff; }
-        
         .iw-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 12px; }
         .iw-row:last-of-type { margin-bottom: 0; }
         .iw-icon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; opacity: 0.45; }
@@ -849,44 +188,230 @@
         .iw-field-label { font-size: 10px; font-weight: 700; color: #9296B8; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
         .iw-field-val { color: #07074E; font-weight: 500; line-height: 1.4; word-break: break-word; }
         .iw-address-block { margin-top: 4px; padding: 8px 10px; background: #F5F6FA; border-radius: 6px; font-size: 11px; color: #4B4F7A; line-height: 1.5; }
-
-        /* Link inteligente para o WhatsApp */
         .iw-whatsapp-link { color: #00AE97; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;}
         .iw-whatsapp-link:hover { color: #007C6B; text-decoration: underline;}
 
-        /* =====================================================================
-           MODAL DO RESUMO
-           ===================================================================== */
         .summary-modal-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; }
         .summary-modal-total span:first-child { font-size: 13px; opacity: 0.8; }
         .summary-modal-total span:last-child { font-size: 26px; font-weight: 700; }
-        
         .summary-status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
         .summary-status-cell { border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; text-align: center; background: var(--surface-muted); }
         .summary-status-cell .val { font-size: 20px; font-weight: 700; display: block; }
         .summary-status-cell .lbl { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; display: block; }
-        
         .modal-subtitle { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-light); }
-        
         .consultor-list { list-style: none; border: 1px solid var(--border-light); border-radius: 7px; overflow: hidden; }
         .consultor-list li { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); background: #fff; }
         .consultor-list li:last-child { border-bottom: none; }
         .consultor-list .count-badge { background: var(--cobli-lavender); color: var(--cobli-navy); font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 10px; }
 
-        /* =====================================================================
-           FILE INPUT E INDICADORES
-           ===================================================================== */
         .file-input-wrapper { position: relative; overflow: hidden; }
         .file-label { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1.5px dashed var(--border-mid); border-radius: 7px; cursor: pointer; font-size: 12px; color: var(--text-secondary); font-weight: 500; transition: border-color 0.15s, background 0.15s; }
         .file-label:hover { border-color: var(--cobli-violet); background: var(--cobli-lavender); color: var(--cobli-navy); }
         .file-label input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-        
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
         .err-text { color: var(--cobli-red); font-size: 12px; }
         .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        
         #loading-indicator { display: none; text-align: center; color: var(--cobli-blue); font-size: 13px; font-weight: 600; padding: 12px; background: #fff; border-radius: 6px; border: 1px solid var(--border-mid); margin-top: 10px; }
 
+        /* =====================================================================
+           BLOCO 7 — GESTÃO DE ACESSOS (REDESIGNED)
+           ===================================================================== */
+        .user-access-card {
+            background: #fff;
+            border: 1.5px solid var(--border-mid);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(7,7,78,0.07);
+            transition: box-shadow 0.15s;
+        }
+        .user-access-card:last-child { margin-bottom: 0; }
+        .user-access-card:hover { box-shadow: 0 4px 16px rgba(7,7,78,0.12); }
+
+        .uac-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 14px;
+            background: var(--cobli-navy);
+            cursor: pointer;
+            user-select: none;
+            gap: 10px;
+        }
+        .uac-header:hover { background: #0d0d6e; }
+
+        .uac-email {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .uac-perfil-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            flex-shrink: 0;
+        }
+        .uac-perfil-badge.admin { background: var(--cobli-red); color: #fff; }
+        .uac-perfil-badge.comum { background: rgba(255,255,255,0.18); color: #fff; }
+
+        .uac-chevron {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .uac-body {
+            display: none;
+            padding: 14px;
+            border-top: 2px solid var(--cobli-indigo);
+            background: var(--surface-muted);
+        }
+        .uac-body.open { display: block; }
+
+        .uac-section { margin-bottom: 14px; }
+        .uac-section:last-of-type { margin-bottom: 0; }
+
+        .uac-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--cobli-indigo);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .uac-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-mid);
+        }
+
+        .uac-perfil-select { display: flex; gap: 6px; }
+        .uac-perfil-btn {
+            flex: 1;
+            padding: 7px 8px;
+            border: 1.5px solid var(--border-mid);
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #fff;
+            color: var(--text-secondary);
+            text-align: center;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .uac-perfil-btn.active-comum { background: var(--cobli-violet); border-color: var(--cobli-violet); color: #fff; }
+        .uac-perfil-btn.active-admin { background: var(--cobli-red); border-color: var(--cobli-red); color: #fff; }
+        .uac-perfil-btn:not(.active-comum):not(.active-admin):hover { border-color: var(--cobli-violet); background: var(--cobli-lavender); }
+
+        .uac-blocos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .uac-bloco-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            padding: 8px 9px;
+            background: #fff;
+            border: 1.5px solid var(--border-light);
+            border-radius: 7px;
+            cursor: pointer;
+            transition: border-color 0.12s, background 0.12s;
+        }
+        .uac-bloco-item:hover { border-color: var(--cobli-violet); background: #F5F6FF; }
+        .uac-bloco-item.checked { border-color: var(--cobli-indigo); background: #EEF0FF; }
+
+        .uac-bloco-cb {
+            margin-top: 2px;
+            flex-shrink: 0;
+            accent-color: var(--cobli-blue);
+            cursor: pointer;
+            transform: scale(1.1);
+        }
+
+        .uac-bloco-info { min-width: 0; }
+        .uac-bloco-num { font-size: 9px; font-weight: 700; color: var(--cobli-indigo); text-transform: uppercase; letter-spacing: 0.3px; }
+        .uac-bloco-name { font-size: 11px; font-weight: 600; color: var(--text-primary); line-height: 1.3; margin-top: 1px; }
+
+        .uac-bloco1-perms {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border-mid);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .uac-sub-perm {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .uac-sub-perm input[type="checkbox"] {
+            accent-color: var(--cobli-teal);
+            cursor: pointer;
+            transform: scale(1.1);
+        }
+
+        .uac-status-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+
+        .uac-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 1.5px solid var(--border-mid);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #fff;
+            transition: all 0.12s;
+            user-select: none;
+        }
+        .uac-status-pill input[type="checkbox"] { display: none; }
+        .uac-status-pill.pill-checked { color: #fff; }
+
+        .pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+        .uac-save-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 10px;
+            background: var(--cobli-blue);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, transform 0.1s;
+            letter-spacing: 0.2px;
+        }
+        .uac-save-btn:hover { background: var(--cobli-navy); }
+        .uac-save-btn:active { transform: scale(0.98); }
+
+        .users-empty { text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 12px; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -969,12 +494,10 @@
                 </div>
             </div>
             <div class="section-body">
-                
                 <div class="form-row" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="filter-piloto" onchange="applyFilters()" style="margin: 0; width: auto; transform: scale(1.2); cursor: pointer;">
                     <label for="filter-piloto" style="margin: 0; cursor: pointer; text-transform: none; color: var(--cobli-navy); font-size: 12px;">Mostrar <strong>apenas</strong> Prestadores Piloto ⭐</label>
                 </div>
-
                 <div id="dd-status-container" class="dropdown-check-list admin-only">
                     <div class="dropdown-anchor" onclick="toggleDropdown('status-items')">
                         <span id="status-anchor-label">Filtro de status</span>
@@ -986,7 +509,6 @@
                         </div>
                     </ul>
                 </div>
-
                 <div class="dropdown-check-list">
                     <div class="dropdown-anchor" onclick="toggleDropdown('consultor-items')">
                         <span id="consultor-anchor-label">Filtro por consultor</span>
@@ -998,7 +520,6 @@
                         </div>
                     </ul>
                 </div>
-
                 <div id="dashboard-summary"></div>
             </div>
         </div>
@@ -1029,9 +550,7 @@
                 <div class="form-row">
                     <label>Atribuir ao Novo Consultor *</label>
                     <div style="display: flex; gap: 8px;">
-                        <select id="bulk-new-consultant-select" style="flex: 1;">
-                            <option value="">-- Aguardando base --</option>
-                        </select>
+                        <select id="bulk-new-consultant-select" style="flex: 1;"><option value="">-- Aguardando base --</option></select>
                         <button type="button" class="btn btn-outline" onclick="toggleNewConsultant('bulk')" style="padding: 4px 8px;">+ Novo</button>
                     </div>
                     <input type="text" id="bulk-new-consultant-input" placeholder="Digite o nome do novo consultor" style="display: none; margin-top: 8px;">
@@ -1051,16 +570,12 @@
             <div class="section-body">
                 <div class="form-row">
                     <label>Consultor a ser substituído (Atual) *</label>
-                    <select id="replace-old-consultant">
-                        <option value="">-- Aguardando base --</option>
-                    </select>
+                    <select id="replace-old-consultant"><option value="">-- Aguardando base --</option></select>
                 </div>
                 <div class="form-row">
                     <label>Atribuir ao Novo Consultor *</label>
                     <div style="display: flex; gap: 8px;">
-                        <select id="replace-new-consultant-select" style="flex: 1;">
-                            <option value="">-- Aguardando base --</option>
-                        </select>
+                        <select id="replace-new-consultant-select" style="flex: 1;"><option value="">-- Aguardando base --</option></select>
                         <button type="button" class="btn btn-outline" onclick="toggleNewConsultant('replace')" style="padding: 4px 8px;">+ Novo</button>
                     </div>
                     <input type="text" id="replace-new-consultant-input" placeholder="Digite o nome do novo consultor" style="display: none; margin-top: 8px;">
@@ -1092,29 +607,20 @@
             </div>
         </div>
 
+        <!-- ================================================================
+             BLOCO 7 — GERENCIAR ACESSOS (REDESIGNED)
+             ================================================================ -->
         <div id="bloco-7" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
                     <span class="section-number">7</span>
                     <span class="section-title">Gerenciar Acessos</span>
                 </div>
-                <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="loadUsersTable()">Atualizar Lista</button>
+                <button class="btn-ghost" style="font-size: 11px;" onclick="loadUsersTable()">↻ Atualizar</button>
             </div>
-            <div class="section-body">
-                <div class="table-wrap" style="max-height: 250px; overflow-y: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>E-mail</th>
-                                <th>Perfil</th>
-                                <th style="text-align:center;">Pode Editar?</th>
-                                <th style="text-align:center;">Ver Credenc.?</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-table-body">
-                            <tr><td colspan="4" style="text-align:center; padding:15px; color:var(--text-muted);">Clique em "Atualizar Lista" para carregar os usuários cadastrados.</td></tr>
-                        </tbody>
-                    </table>
+            <div class="section-body" style="padding: 12px;">
+                <div id="users-cards-container">
+                    <div class="users-empty">Clique em "Atualizar" para carregar os usuários.</div>
                 </div>
             </div>
         </div>
@@ -1130,6 +636,7 @@
     </div>
 </div>
 
+<!-- MODAIS -->
 <div id="summary-modal" class="modal-backdrop">
     <div class="modal-box wide">
         <div class="modal-head">
@@ -1182,12 +689,10 @@
                 <div class="form-row"><label>Contato / Telefone</label><input type="text" id="m-contato"></div>
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="m-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="m-status" required></select></div>
-                
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="m-piloto" style="margin: 0; width: auto; transform: scale(1.2);">
                     <label for="m-piloto" style="margin: 0; color: var(--cobli-navy); font-size: 12px; text-transform: none;">⭐ Prestador Piloto (Casos Críticos)</label>
                 </div>
-
                 <div class="btn-row" style="margin-top: 16px;">
                     <button type="button" class="btn btn-outline" onclick="closeModal('register-modal')">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar no Banco</button>
@@ -1212,12 +717,10 @@
                 <div class="form-row"><label>Contato / Telefone</label><input type="text" id="e-contato"></div>
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="e-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="e-status" required></select></div>
-                
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="e-piloto" style="margin: 0; width: auto; transform: scale(1.2);">
                     <label for="e-piloto" style="margin: 0; color: var(--cobli-navy); font-size: 12px; text-transform: none;">⭐ Prestador Piloto (Casos Críticos)</label>
                 </div>
-
                 <div class="btn-row" style="margin-top: 16px;">
                     <button type="button" class="btn btn-outline" onclick="closeModal('edit-modal')">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar alterações</button>
@@ -1228,52 +731,278 @@
 </div>
 
 <script>
-    /* =========================================================================
-       CONFIGURAÇÃO DO BANCO DE DADOS SUPABASE E VARIÁVEIS GLOBAIS
-       ========================================================================= */
     const supabaseUrl = 'https://tmjmjrhgmyqamuphgdvi.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtam1qcmhnbXlxYW11cGhnZHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY4NzMsImV4cCI6MjA5MjcwMjg3M30.gjClWn46TOgfa-y4PAUMBg4ZxS4xhFjep1mk_DcU2QY';
     const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    let map;
-    let markers = [];
-    let providersData = [];
-    let rawImportedData = [];
-    let directionsService;
-    let directionsRenderer;
-    let geocoder;
-    let clientMarker = null;
-    let infoWindowGlobal = null;
-    let clientInfoWindow = null;
-    let currentSearchRange = 50;
-    
-    // Guarda as permissões da pessoa logada
-    let currentUser = null; 
+    let map, markers = [], providersData = [], rawImportedData = [];
+    let directionsService, directionsRenderer, geocoder;
+    let clientMarker = null, infoWindowGlobal = null, clientInfoWindow = null;
+    let currentSearchRange = 50, currentUser = null;
 
-    // Paleta de Cores Dinâmica para Consultores
     const PALETTE = ['#001BB8', '#00AE97', '#FF4633', '#7F8DDB', '#F01A1A', '#07074E', '#E455C6', '#228B22', '#D2691E'];
-    let consultantColors = {}; 
+    let consultantColors = {};
 
-    /* =========================================================================
-       INICIALIZAÇÃO E SESSÃO (LOGIN VIA SUPABASE)
-       ========================================================================= */
+    /* =====================================================================
+       BLOCO 7 — GESTÃO DE ACESSOS
+       ===================================================================== */
+
+    const BLOCK_LABELS = {
+        1: { icon: '📋', name: 'Lista de Prestadores' },
+        2: { icon: '🗺️', name: 'Buscar Técnicos Próximos' },
+        3: { icon: '🔍', name: 'Filtros Dinâmicos' },
+        4: { icon: '🔄', name: 'Transferência por UF' },
+        5: { icon: '👤', name: 'Substituição de Consultor' },
+        6: { icon: '📂', name: 'Importar Base' },
+        7: { icon: '🔐', name: 'Gerenciar Acessos' }
+    };
+
+    const ALL_STATUSES = ['Ativo', 'Inativo', 'Suspenso', 'Em credenciamento', 'Credenciado fase final', 'Descredenciado', 'Free Lance'];
+
+    async function loadUsersTable() {
+        const container = document.getElementById('users-cards-container');
+        if (!container) return;
+        container.innerHTML = '<div class="users-empty">⏳ Carregando usuários...</div>';
+
+        const { data, error } = await _supabase.from('usuarios').select('*').order('email');
+        if (error) {
+            container.innerHTML = `<div class="users-empty" style="color:var(--cobli-red);">Erro: ${error.message}</div>`;
+            return;
+        }
+        if (!data || !data.length) {
+            container.innerHTML = '<div class="users-empty">Nenhum usuário cadastrado ainda.</div>';
+            return;
+        }
+        container.innerHTML = data.map(u => buildUserCard(u)).join('');
+    }
+
+    function buildUserCard(u) {
+        const blocosArr = (u.blocos || '1,2,3').split(',').map(b => b.trim());
+        const statusArr = (u.status_permitidos || 'Ativo').split(',').map(s => s.trim());
+        const isAdmin = u.perfil === 'admin';
+        const podeEditar = u.pode_editar === true;
+        const podeAdd = u.pode_adicionar === true;
+        const emailId = u.email.replace(/[@.]/g, '_');
+
+        // Build blocos grid
+        const blocosHTML = Object.entries(BLOCK_LABELS).map(([num, info]) => {
+            const checked = blocosArr.includes(String(num));
+            let extraPerms = '';
+            if (num == '1') {
+                extraPerms = `
+                <div class="uac-bloco1-perms">
+                    <label class="uac-sub-perm" onclick="event.stopPropagation()">
+                        <input type="checkbox" id="cb-editar-${emailId}" ${podeEditar ? 'checked' : ''}>
+                        ✏️ Pode editar cadastro
+                    </label>
+                    <label class="uac-sub-perm" onclick="event.stopPropagation()">
+                        <input type="checkbox" id="cb-add-${emailId}" ${podeAdd ? 'checked' : ''}>
+                        ➕ Pode adicionar novo
+                    </label>
+                </div>`;
+            }
+            return `
+            <div class="uac-bloco-item${checked ? ' checked' : ''}" onclick="toggleBlocoItem(this)">
+                <input type="checkbox" class="uac-bloco-cb" data-bloco="${num}" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); this.closest('.uac-bloco-item').classList.toggle('checked', this.checked)">
+                <div class="uac-bloco-info">
+                    <div class="uac-bloco-num">Bloco ${num}</div>
+                    <div class="uac-bloco-name">${info.icon} ${info.name}</div>
+                    ${extraPerms}
+                </div>
+            </div>`;
+        }).join('');
+
+        // Build status pills
+        const statusHTML = ALL_STATUSES.map(s => {
+            const checked = statusArr.includes(s);
+            const col = getStatusColor(s);
+            const pillStyle = checked
+                ? `background:${col}; border-color:${col}; color:#fff;`
+                : `background:#fff; border-color:${col}55; color:${col};`;
+            return `
+            <div class="uac-status-pill${checked ? ' pill-checked' : ''}"
+                 style="${pillStyle}"
+                 data-color="${col}"
+                 onclick="toggleStatusPill(this)">
+                <input type="checkbox" data-status="${s}" ${checked ? 'checked' : ''}>
+                <span class="pill-dot" style="background:${checked ? '#fff' : col};"></span>
+                ${s}
+            </div>`;
+        }).join('');
+
+        return `
+        <div class="user-access-card" id="uac-${emailId}">
+            <div class="uac-header" onclick="toggleUserCard('${emailId}')">
+                <span class="uac-email">👤 ${u.email}</span>
+                <span class="uac-perfil-badge ${isAdmin ? 'admin' : 'comum'}" id="badge-perfil-${emailId}">
+                    ${isAdmin ? '⚙️ Admin' : '👁️ Comum'}
+                </span>
+                <span class="uac-chevron" id="chevron-${emailId}">▾</span>
+            </div>
+            <div class="uac-body" id="body-${emailId}">
+
+                <div class="uac-section">
+                    <div class="uac-section-title">Perfil de Acesso</div>
+                    <div class="uac-perfil-select">
+                        <button class="uac-perfil-btn ${!isAdmin ? 'active-comum' : ''}"
+                                id="btn-comum-${emailId}"
+                                onclick="setPerfilBtn('${emailId}', 'comum')">
+                            👁️ Comum
+                        </button>
+                        <button class="uac-perfil-btn ${isAdmin ? 'active-admin' : ''}"
+                                id="btn-admin-${emailId}"
+                                onclick="setPerfilBtn('${emailId}', 'admin')">
+                            ⚙️ Admin (acesso total)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="uac-section" id="blocos-section-${emailId}"
+                     style="${isAdmin ? 'opacity:0.45; pointer-events:none;' : ''}">
+                    <div class="uac-section-title">Blocos Visíveis</div>
+                    <div class="uac-blocos-grid" id="blocos-grid-${emailId}">
+                        ${blocosHTML}
+                    </div>
+                </div>
+
+                <div class="uac-section">
+                    <div class="uac-section-title">Status que pode visualizar</div>
+                    <div class="uac-status-grid" id="status-grid-${emailId}">
+                        ${statusHTML}
+                    </div>
+                </div>
+
+                <button class="uac-save-btn" onclick="saveUserPermissions('${u.email}', '${emailId}')">
+                    💾 Salvar Permissões
+                </button>
+            </div>
+        </div>`;
+    }
+
+    function toggleUserCard(emailId) {
+        const body = document.getElementById(`body-${emailId}`);
+        const chevron = document.getElementById(`chevron-${emailId}`);
+        const isOpen = body.classList.contains('open');
+        body.classList.toggle('open', !isOpen);
+        if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+    }
+
+    function toggleBlocoItem(el) {
+        // Only toggle if clicking directly on the div, not on sub-perms
+        const cb = el.querySelector('.uac-bloco-cb');
+        if (!cb) return;
+        const newVal = !cb.checked;
+        cb.checked = newVal;
+        el.classList.toggle('checked', newVal);
+    }
+
+    function toggleStatusPill(pill) {
+        const cb = pill.querySelector('input[type="checkbox"]');
+        const dot = pill.querySelector('.pill-dot');
+        const col = pill.dataset.color;
+        const newChecked = !cb.checked;
+        cb.checked = newChecked;
+        if (newChecked) {
+            pill.classList.add('pill-checked');
+            pill.style.background = col;
+            pill.style.borderColor = col;
+            pill.style.color = '#fff';
+            if (dot) dot.style.background = '#fff';
+        } else {
+            pill.classList.remove('pill-checked');
+            pill.style.background = '#fff';
+            pill.style.borderColor = col + '55';
+            pill.style.color = col;
+            if (dot) dot.style.background = col;
+        }
+    }
+
+    function setPerfilBtn(emailId, perfil) {
+        const btnComum = document.getElementById(`btn-comum-${emailId}`);
+        const btnAdmin = document.getElementById(`btn-admin-${emailId}`);
+        const badge = document.getElementById(`badge-perfil-${emailId}`);
+        const blocosSection = document.getElementById(`blocos-section-${emailId}`);
+
+        if (btnComum) btnComum.className = `uac-perfil-btn${perfil === 'comum' ? ' active-comum' : ''}`;
+        if (btnAdmin) btnAdmin.className = `uac-perfil-btn${perfil === 'admin' ? ' active-admin' : ''}`;
+
+        if (badge) {
+            badge.textContent = perfil === 'admin' ? '⚙️ Admin' : '👁️ Comum';
+            badge.className = `uac-perfil-badge ${perfil}`;
+        }
+        if (blocosSection) {
+            blocosSection.style.opacity = perfil === 'admin' ? '0.45' : '1';
+            blocosSection.style.pointerEvents = perfil === 'admin' ? 'none' : '';
+        }
+    }
+
+    async function saveUserPermissions(email, emailId) {
+        const card = document.getElementById(`uac-${emailId}`);
+        if (!card) return;
+
+        const isAdmin = document.getElementById(`btn-admin-${emailId}`).classList.contains('active-admin');
+        const perfil = isAdmin ? 'admin' : 'comum';
+
+        let blocos = [];
+        card.querySelectorAll('.uac-bloco-cb:checked').forEach(cb => blocos.push(cb.dataset.bloco));
+        if (isAdmin) blocos = ['1','2','3','4','5','6','7'];
+        const blocosStr = blocos.join(',') || '1,2,3';
+
+        const cbEditar = document.getElementById(`cb-editar-${emailId}`);
+        const cbAdd = document.getElementById(`cb-add-${emailId}`);
+        const podeEditar = cbEditar ? cbEditar.checked : false;
+        const podeAdd = cbAdd ? cbAdd.checked : false;
+
+        let statusArr = [];
+        card.querySelectorAll('.uac-status-grid input[type="checkbox"]:checked').forEach(cb => statusArr.push(cb.dataset.status));
+        if (!statusArr.length) statusArr = ['Ativo'];
+        const statusStr = statusArr.join(',');
+
+        const btn = card.querySelector('.uac-save-btn');
+        const originalText = btn ? btn.textContent : '';
+        if (btn) { btn.textContent = '⏳ Salvando...'; btn.disabled = true; }
+
+        const { error } = await _supabase.from('usuarios').update({
+            perfil,
+            blocos: blocosStr,
+            pode_editar: podeEditar,
+            pode_adicionar: podeAdd,
+            status_permitidos: statusStr
+        }).eq('email', email);
+
+        if (btn) { btn.textContent = originalText; btn.disabled = false; }
+
+        if (error) {
+            alert(`Erro ao salvar: ${error.message}`);
+        } else {
+            if (btn) {
+                btn.textContent = '✅ Permissões Salvas!';
+                btn.style.background = 'var(--cobli-teal)';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2500);
+            }
+        }
+    }
+
+    /* =====================================================================
+       INICIALIZAÇÃO E LOGIN
+       ===================================================================== */
     function initMap() {
-        map = new google.maps.Map(document.getElementById("map"), { 
-            center: { lat: -15.793889, lng: -47.882778 }, 
-            zoom: 4, 
-            mapTypeControl: true, 
-            streetViewControl: false 
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: -15.793889, lng: -47.882778 }, zoom: 4,
+            mapTypeControl: true, streetViewControl: false
         });
-        
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({ preserveViewport: true, suppressMarkers: true });
         directionsRenderer.setMap(map);
         geocoder = new google.maps.Geocoder();
         infoWindowGlobal = new google.maps.InfoWindow();
         clientInfoWindow = new google.maps.InfoWindow();
-        
+
         const fileInput = document.getElementById('file-upload');
-        if(fileInput) {
+        if (fileInput) {
             fileInput.addEventListener('change', handleFileImport, false);
             fileInput.addEventListener('change', function() {
                 if (this.files && this.files[0]) {
@@ -1292,44 +1021,33 @@
     async function handleLogin(event) {
         event.preventDefault();
         const emailInput = document.getElementById('login-email').value.toLowerCase().trim();
-        
         const btnLogin = event.target.querySelector('button');
-        if(btnLogin){
-            btnLogin.innerText = "Verificando acesso...";
-            btnLogin.disabled = true;
-        }
+        if (btnLogin) { btnLogin.innerText = "Verificando acesso..."; btnLogin.disabled = true; }
 
-        let { data: userDb, error } = await _supabase.from('usuarios').select('*').eq('email', emailInput).single();
+        let { data: userDb } = await _supabase.from('usuarios').select('*').eq('email', emailInput).single();
 
         if (!userDb) {
             const newUser = {
-                email: emailInput,
-                perfil: 'comum',
-                pode_editar: false,
-                ver_cred: false,
-                blocos: '1,2,3'
+                email: emailInput, perfil: 'comum', pode_editar: false, pode_adicionar: false,
+                blocos: '1,2,3', status_permitidos: 'Ativo'
             };
-            
-            // Administradores nativos
             if (emailInput.includes('luiz.lackeski') || emailInput.includes('admin@cobli') || emailInput.includes('gerente@cobli')) {
-                newUser.perfil = 'admin';
-                newUser.pode_editar = true;
-                newUser.ver_cred = true;
+                newUser.perfil = 'admin'; newUser.pode_editar = true; newUser.pode_adicionar = true;
                 newUser.blocos = '1,2,3,4,5,6,7';
+                newUser.status_permitidos = 'Ativo,Inativo,Suspenso,Em credenciamento,Credenciado fase final,Descredenciado,Free Lance';
             }
-
-            await _supabase.from('usuarios').insert([newUser]);
+            const { error: insertError } = await _supabase.from('usuarios').insert([newUser]);
+            if (insertError) {
+                alert("Erro ao gravar usuário: " + insertError.message);
+                if (btnLogin) { btnLogin.innerText = "Acessar Sistema"; btnLogin.disabled = false; }
+                return;
+            }
             userDb = newUser;
         }
 
         localStorage.setItem('userConfig', JSON.stringify(userDb));
         localStorage.setItem('userEmail', emailInput);
-        
-        if(btnLogin){
-            btnLogin.innerText = "Acessar Sistema";
-            btnLogin.disabled = false;
-        }
-        
+        if (btnLogin) { btnLogin.innerText = "Acessar Sistema"; btnLogin.disabled = false; }
         currentUser = userDb;
         initSystem();
     }
@@ -1342,74 +1060,60 @@
 
     function initSystem() {
         const loginOverlay = document.getElementById('login-overlay');
-        if(loginOverlay) loginOverlay.style.display = 'none';
+        if (loginOverlay) loginOverlay.style.display = 'none';
 
         if (currentUser.perfil === 'comum') {
             document.body.classList.add('is-common');
+            // Controla botão Novo no bloco 1
             const btnNovo = document.querySelector('#bloco-1 .btn-secondary');
-            if (btnNovo) btnNovo.style.display = currentUser.pode_editar ? 'inline-flex' : 'none';
+            if (btnNovo) btnNovo.style.display = currentUser.pode_adicionar ? 'inline-flex' : 'none';
         } else {
             document.body.classList.remove('is-common');
         }
 
-        // Exibe ou oculta blocos de acordo com a base de dados
-        for(let i = 1; i <= 7; i++) {
+        // Exibe blocos conforme permissão
+        for (let i = 1; i <= 7; i++) {
             const bloco = document.getElementById(`bloco-${i}`);
             if (bloco) {
-                if ((currentUser.blocos && currentUser.blocos.includes(i.toString())) || currentUser.perfil === 'admin') {
-                    bloco.style.display = 'block';
-                } else {
-                    bloco.style.display = 'none';
-                }
+                const allowed = currentUser.perfil === 'admin' ||
+                    (currentUser.blocos && currentUser.blocos.split(',').map(b=>b.trim()).includes(String(i)));
+                bloco.style.display = allowed ? 'block' : 'none';
             }
         }
-        
+
         loadDataFromSupabase();
     }
 
-    /* =========================================================================
-       BUSCA DE DADOS NO SUPABASE
-       ========================================================================= */
+    /* =====================================================================
+       DADOS DO SUPABASE
+       ===================================================================== */
     async function loadDataFromSupabase() {
         const listElement = document.getElementById('providers-list');
-        if(listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Carregando banco de dados...</div></li>';
-        
+        if (listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Carregando banco de dados...</div></li>';
+
         const { data, error } = await _supabase.from('prestadores').select('*');
-        
-        if (error) {
-            console.error("Erro Supabase:", error);
-            alert("Erro ao conectar no banco de dados. Verifique a URL e Chave.");
-            return;
-        }
+        if (error) { console.error("Erro Supabase:", error); alert("Erro ao conectar no banco de dados."); return; }
 
         if (data && data.length > 0) {
             providersData = data;
-            
             generateConsultantColors(providersData);
-            
-            providersData.forEach(p => { 
-                if (p.lat && p.lng) {
-                    createMarker(p);
-                } 
-            });
-            
-            updateStatusFilter(); 
-            updateConsultantFilter(); 
+            providersData.forEach(p => { if (p.lat && p.lng) createMarker(p); });
+            updateStatusFilter();
+            updateConsultantFilter();
             populateBulkConsultants();
             applyFilters();
         } else {
-            if(listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Banco de dados vazio. Importe uma planilha.</div></li>';
+            if (listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Banco de dados vazio. Importe uma planilha.</div></li>';
             updateStatusFilter();
         }
     }
 
-    /* =========================================================================
-       GERENCIAMENTO DE CORES DOS CONSULTORES E LEGENDA DO MAPA
-       ========================================================================= */
+    /* =====================================================================
+       CORES E LEGENDA
+       ===================================================================== */
     function generateConsultantColors(data) {
         consultantColors = {};
         let cIndex = 0;
-        
         data.forEach(p => {
             let norm = p.consultorNorm || "SEM CONSULTOR";
             if (!consultantColors[norm]) {
@@ -1417,7 +1121,6 @@
                 if (norm !== "SEM CONSULTOR") cIndex++;
             }
         });
-        
         renderMapLegend();
     }
 
@@ -1428,87 +1131,51 @@
     function renderMapLegend() {
         const legendBox = document.getElementById('map-legend-box');
         const legendContent = document.getElementById('legend-content');
-        
         if (!legendBox || !legendContent) return;
-
-        if(Object.keys(consultantColors).length === 0) {
-            legendBox.style.display = 'none';
-            return;
-        }
-
+        if (!Object.keys(consultantColors).length) { legendBox.style.display = 'none'; return; }
         legendBox.style.display = 'block';
-        let html = '';
-        
         let uniqueConsultants = {};
         providersData.forEach(p => {
             let norm = p.consultorNorm || "SEM CONSULTOR";
-            let display = p.consultor ? p.consultor.trim() : "Sem Consultor";
-            if(!uniqueConsultants[norm]) {
-                uniqueConsultants[norm] = { name: display, color: consultantColors[norm] };
-            }
+            if (!uniqueConsultants[norm]) uniqueConsultants[norm] = { name: p.consultor ? p.consultor.trim() : "Sem Consultor", color: consultantColors[norm] };
         });
-
-        Object.values(uniqueConsultants).forEach(c => {
-            html += `<div><div class="legend-dot" style="background:${c.color};"></div> ${c.name}</div>`;
-        });
-        
-        legendContent.innerHTML = html;
+        legendContent.innerHTML = Object.values(uniqueConsultants).map(c => `<div><div class="legend-dot" style="background:${c.color};"></div> ${c.name}</div>`).join('');
     }
 
-    /* =========================================================================
-       HELPERS DE INTERFACE E STATUS
-       ========================================================================= */
+    /* =====================================================================
+       HELPERS
+       ===================================================================== */
     function toggleDropdown(id) {
         const el = document.getElementById(id);
-        if(!el) return;
-        document.querySelectorAll('.dropdown-items').forEach(i => { 
-            if(i.id !== id) i.classList.remove('visible'); 
-        });
+        if (!el) return;
+        document.querySelectorAll('.dropdown-items').forEach(i => { if (i.id !== id) i.classList.remove('visible'); });
         el.classList.toggle('visible');
     }
 
-    function selectAll(id) { 
-        document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => { cb.checked = true; }); 
-        applyFilters(); 
-    }
-
-    function clearAll(id) { 
-        document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => { cb.checked = false; }); 
-        applyFilters(); 
-    }
-
-    function clearSearchName() { 
-        const searchInput = document.getElementById('search-provider');
-        if(searchInput) searchInput.value = ''; 
-        applyFilters(); 
-    }
+    function selectAll(id) { document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => cb.checked = true); applyFilters(); }
+    function clearAll(id) { document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => cb.checked = false); applyFilters(); }
+    function clearSearchName() { const s = document.getElementById('search-provider'); if (s) s.value = ''; applyFilters(); }
 
     function setRange(val, btn) {
         currentSearchRange = val;
-        document.querySelectorAll('.btn-range').forEach(b => { b.classList.remove('active'); });
-        if(btn) btn.classList.add('active');
-        
+        document.querySelectorAll('.btn-range').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
         const addressInput = document.getElementById('client-address');
-        if (addressInput && addressInput.value.trim()) {
-            findClosestProviders();
-        }
+        if (addressInput && addressInput.value.trim()) findClosestProviders();
     }
 
     document.addEventListener('click', e => {
-        if (!e.target.closest('.dropdown-check-list')) {
-            document.querySelectorAll('.dropdown-items').forEach(i => i.classList.remove('visible'));
-        }
+        if (!e.target.closest('.dropdown-check-list')) document.querySelectorAll('.dropdown-items').forEach(i => i.classList.remove('visible'));
     });
 
     function normalizeStr(str) {
         if (!str) return "SEM CONSULTOR";
-        return String(str).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
+        return String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
     }
 
     function formatStatus(raw) {
         if (!raw) return 'Ativo';
         let s = String(raw).trim(), l = s.toLowerCase();
-        
         if (l === 'ativo') return 'Ativo';
         if (l === 'inativo') return 'Inativo';
         if (l === 'suspenso') return 'Suspenso';
@@ -1516,67 +1183,39 @@
         if (l.includes('treinamento') || l.includes('fase final')) return 'Credenciado fase final';
         if (l.includes('contrato solicitado') || l.includes('aguardando assina') || l.includes('confirmando inform') || l === 'em credenciamento') return 'Em credenciamento';
         if (l === 'descredenciado') return 'Descredenciado';
-        
         return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
     }
 
     function getStatusColor(status) {
-        const map = { 
-            'Ativo': '#00AE97', 
-            'Suspenso': '#7F8DDB', 
-            'Em credenciamento': '#001BB8', 
-            'Credenciado fase final': '#3248C6', 
-            'Descredenciado': '#FF4633', 
-            'Inativo': '#F01A1A', 
-            'Free Lance': '#3248C6' 
-        };
+        const map = { 'Ativo': '#00AE97', 'Suspenso': '#7F8DDB', 'Em credenciamento': '#001BB8', 'Credenciado fase final': '#3248C6', 'Descredenciado': '#FF4633', 'Inativo': '#F01A1A', 'Free Lance': '#3248C6' };
         return map[status] || '#9296B8';
     }
 
-    /* =========================================================================
-       FILTROS E RENDERIZAÇÃO DA LISTA LATERAL
-       ========================================================================= */
+    /* =====================================================================
+       FILTROS E LISTA
+       ===================================================================== */
     function updateStatusFilter() {
         const ul = document.getElementById('status-items');
-        if(!ul) return;
-
+        if (!ul) return;
         let statusSet = new Set();
-        providersData.forEach(p => { 
-            if (p.status) statusSet.add(p.status.trim());
-        });
-        
-        if (!statusSet.size) {
-            ['Ativo','Inativo','Suspenso','Em credenciamento','Credenciado fase final','Descredenciado','Free Lance'].forEach(s => statusSet.add(s));
-        }
-
+        providersData.forEach(p => { if (p.status) statusSet.add(p.status.trim()); });
+        if (!statusSet.size) ['Ativo','Inativo','Suspenso','Em credenciamento','Credenciado fase final','Descredenciado','Free Lance'].forEach(s => statusSet.add(s));
         ul.querySelectorAll('li').forEach(li => li.remove());
-        
         Array.from(statusSet).sort().forEach(s => {
-            let col = getStatusColor(s); 
+            let col = getStatusColor(s);
             let li = document.createElement('li');
-            li.innerHTML = `
-                <input type="checkbox" value="${s}" checked onchange="applyFilters()">
-                <span class="status-dot" style="background:${col};"></span>
-                <span style="font-size:12px;">${s}</span>
-            `;
+            li.innerHTML = `<input type="checkbox" value="${s}" checked onchange="applyFilters()"><span class="status-dot" style="background:${col};"></span><span style="font-size:12px;">${s}</span>`;
             ul.appendChild(li);
         });
-        
         const anchorLabel = document.getElementById('status-anchor-label');
-        if(anchorLabel) anchorLabel.textContent = `Filtro de status (${statusSet.size})`;
-
+        if (anchorLabel) anchorLabel.textContent = `Filtro de status (${statusSet.size})`;
         const defaultStatuses = ['Ativo','Inativo','Suspenso','Em credenciamento','Credenciado fase final','Descredenciado','Free Lance'];
         let allStatuses = new Set([...defaultStatuses, ...statusSet]);
-        
         ['m-status','e-status'].forEach(id => {
             const sel = document.getElementById(id);
             if (!sel) return;
-            let cur = sel.value; 
-            sel.innerHTML = '';
-            
-            Array.from(allStatuses).sort().forEach(st => {
-                let opt = document.createElement('option'); opt.value = st; opt.text = st; sel.appendChild(opt);
-            });
+            let cur = sel.value; sel.innerHTML = '';
+            Array.from(allStatuses).sort().forEach(st => { let opt = document.createElement('option'); opt.value = st; opt.text = st; sel.appendChild(opt); });
             if (cur && allStatuses.has(cur)) sel.value = cur;
             else if (allStatuses.has('Ativo')) sel.value = 'Ativo';
         });
@@ -1584,31 +1223,21 @@
 
     function updateConsultantFilter() {
         const ul = document.getElementById('consultor-items');
-        if(!ul) return;
-
+        if (!ul) return;
         let consultoresMap = new Map();
         providersData.forEach(p => {
             let norm = p.consultorNorm || "SEM CONSULTOR";
-            if (!consultoresMap.has(norm)) {
-                consultoresMap.set(norm, p.consultor ? p.consultor.trim() : "Sem Consultor");
-            }
+            if (!consultoresMap.has(norm)) consultoresMap.set(norm, p.consultor ? p.consultor.trim() : "Sem Consultor");
         });
-        
         ul.querySelectorAll('li').forEach(li => li.remove());
-        
         Array.from(consultoresMap.keys()).sort().forEach(k => {
             let col = getConsultantColor(k);
             let li = document.createElement('li');
-            li.innerHTML = `
-                <input type="checkbox" value="${k}" checked onchange="applyFilters()"> 
-                <span class="status-dot" style="background:${col}; border:1px solid #ddd;"></span>
-                <span style="font-size:12px;">${consultoresMap.get(k)}</span>
-            `;
+            li.innerHTML = `<input type="checkbox" value="${k}" checked onchange="applyFilters()"><span class="status-dot" style="background:${col}; border:1px solid #ddd;"></span><span style="font-size:12px;">${consultoresMap.get(k)}</span>`;
             ul.appendChild(li);
         });
-        
         const anchorLabel = document.getElementById('consultor-anchor-label');
-        if(anchorLabel) anchorLabel.textContent = `Filtro por consultor (${consultoresMap.size})`;
+        if (anchorLabel) anchorLabel.textContent = `Filtro por consultor (${consultoresMap.size})`;
     }
 
     function getCheckedValues(id) {
@@ -1622,128 +1251,85 @@
         if (currentUser.perfil === 'admin') {
             allowedStatuses = getCheckedValues('status-items');
         } else {
-            allowedStatuses = ['Ativo'];
-            if (currentUser.ver_cred) {
-                allowedStatuses.push('Em credenciamento', 'Credenciado fase final');
-            }
+            const permittedByUser = (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
+            allowedStatuses = permittedByUser;
         }
 
         const selConsultors = getCheckedValues('consultor-items');
-        
-        const togglePiloto = document.getElementById('filter-piloto');
-        const showOnlyPiloto = togglePiloto ? togglePiloto.checked : false;
-        
-        const searchInput = document.getElementById('search-provider');
-        const searchText = searchInput ? searchInput.value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase() : '';
-        
+        const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
+        const searchText = (document.getElementById('search-provider')?.value || '').normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+
         let filteredList = [];
-        
         markers.forEach(m => {
             let p = providersData.find(x => x.id === m.customId);
             if (!p) return;
-            
             let matchName = p.nome.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().includes(searchText);
             let showStatus = allowedStatuses.includes(p.status);
-            
             let pConsNorm = p.consultorNorm || "SEM CONSULTOR";
             let showConsultor = selConsultors.includes(pConsNorm);
-            
-            let showPiloto = showOnlyPiloto ? p.piloto === true : true; 
-            
+            let showPiloto = showOnlyPiloto ? p.piloto === true : true;
             let show = matchName && showStatus && showConsultor && showPiloto;
-            
             m.setMap(show ? map : null);
             if (show) filteredList.push(p);
         });
-        
+
         updateDashboardSummary(filteredList);
-        renderFilteredList(filteredList); 
+        renderFilteredList(filteredList);
     }
 
     function updateDashboardSummary(filteredData) {
         const box = document.getElementById('dashboard-summary');
-        if(!box) return;
-
+        if (!box) return;
         let counts = {};
-        filteredData.forEach(p => { 
-            if(p.status) counts[p.status] = (counts[p.status] || 0) + 1; 
-        });
-
-        let html = `
-            <div class="summary-total">
-                <span class="summary-total-label">Total exibido</span>
-                <span class="summary-total-value">${filteredData.length}</span>
-            </div>
-            <div class="summary-grid">
-        `;
-        
+        filteredData.forEach(p => { if (p.status) counts[p.status] = (counts[p.status] || 0) + 1; });
+        let html = `<div class="summary-total"><span class="summary-total-label">Total exibido</span><span class="summary-total-value">${filteredData.length}</span></div><div class="summary-grid">`;
         Object.keys(counts).sort().forEach(status => {
             let col = getStatusColor(status);
-            html += `
-                <div class="summary-cell">
-                    <span class="summary-cell-val" style="color:${col};">${counts[status]}</span>
-                    <span class="summary-cell-lbl">${status}</span>
-                </div>
-            `;
+            html += `<div class="summary-cell"><span class="summary-cell-val" style="color:${col};">${counts[status]}</span><span class="summary-cell-lbl">${status}</span></div>`;
         });
-        
-        html += `</div>`; 
+        html += `</div>`;
         box.innerHTML = html;
     }
 
     function renderFilteredList(filtered) {
-        const list = document.getElementById('providers-list'); 
-        if(!list) return;
-
+        const list = document.getElementById('providers-list');
+        if (!list) return;
         list.innerHTML = "";
-
-        if (!filtered.length) { 
-            list.innerHTML = '<li style="list-style:none;"><div class="empty-state">Nenhum prestador encontrado</div></li>'; 
-            return; 
-        }
-
+        if (!filtered.length) { list.innerHTML = '<li style="list-style:none;"><div class="empty-state">Nenhum prestador encontrado</div></li>'; return; }
         filtered.forEach(p => {
             let colStatus = getStatusColor(p.status);
             let colConsultant = getConsultantColor(p.consultorNorm);
-            let li = document.createElement('li'); 
+            let li = document.createElement('li');
             li.className = 'provider-item';
-            
-            let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar) 
-                ? `<button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>` 
-                : '';
-
+            let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar)
+                ? `<button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>` : '';
             let pilotoBadge = p.piloto ? `<span class="badge-piloto">⭐ PILOTO</span>` : '';
-            
             li.innerHTML = `
                 <span class="provider-dot" style="background:${colConsultant};" title="Consultor: ${p.consultor||'Nenhum'}"></span>
                 <span class="provider-name" onclick="centerMapOnProvider(${p.id})" title="${p.nome}">${p.nome} ${pilotoBadge}</span>
                 <span class="provider-status-badge" style="background:${colStatus}22;color:${colStatus};">${p.status}</span>
-                ${btnEditHtml}
-            `;
+                ${btnEditHtml}`;
             list.appendChild(li);
         });
     }
 
-    /* =========================================================================
-       GEOCODE, MARCADORES E BALÕES DE INFORMAÇÃO
-       ========================================================================= */
+    /* =====================================================================
+       GEOCODE E MARCADORES
+       ===================================================================== */
     function getGeocode(address) {
-        return new Promise((resolve) => {
-            geocoder.geocode({ address: address }, (results, status) => {
-                if (status === 'OK') {
-                    resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
-                } else {
-                    resolve({ lat: null, lng: null });
-                }
+        return new Promise(resolve => {
+            geocoder.geocode({ address }, (results, status) => {
+                if (status === 'OK') resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
+                else resolve({ lat: null, lng: null });
             });
         });
     }
 
     function getWhatsappLink(phoneStr) {
         if (!phoneStr) return null;
-        let numbers = phoneStr.replace(/\D/g, ''); 
+        let numbers = phoneStr.replace(/\D/g, '');
         if (numbers.length >= 10) {
-            if (!numbers.startsWith('55')) numbers = '55' + numbers; 
+            if (!numbers.startsWith('55')) numbers = '55' + numbers;
             return `https://wa.me/${numbers}`;
         }
         return null;
@@ -1753,187 +1339,81 @@
         let color = getConsultantColor(prestador.consultorNorm);
         let sColor = prestador.piloto ? '#FFD700' : '#ffffff';
         let sWeight = prestador.piloto ? 3.5 : 1.5;
-        let pScale = prestador.piloto ? 1.7 : 1.5; 
-
-        const pinSvg = { 
-            path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z", 
-            fillColor: color, 
-            fillOpacity: 1, 
-            strokeWeight: sWeight, 
-            strokeColor: sColor, 
-            scale: pScale, 
-            anchor: new google.maps.Point(12, 22) 
-        };
-        
-        const marker = new google.maps.Marker({ 
-            position: { lat: prestador.lat, lng: prestador.lng }, 
-            map, 
-            title: prestador.nome, 
-            icon: pinSvg, 
-            customId: prestador.id 
-        });
-        
+        let pScale = prestador.piloto ? 1.7 : 1.5;
+        const pinSvg = { path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z", fillColor: color, fillOpacity: 1, strokeWeight: sWeight, strokeColor: sColor, scale: pScale, anchor: new google.maps.Point(12, 22) };
+        const marker = new google.maps.Marker({ position: { lat: prestador.lat, lng: prestador.lng }, map, title: prestador.nome, icon: pinSvg, customId: prestador.id });
         marker.addListener("click", () => openProviderInfoWindow(marker.customId, marker));
         markers.push(marker);
     }
 
     function getInitials(nome) {
-        if (!nome) return '?'; 
+        if (!nome) return '?';
         const parts = nome.trim().split(/\s+/);
-        if (parts.length === 1) return parts[0].substring(0,2).toUpperCase();
-        return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
     function openProviderInfoWindow(pId, markerRef = null) {
-        let p = providersData.find(x => x.id === pId); 
+        let p = providersData.find(x => x.id === pId);
         if (!p) return;
-        
-        if (!markerRef) {
-            markerRef = markers.find(m => m.customId === pId);
-        }
-        
-        let statusColor = getStatusColor(p.status); 
+        if (!markerRef) markerRef = markers.find(m => m.customId === pId);
+        let statusColor = getStatusColor(p.status);
         const initials = getInitials(p.nome);
         const pilotoBadge = p.piloto ? `<span class="badge-piloto" style="margin-left:5px;">⭐ PILOTO</span>` : '';
-
-        const iconPerson   = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>`;
-        const iconPhone    = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M3 2h3l1.5 3.5-1.75 1.25a8 8 0 004.5 4.5L11.5 9.5 15 11v3a1 1 0 01-1 1C5.16 15 1 10.84 1 3a1 1 0 011-1z"/></svg>`;
-        const iconMail     = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 4l7 5 7-5"/></svg>`;
+        const iconPerson = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>`;
+        const iconPhone = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M3 2h3l1.5 3.5-1.75 1.25a8 8 0 004.5 4.5L11.5 9.5 15 11v3a1 1 0 01-1 1C5.16 15 1 10.84 1 3a1 1 0 011-1z"/></svg>`;
+        const iconMail = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 4l7 5 7-5"/></svg>`;
         const iconLocation = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.375 4.5 8.5 4.5 8.5S12.5 9.375 12.5 6c0-2.485-2.015-4.5-4.5-4.5z"/><circle cx="8" cy="6" r="1.5"/></svg>`;
-
         const wappUrl = getWhatsappLink(p.contato);
         let phoneHtml = `<div class="iw-field-val">${p.contato}</div>`;
-        if (wappUrl) {
-            phoneHtml = `<a href="${wappUrl}" target="_blank" class="iw-whatsapp-link">${p.contato} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>`;
-        }
-
+        if (wappUrl) phoneHtml = `<a href="${wappUrl}" target="_blank" class="iw-whatsapp-link">${p.contato} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>`;
         const content = `
             <div class="iw-card">
                 <div class="iw-head">
                     <div class="iw-head-top">
                         <div class="iw-avatar">${initials}</div>
-                        <div class="iw-head-text">
-                            <h4 title="${p.nome}">${p.nome}</h4>
-                            ${pilotoBadge}
-                        </div>
+                        <div class="iw-head-text"><h4 title="${p.nome}">${p.nome}</h4>${pilotoBadge}</div>
                     </div>
-                    <div>
-                        <span class="iw-status-pill">
-                            <span class="iw-status-dot" style="background:${statusColor};"></span>
-                            ${p.status}
-                        </span>
-                    </div>
+                    <div><span class="iw-status-pill"><span class="iw-status-dot" style="background:${statusColor};"></span>${p.status}</span></div>
                 </div>
                 <div class="iw-body">
-                    ${p.consultor ? `
-                    <div class="iw-row">
-                        ${iconPerson}
-                        <div class="iw-field">
-                            <div class="iw-field-label">Consultor Responsável</div>
-                            <div class="iw-field-val" style="font-weight:700;">${p.consultor}</div>
-                        </div>
-                    </div>` : ''}
-                    ${p.contato ? `
-                    <div class="iw-row">
-                        ${iconPhone}
-                        <div class="iw-field">
-                            <div class="iw-field-label">Contato</div>
-                            ${phoneHtml}
-                        </div>
-                    </div>` : ''}
-                    ${p.email ? `
-                    <div class="iw-row">
-                        ${iconMail}
-                        <div class="iw-field">
-                            <div class="iw-field-label">E-mail</div>
-                            <div class="iw-field-val" style="word-break:break-all;">${p.email}</div>
-                        </div>
-                    </div>` : ''}
-                    <div class="iw-row">
-                        ${iconLocation}
-                        <div class="iw-field">
-                            <div class="iw-field-label">Endereço</div>
-                            <div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div>
-                        </div>
-                    </div>
+                    ${p.consultor ? `<div class="iw-row">${iconPerson}<div class="iw-field"><div class="iw-field-label">Consultor</div><div class="iw-field-val" style="font-weight:700;">${p.consultor}</div></div></div>` : ''}
+                    ${p.contato ? `<div class="iw-row">${iconPhone}<div class="iw-field"><div class="iw-field-label">Contato</div>${phoneHtml}</div></div>` : ''}
+                    ${p.email ? `<div class="iw-row">${iconMail}<div class="iw-field"><div class="iw-field-label">E-mail</div><div class="iw-field-val" style="word-break:break-all;">${p.email}</div></div></div>` : ''}
+                    <div class="iw-row">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div></div></div>
                 </div>
             </div>`;
-        
-        infoWindowGlobal.setContent(content); 
+        infoWindowGlobal.setContent(content);
         infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
     }
 
     function centerMapOnProvider(id) {
         const p = providersData.find(x => x.id === id);
-        if (p && p.lat) { 
-            map.setCenter({lat: p.lat, lng: p.lng}); 
-            map.setZoom(15); 
-            openProviderInfoWindow(p.id); 
-        }
+        if (p && p.lat) { map.setCenter({ lat: p.lat, lng: p.lng }); map.setZoom(15); openProviderInfoWindow(p.id); }
     }
 
-    /* =========================================================================
-       CALCULADOR DE ROTAS E MAPA DE CLIENTE
-       ========================================================================= */
+    /* =====================================================================
+       ROTAS E BUSCA DE PRÓXIMOS
+       ===================================================================== */
     function findClosestProviders() {
         const clientAddress = document.getElementById('client-address').value;
         const resultDiv = document.getElementById('routing-result');
-        
-        if (!clientAddress) { 
-            resultDiv.innerHTML = `<p class="err-text">Digite o CEP ou endereço.</p>`; 
-            return; 
-        }
-        
+        if (!clientAddress) { resultDiv.innerHTML = `<p class="err-text">Digite o CEP ou endereço.</p>`; return; }
         resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Calculando…</p>`;
-        directionsRenderer.setDirections({routes:[]});
-
-        geocoder.geocode({address: clientAddress}, (results, status) => {
+        directionsRenderer.setDirections({ routes: [] });
+        geocoder.geocode({ address: clientAddress }, (results, status) => {
             if (status === 'OK') {
                 const loc = results[0].geometry.location;
                 if (clientMarker) clientMarker.setMap(null);
-
-                const destIcon = { 
-                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z", 
-                    fillColor: '#FF4633', 
-                    fillOpacity: 1, 
-                    strokeWeight: 2, 
-                    strokeColor: '#ffffff', 
-                    scale: 1.5, 
-                    anchor: new google.maps.Point(12, 22) 
-                };
-                
+                const destIcon = { path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z", fillColor: '#FF4633', fillOpacity: 1, strokeWeight: 2, strokeColor: '#ffffff', scale: 1.5, anchor: new google.maps.Point(12, 22) };
                 clientMarker = new google.maps.Marker({ position: loc, map, title: "Destino solicitado", icon: destIcon });
-
                 let formattedAddr = results[0].formatted_address;
-                const destContent = `
-                <div class="iw-card">
-                    <div class="iw-head destination"><h4>Destino solicitado</h4></div>
-                    <div class="iw-body">
-                        <div class="iw-address" style="border:none;padding:0;margin:0;">${formattedAddr}</div>
-                    </div>
-                </div>`;
-                
-                clientMarker.addListener("click", () => { 
-                    clientInfoWindow.setContent(destContent); 
-                    clientInfoWindow.open({anchor: clientMarker, map, shouldFocus: false}); 
-                });
+                clientMarker.addListener("click", () => { clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination"><h4>Destino solicitado</h4></div><div class="iw-body"><div>${formattedAddr}</div></div></div>`); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); });
+                map.setCenter(loc); map.setZoom(10);
 
-                map.setCenter(loc); 
-                map.setZoom(10);
-                
-                let allowedStatuses = [];
-                if (currentUser.perfil === 'admin') {
-                    allowedStatuses = getCheckedValues('status-items');
-                } else {
-                    allowedStatuses = ['Ativo'];
-                    if (currentUser.ver_cred) {
-                        allowedStatuses.push('Em credenciamento', 'Credenciado fase final');
-                    }
-                }
+                let allowedStatuses = currentUser.perfil === 'admin' ? getCheckedValues('status-items') : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
                 const selConsultors = getCheckedValues('consultor-items');
-                const togglePiloto = document.getElementById('filter-piloto');
-                const showOnlyPiloto = togglePiloto ? togglePiloto.checked : false;
-
+                const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
                 let distances = [];
 
                 providersData.forEach(p => {
@@ -1941,47 +1421,26 @@
                     if (!allowedStatuses.includes(p.status)) return;
                     let pConsNorm = p.consultorNorm || "SEM CONSULTOR";
                     if (!selConsultors.includes(pConsNorm)) return;
-                    
-                    let isPilotoMatch = showOnlyPiloto ? p.piloto === true : true;
-                    if (!isPilotoMatch) return;
-                    
-                    let dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat,p.lng));
-                    if (dist <= currentSearchRange * 1000) {
-                        distances.push({ prestador: p, distance: dist });
-                    }
+                    if (showOnlyPiloto && !p.piloto) return;
+                    let dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat, p.lng));
+                    if (dist <= currentSearchRange * 1000) distances.push({ prestador: p, distance: dist });
                 });
 
-                if (!distances.length) { 
-                    resultDiv.innerHTML=`<p class="err-text">Nenhum prestador neste raio com os filtros ativos.</p>`; 
-                    return; 
-                }
-                
-                distances.sort((a,b) => a.distance - b.distance);
-
-                let html = `<p class="result-section-title">${distances.length} encontrado${distances.length!==1?'s':''}</p>`;
-                
-                // INSERINDO O STATUS NO CARD DE ROTA
+                if (!distances.length) { resultDiv.innerHTML = `<p class="err-text">Nenhum prestador neste raio com os filtros ativos.</p>`; return; }
+                distances.sort((a, b) => a.distance - b.distance);
+                let html = `<p class="result-section-title">${distances.length} encontrado${distances.length !== 1 ? 's' : ''}</p>`;
                 distances.slice(0, 50).forEach((item, i) => {
-                    const km = (item.distance/1000).toFixed(1);
-                    const sa = formattedAddr.replace(/'/g,"\\'").replace(/"/g,"&quot;");
+                    const km = (item.distance / 1000).toFixed(1);
+                    const sa = formattedAddr.replace(/'/g, "\\'").replace(/"/g, "&quot;");
                     let colStatus = getStatusColor(item.prestador.status);
-                    
-                    html += `
-                    <div class="result-card">
-                        <div class="result-card-name" style="display:flex; align-items:center; gap:6px;">
-                            ${i+1}. ${item.prestador.nome} 
-                            ${item.prestador.piloto ? '<span class="badge-piloto">⭐</span>' : ''}
-                            <span class="provider-status-badge" style="background:${colStatus}22; color:${colStatus};">${item.prestador.status}</span>
-                        </div>
+                    html += `<div class="result-card">
+                        <div class="result-card-name" style="display:flex;align-items:center;gap:6px;">${i + 1}. ${item.prestador.nome} ${item.prestador.piloto ? '<span class="badge-piloto">⭐</span>' : ''}<span class="provider-status-badge" style="background:${colStatus}22;color:${colStatus};">${item.prestador.status}</span></div>
                         <div class="result-card-dist">⬦ ${km} km (raio linear)</div>
                         <button class="btn-route" onclick="traceRealRoute(${item.prestador.id},${item.prestador.lat},${item.prestador.lng},'${sa}')">Traçar rota de carro</button>
                     </div>`;
                 });
-                
                 resultDiv.innerHTML = html;
-            } else {
-                resultDiv.innerHTML = `<p class="err-text">Endereço não localizado.</p>`;
-            }
+            } else { resultDiv.innerHTML = `<p class="err-text">Endereço não localizado.</p>`; }
         });
     }
 
@@ -1990,237 +1449,117 @@
         directionsService.route({ origin, destination: clientAddress, travelMode: google.maps.TravelMode.DRIVING }, (response, status) => {
             if (status === 'OK') {
                 directionsRenderer.setDirections(response);
-                
                 const bounds = new google.maps.LatLngBounds();
-                bounds.extend(origin); 
-                bounds.extend(response.routes[0].legs[0].end_location);
+                bounds.extend(origin); bounds.extend(response.routes[0].legs[0].end_location);
                 map.fitBounds(bounds);
-                
                 openProviderInfoWindow(pId);
-                
                 if (clientMarker) {
-                    const dc = `
-                    <div class="iw-card">
-                        <div class="iw-head destination"><h4>Destino solicitado</h4></div>
-                        <div class="iw-body">
-                            <div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div>
-                            <div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div>
-                            <div class="iw-address-block"><strong>Endereço:</strong><br>${clientAddress}</div>
-                        </div>
-                    </div>`;
-                    setTimeout(() => { 
-                        clientInfoWindow.setContent(dc); 
-                        clientInfoWindow.open({anchor: clientMarker, map, shouldFocus: false}); 
-                    }, 200);
+                    const dc = `<div class="iw-card"><div class="iw-head destination"><h4>Destino solicitado</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div><div class="iw-address-block"><strong>Endereço:</strong><br>${clientAddress}</div></div></div>`;
+                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 200);
                 }
-            } else { 
-                alert('Erro ao traçar rota real. Pode não haver caminho terrestre válido.'); 
-            }
+            } else { alert('Erro ao traçar rota real.'); }
         });
     }
 
     function clearRoutingAndSearch() {
         const addrInput = document.getElementById('client-address');
-        if(addrInput) addrInput.value = "";
-        
+        if (addrInput) addrInput.value = "";
         const resultDiv = document.getElementById('routing-result');
-        if(resultDiv) resultDiv.innerHTML = "";
-        
-        directionsRenderer.setDirections({routes:[]});
-        
-        if (clientMarker) { 
-            clientMarker.setMap(null); 
-            clientMarker = null; 
-        }
-        
-        if(infoWindowGlobal) infoWindowGlobal.close(); 
-        if(clientInfoWindow) clientInfoWindow.close();
-        
-        if (markers.length && map) { 
-            map.setZoom(4); 
-            map.setCenter({lat: -15.793889, lng: -47.882778}); 
-        }
+        if (resultDiv) resultDiv.innerHTML = "";
+        directionsRenderer.setDirections({ routes: [] });
+        if (clientMarker) { clientMarker.setMap(null); clientMarker = null; }
+        if (infoWindowGlobal) infoWindowGlobal.close();
+        if (clientInfoWindow) clientInfoWindow.close();
+        if (markers.length && map) { map.setZoom(4); map.setCenter({ lat: -15.793889, lng: -47.882778 }); }
     }
 
-    /* =========================================================================
-       TRANSFERÊNCIA DE CARTEIRA E SUBSTITUIÇÃO DE CONSULTOR EM LOTE
-       ========================================================================= */
+    /* =====================================================================
+       TRANSFERÊNCIA EM LOTE
+       ===================================================================== */
     function populateBulkConsultants() {
         const selStateNew = document.getElementById('bulk-new-consultant-select');
         const selReplaceOld = document.getElementById('replace-old-consultant');
         const selReplaceNew = document.getElementById('replace-new-consultant-select');
-        
         if (!selStateNew) return;
-        
         let consultoresMap = new Map();
-        providersData.forEach(p => {
-            let norm = p.consultorNorm;
-            if (!consultoresMap.has(norm) && p.consultor && p.consultor.trim() !== '') {
-                consultoresMap.set(norm, p.consultor.trim());
-            }
-        });
-        
-        const optsHtml = '<option value="">-- Selecione o consultor --</option>' + 
-            Array.from(consultoresMap.values()).sort().map(c => `<option value="${c}">${c}</option>`).join('');
-
+        providersData.forEach(p => { let norm = p.consultorNorm; if (!consultoresMap.has(norm) && p.consultor && p.consultor.trim()) consultoresMap.set(norm, p.consultor.trim()); });
+        const optsHtml = '<option value="">-- Selecione o consultor --</option>' + Array.from(consultoresMap.values()).sort().map(c => `<option value="${c}">${c}</option>`).join('');
         selStateNew.innerHTML = optsHtml;
-        if(selReplaceOld) selReplaceOld.innerHTML = optsHtml;
-        if(selReplaceNew) selReplaceNew.innerHTML = optsHtml;
+        if (selReplaceOld) selReplaceOld.innerHTML = optsHtml;
+        if (selReplaceNew) selReplaceNew.innerHTML = optsHtml;
     }
 
     function toggleNewConsultant(sectionType) {
         const prefix = sectionType === 'bulk' ? 'bulk' : 'replace';
         const input = document.getElementById(`${prefix}-new-consultant-input`);
         const select = document.getElementById(`${prefix}-new-consultant-select`);
-        
-        if (input.style.display === 'none') {
-            input.style.display = 'block';
-            select.disabled = true;
-            select.value = '';
-        } else {
-            input.style.display = 'none';
-            select.disabled = false;
-            input.value = '';
-        }
+        if (input.style.display === 'none') { input.style.display = 'block'; select.disabled = true; select.value = ''; }
+        else { input.style.display = 'none'; select.disabled = false; input.value = ''; }
     }
 
-    // Seção 4: Transferência por Estado (UF)
     async function executeBulkUpdate() {
         const uf = document.getElementById('bulk-uf').value;
         const selectNew = document.getElementById('bulk-new-consultant-select');
         const inputNew = document.getElementById('bulk-new-consultant-input');
-        
         let newConsultant = selectNew.disabled ? inputNew.value.trim() : selectNew.value;
-
-        if (!uf) { alert("Por favor, selecione a UF (Estado) da carteira que deseja transferir."); return; }
-        if (!newConsultant) { alert("Por favor, selecione ou digite o nome do consultor que irá assumir a carteira do Estado."); return; }
-
-        let toUpdate = providersData.filter(p => {
-            let endUpper = p.endereco.toUpperCase();
-            return endUpper.includes(`- ${uf}`) || endUpper.includes(` ${uf} `) || endUpper.includes(` ${uf}(`) || endUpper.endsWith(uf);
-        });
-
-        if (toUpdate.length === 0) { alert(`Nenhum prestador encontrado para o estado de ${uf}.`); return; }
-        if (!confirm(`Você está prestes a transferir a carteira de ${toUpdate.length} prestador(es) do estado de ${uf} para "${newConsultant}". Confirma essa ação?`)) return;
-
+        if (!uf) { alert("Selecione a UF."); return; }
+        if (!newConsultant) { alert("Selecione ou digite o novo consultor."); return; }
+        let toUpdate = providersData.filter(p => { let e = p.endereco.toUpperCase(); return e.includes(`- ${uf}`) || e.includes(` ${uf} `) || e.includes(` ${uf}(`) || e.endsWith(uf); });
+        if (!toUpdate.length) { alert(`Nenhum prestador encontrado para ${uf}.`); return; }
+        if (!confirm(`Transferir ${toUpdate.length} prestadores de ${uf} para "${newConsultant}"?`)) return;
         const indicator = document.getElementById('bulk-loading-indicator');
         indicator.style.display = 'block';
-
-        const idsToUpdate = toUpdate.map(p => p.id);
         const normNew = normalizeStr(newConsultant);
-
-        const { error } = await _supabase.from('prestadores')
-            .update({ consultor: newConsultant, consultorNorm: normNew })
-            .in('id', idsToUpdate);
-
+        const { error } = await _supabase.from('prestadores').update({ consultor: newConsultant, consultorNorm: normNew }).in('id', toUpdate.map(p => p.id));
         indicator.style.display = 'none';
-
-        if (error) {
-            alert("Erro ao transferir carteira no banco de dados: " + error.message);
-        } else {
-            alert(`Sucesso! Carteira de ${toUpdate.length} prestador(es) em ${uf} foi transferida para ${newConsultant}.`);
-            selectNew.value = ''; inputNew.value = ''; document.getElementById('bulk-uf').value = '';
-            if (selectNew.disabled) toggleNewConsultant('bulk'); 
-            clearAllMarkers();
-            await loadDataFromSupabase();
-        }
+        if (error) { alert("Erro: " + error.message); }
+        else { alert(`Sucesso! ${toUpdate.length} prestadores transferidos para ${newConsultant}.`); clearAllMarkers(); await loadDataFromSupabase(); }
     }
 
-    // Seção 5: Substituição Direta de Consultor (Toda a Carteira)
     async function executeConsultantReplacement() {
         const oldConsultant = document.getElementById('replace-old-consultant').value;
         const selectNew = document.getElementById('replace-new-consultant-select');
         const inputNew = document.getElementById('replace-new-consultant-input');
-
         let newConsultant = selectNew.disabled ? inputNew.value.trim() : selectNew.value;
-
-        if (!oldConsultant) { alert("Por favor, selecione o consultor atual que será substituído."); return; }
-        if (!newConsultant) { alert("Por favor, selecione ou digite o nome do novo consultor."); return; }
-        if (oldConsultant === newConsultant) { alert("O consultor atual e o novo não podem ser a mesma pessoa."); return; }
-
+        if (!oldConsultant || !newConsultant) { alert("Preencha os campos."); return; }
+        if (oldConsultant === newConsultant) { alert("Consultores não podem ser iguais."); return; }
         let toUpdate = providersData.filter(p => p.consultor && p.consultor.trim() === oldConsultant);
-
-        if (toUpdate.length === 0) { alert(`Nenhum prestador encontrado para o consultor ${oldConsultant}.`); return; }
-        if (!confirm(`Você está prestes a transferir TODA a carteira (${toUpdate.length} prestadores) de "${oldConsultant}" para "${newConsultant}". Confirma essa ação?`)) return;
-
+        if (!toUpdate.length) { alert(`Nenhum prestador para ${oldConsultant}.`); return; }
+        if (!confirm(`Transferir TODA a carteira (${toUpdate.length}) de "${oldConsultant}" para "${newConsultant}"?`)) return;
         const indicator = document.getElementById('replace-loading-indicator');
         indicator.style.display = 'block';
-
-        const idsToUpdate = toUpdate.map(p => p.id);
         const normNew = normalizeStr(newConsultant);
-
-        const { error } = await _supabase.from('prestadores')
-            .update({ consultor: newConsultant, consultorNorm: normNew })
-            .in('id', idsToUpdate);
-
+        const { error } = await _supabase.from('prestadores').update({ consultor: newConsultant, consultorNorm: normNew }).in('id', toUpdate.map(p => p.id));
         indicator.style.display = 'none';
-
-        if (error) {
-            alert("Erro ao substituir consultor no banco de dados: " + error.message);
-        } else {
-            alert(`Sucesso! Toda a carteira de ${oldConsultant} foi transferida para ${newConsultant}.`);
-            document.getElementById('replace-old-consultant').value = ''; selectNew.value = ''; inputNew.value = '';
-            if (selectNew.disabled) toggleNewConsultant('replace');
-            clearAllMarkers();
-            await loadDataFromSupabase();
-        }
+        if (error) { alert("Erro: " + error.message); }
+        else { alert(`Sucesso! Carteira transferida para ${newConsultant}.`); clearAllMarkers(); await loadDataFromSupabase(); }
     }
 
-    /* =========================================================================
-       CRUD DE PRESTADORES INDIVIDUAIS (NOVO / EDITAR) NO SUPABASE
-       ========================================================================= */
+    /* =====================================================================
+       CRUD PRESTADORES
+       ===================================================================== */
     async function saveManualProvider(event) {
         event.preventDefault();
         let cNome = document.getElementById('m-consultor').value;
-        let isPiloto = document.getElementById('m-piloto').checked;
-
-        let p = { 
-            nome: document.getElementById('m-nome').value,
-            consultor: cNome, 
-            consultorNorm: normalizeStr(cNome),
-            email: document.getElementById('m-email').value, 
-            contato: document.getElementById('m-contato').value,
-            endereco: document.getElementById('m-endereco').value, 
-            status: formatStatus(document.getElementById('m-status').value),
-            piloto: isPiloto
-        };
-        
+        let p = { nome: document.getElementById('m-nome').value, consultor: cNome, consultorNorm: normalizeStr(cNome), email: document.getElementById('m-email').value, contato: document.getElementById('m-contato').value, endereco: document.getElementById('m-endereco').value, status: formatStatus(document.getElementById('m-status').value), piloto: document.getElementById('m-piloto').checked };
         let coords = await getGeocode(p.endereco);
-        p.lat = coords.lat; 
-        p.lng = coords.lng;
-
+        p.lat = coords.lat; p.lng = coords.lng;
         const { data, error } = await _supabase.from('prestadores').insert([p]).select();
-        
-        if (error) {
-            alert("Erro ao salvar prestador no banco de dados.");
-            console.error(error);
-        } else if (data && data.length > 0) {
-            providersData.push(data[0]); 
-            generateConsultantColors(providersData);
-            
-            if (data[0].lat) {
-                createMarker(data[0]); 
-            }
-            updateStatusFilter(); 
-            updateConsultantFilter(); 
-            applyFilters(); 
-            closeModal('register-modal');
-        }
+        if (error) { alert("Erro ao salvar prestador."); console.error(error); }
+        else if (data && data.length > 0) { providersData.push(data[0]); generateConsultantColors(providersData); if (data[0].lat) createMarker(data[0]); updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('register-modal'); }
     }
 
     function openEditModal(id) {
-        const p = providersData.find(x => x.id === id); 
+        const p = providersData.find(x => x.id === id);
         if (!p) return;
-        
-        document.getElementById('e-id').value = p.id; 
+        document.getElementById('e-id').value = p.id;
         document.getElementById('e-nome').value = p.nome || '';
-        document.getElementById('e-consultor').value = p.consultor || ''; 
+        document.getElementById('e-consultor').value = p.consultor || '';
         document.getElementById('e-email').value = p.email || '';
-        document.getElementById('e-contato').value = p.contato || ''; 
+        document.getElementById('e-contato').value = p.contato || '';
         document.getElementById('e-endereco').value = p.endereco || '';
-        document.getElementById('e-status').value = p.status || 'Ativo'; 
+        document.getElementById('e-status').value = p.status || 'Ativo';
         document.getElementById('e-piloto').checked = p.piloto || false;
-        
         openModal('edit-modal');
     }
 
@@ -2228,140 +1567,60 @@
         event.preventDefault();
         const id = parseInt(document.getElementById('e-id').value);
         const pIndex = providersData.findIndex(x => x.id === id);
-        
         if (pIndex === -1) return;
-        
         let p = providersData[pIndex];
         const oldEnd = p.endereco;
-        
-        p.nome = document.getElementById('e-nome').value; 
-        p.consultor = document.getElementById('e-consultor').value;
-        p.consultorNorm = normalizeStr(p.consultor); 
-        p.email = document.getElementById('e-email').value;
-        p.contato = document.getElementById('e-contato').value; 
-        p.endereco = document.getElementById('e-endereco').value;
-        p.status = formatStatus(document.getElementById('e-status').value);
-        p.piloto = document.getElementById('e-piloto').checked;
-
+        p.nome = document.getElementById('e-nome').value; p.consultor = document.getElementById('e-consultor').value;
+        p.consultorNorm = normalizeStr(p.consultor); p.email = document.getElementById('e-email').value;
+        p.contato = document.getElementById('e-contato').value; p.endereco = document.getElementById('e-endereco').value;
+        p.status = formatStatus(document.getElementById('e-status').value); p.piloto = document.getElementById('e-piloto').checked;
         let coordsChanged = false;
-        if (oldEnd !== p.endereco) {
-            let coords = await getGeocode(p.endereco);
-            p.lat = coords.lat; 
-            p.lng = coords.lng;
-            coordsChanged = true;
-        }
-
-        const { error } = await _supabase.from('prestadores').update({
-            nome: p.nome, 
-            consultor: p.consultor, 
-            consultorNorm: p.consultorNorm,
-            email: p.email, 
-            contato: p.contato, 
-            endereco: p.endereco, 
-            status: p.status, 
-            piloto: p.piloto,
-            lat: p.lat, 
-            lng: p.lng
-        }).eq('id', id);
-
-        if (error) {
-            alert("Erro ao atualizar o prestador no banco de dados.");
-            console.error(error);
-        } else {
-            generateConsultantColors(providersData); 
-            
-            if (coordsChanged) {
-                const mi = markers.findIndex(m => m.customId === id); 
-                if (mi > -1) { 
-                    markers[mi].setMap(null); 
-                    markers.splice(mi, 1); 
-                }
-                if (p.lat) createMarker(p);
-            } else {
-                const mk = markers.find(m => m.customId === id); 
-                if (mk) { 
-                    mk.setTitle(p.nome); 
-                    
-                    let ic = mk.getIcon(); 
-                    ic.fillColor = getConsultantColor(p.consultorNorm); 
-                    ic.strokeColor = p.piloto ? '#FFD700' : '#ffffff';
-                    ic.strokeWeight = p.piloto ? 3.5 : 1.5;
-                    ic.scale = p.piloto ? 1.7 : 1.5;
-                    mk.setIcon(ic); 
-                }
-            }
-            updateStatusFilter(); 
-            updateConsultantFilter(); 
-            applyFilters(); 
-            closeModal('edit-modal');
-        }
+        if (oldEnd !== p.endereco) { let coords = await getGeocode(p.endereco); p.lat = coords.lat; p.lng = coords.lng; coordsChanged = true; }
+        const { error } = await _supabase.from('prestadores').update({ nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm, email: p.email, contato: p.contato, endereco: p.endereco, status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng }).eq('id', id);
+        if (error) { alert("Erro ao atualizar."); console.error(error); }
+        else { generateConsultantColors(providersData); if (coordsChanged) { const mi = markers.findIndex(m => m.customId === id); if (mi > -1) { markers[mi].setMap(null); markers.splice(mi, 1); } if (p.lat) createMarker(p); } else { const mk = markers.find(m => m.customId === id); if (mk) { mk.setTitle(p.nome); let ic = mk.getIcon(); ic.fillColor = getConsultantColor(p.consultorNorm); ic.strokeColor = p.piloto ? '#FFD700' : '#ffffff'; ic.strokeWeight = p.piloto ? 3.5 : 1.5; ic.scale = p.piloto ? 1.7 : 1.5; mk.setIcon(ic); } } updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('edit-modal'); }
     }
 
-    /* =========================================================================
-       IMPORTAÇÃO DE ARQUIVO EM LOTE (PLANILHA) E INSERÇÃO NO SUPABASE
-       ========================================================================= */
+    /* =====================================================================
+       IMPORTAÇÃO DE PLANILHA
+       ===================================================================== */
     function fixStr(s) {
-        if (!s) return s; 
-        let str = String(s);
+        if (!s) return s; let str = String(s);
         try { return decodeURIComponent(escape(str)); } catch(e) { return str; }
     }
 
     function handleFileImport(e) {
-        const files = e.target.files; 
-        if (!files.length) return;
-        
-        const file = files[0]; 
-        const isCsv = file.name.toLowerCase().endsWith('.csv');
+        const files = e.target.files; if (!files.length) return;
+        const file = files[0]; const isCsv = file.name.toLowerCase().endsWith('.csv');
         const reader = new FileReader();
-
         reader.onload = ev => {
             let wb;
             try {
                 if (isCsv) {
-                    const text = ev.target.result; 
+                    const text = ev.target.result;
                     const hasGarbage = /Ã|â€|Ã§|Ã£|Ã¡|Ã©|Ã­|Ã³|Ãº/.test(text);
-                    if (hasGarbage) {
-                        const reader2 = new FileReader();
-                        reader2.onload = ev2 => {
-                            const data = new Uint8Array(ev2.target.result);
-                            wb = XLSX.read(data, { type: 'array', codepage: 1252 });
-                            processWorkbook(wb);
-                        };
-                        reader2.readAsArrayBuffer(file); 
-                        return;
-                    }
+                    if (hasGarbage) { const reader2 = new FileReader(); reader2.onload = ev2 => { const data = new Uint8Array(ev2.target.result); wb = XLSX.read(data, { type: 'array', codepage: 1252 }); processWorkbook(wb); }; reader2.readAsArrayBuffer(file); return; }
                     wb = XLSX.read(text, { type: 'string' });
-                } else {
-                    const data = new Uint8Array(ev.target.result); 
-                    wb = XLSX.read(data, { type: 'array', codepage: 1252 });
-                }
+                } else { const data = new Uint8Array(ev.target.result); wb = XLSX.read(data, { type: 'array', codepage: 1252 }); }
                 processWorkbook(wb);
             } catch(err) { alert("Erro ao ler o arquivo: " + err.message); }
         };
-        
-        if (isCsv) reader.readAsText(file, 'UTF-8'); 
-        else reader.readAsArrayBuffer(file);
+        if (isCsv) reader.readAsText(file, 'UTF-8'); else reader.readAsArrayBuffer(file);
     }
 
     function processWorkbook(wb) {
-        const ws = wb.Sheets[wb.SheetNames[0]]; 
-        if (!ws) { alert("Erro ao ler a planilha."); return; }
-        const headers = XLSX.utils.sheet_to_json(ws, {header:1})[0];
-        rawImportedData = XLSX.utils.sheet_to_json(ws, {defval:""});
-        
-        if (headers && headers.length) { 
-            populateMappingDropdowns(headers); 
-            openModal('mapping-modal'); 
-        }
+        const ws = wb.Sheets[wb.SheetNames[0]]; if (!ws) { alert("Erro ao ler a planilha."); return; }
+        const headers = XLSX.utils.sheet_to_json(ws, { header: 1 })[0];
+        rawImportedData = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        if (headers && headers.length) { populateMappingDropdowns(headers); openModal('mapping-modal'); }
     }
 
     function populateMappingDropdowns(columns) {
         document.querySelectorAll('.map-dropdown').forEach(select => {
             select.innerHTML = '<option value="">— Deixar vazio —</option>';
             columns.forEach(col => {
-                const opt = document.createElement('option'); opt.value = col; opt.text = col; 
+                const opt = document.createElement('option'); opt.value = col; opt.text = col;
                 const cl = String(col).toLowerCase();
-                
                 if (select.id === 'map-nome' && (cl.includes('razao') || cl.includes('nome'))) opt.selected = true;
                 if (select.id === 'map-consultor' && cl.includes('consultor')) opt.selected = true;
                 if (select.id === 'map-email' && cl === 'email') opt.selected = true;
@@ -2374,7 +1633,6 @@
                 if (select.id === 'map-cep' && cl.includes('cep')) opt.selected = true;
                 if (select.id === 'map-status' && cl === 'status') opt.selected = true;
                 if (select.id === 'map-piloto' && cl.includes('piloto')) opt.selected = true;
-                
                 select.appendChild(opt);
             });
         });
@@ -2383,183 +1641,66 @@
     async function confirmMapping(event) {
         event.preventDefault();
         const gv = id => document.getElementById(id).value;
-        const [cN,cC,cE,cT,cL,cNum,cB,cCid,cEst,cCep,cS, cP] = ['map-nome','map-consultor','map-email','map-telefone','map-logradouro','map-numero','map-bairro','map-cidade','map-estado','map-cep','map-status','map-piloto'].map(gv);
-        
+        const [cN,cC,cE,cT,cL,cNum,cB,cCid,cEst,cCep,cS,cP] = ['map-nome','map-consultor','map-email','map-telefone','map-logradouro','map-numero','map-bairro','map-cidade','map-estado','map-cep','map-status','map-piloto'].map(gv);
         const indicator = document.getElementById('loading-indicator');
-        if (indicator) {
-            indicator.style.display = 'block';
-            indicator.innerText = 'Iniciando processamento...';
-        }
-        
+        if (indicator) { indicator.style.display = 'block'; indicator.innerText = 'Iniciando processamento...'; }
         closeModal('mapping-modal');
         let novosPrestadores = [];
-        
         for (let i = 0; i < rawImportedData.length; i++) {
-            let row = rawImportedData[i];
-            const f = col => fixStr(row[col] || "");
-            let end = `${f(cL)}${cNum&&row[cNum]?`, ${f(cNum)}`:""}${cB&&row[cB]?` - ${f(cB)}`:""}, ${f(cCid)} - ${f(cEst)}${cCep&&row[cCep]?` (CEP: ${f(cCep)})` :""}`;
+            let row = rawImportedData[i]; const f = col => fixStr(row[col] || "");
+            let end = `${f(cL)}${cNum&&row[cNum]?`, ${f(cNum)}`:""}${cB&&row[cB]?` - ${f(cB)}`:""}, ${f(cCid)} - ${f(cEst)}${cCep&&row[cCep]?` (CEP: ${f(cCep)})`:""}`;
             let consultRaw = cC ? fixStr(row[cC]) : "";
-            
             let isPiloto = false;
-            if (cP && row[cP]) {
-                let pStr = String(row[cP]).toLowerCase().trim();
-                isPiloto = (pStr === 'sim' || pStr === 'true' || pStr === '1' || pStr === 'x' || pStr === 'ok');
-            }
-
-            if (indicator) indicator.innerText = `Buscando localização no mapa: Endereço ${i + 1} de ${rawImportedData.length}...`;
-            
+            if (cP && row[cP]) { let pStr = String(row[cP]).toLowerCase().trim(); isPiloto = (pStr === 'sim' || pStr === 'true' || pStr === '1' || pStr === 'x' || pStr === 'ok'); }
+            if (indicator) indicator.innerText = `Buscando localização: ${i + 1} de ${rawImportedData.length}...`;
             let coords = await getGeocode(end);
-            await new Promise(r => setTimeout(r, 200)); 
-            
-            novosPrestadores.push({
-                nome: (cN ? fixStr(row[cN]) : "Sem Nome") || "Sem Nome",
-                consultor: consultRaw,
-                consultorNorm: normalizeStr(consultRaw),
-                email: cE ? fixStr(row[cE]) : "",
-                contato: cT ? fixStr(row[cT]) : "",
-                endereco: end,
-                status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
-                piloto: isPiloto,
-                lat: coords.lat, 
-                lng: coords.lng
-            });
+            await new Promise(r => setTimeout(r, 200));
+            novosPrestadores.push({ nome: (cN ? fixStr(row[cN]) : "Sem Nome") || "Sem Nome", consultor: consultRaw, consultorNorm: normalizeStr(consultRaw), email: cE ? fixStr(row[cE]) : "", contato: cT ? fixStr(row[cT]) : "", endereco: end, status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"), piloto: isPiloto, lat: coords.lat, lng: coords.lng });
         }
-
         if (indicator) indicator.innerText = "Limpando base antiga...";
-        await _supabase.from('prestadores').delete().neq('id', 0); 
-        
-        if (indicator) indicator.innerText = "Salvando novos dados no Supabase. Quase lá...";
+        await _supabase.from('prestadores').delete().neq('id', 0);
+        if (indicator) indicator.innerText = "Salvando novos dados...";
         const { error } = await _supabase.from('prestadores').insert(novosPrestadores);
-        
         if (indicator) indicator.style.display = 'none';
-        
-        if (error) {
-            alert("Erro ao salvar no Supabase. " + error.message);
-            console.error(error);
-        } else {
-            alert("Base de dados importada e salva no Supabase com sucesso!");
-            clearAllMarkers();
-            await loadDataFromSupabase();
-        }
+        if (error) { alert("Erro ao salvar no Supabase. " + error.message); }
+        else { alert("Base importada com sucesso!"); clearAllMarkers(); await loadDataFromSupabase(); }
     }
 
-    /* =========================================================================
-       MODAL DE RESUMO (DASHBOARD)
-       ========================================================================= */
+    /* =====================================================================
+       MODAL RESUMO
+       ===================================================================== */
     function openSummaryModal() {
-        if (!providersData.length) {
-            document.getElementById('summary-content').innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:13px;">Nenhum prestador na base.</p>`;
-            openModal('summary-modal'); 
-            return;
-        }
-        
+        if (!providersData.length) { document.getElementById('summary-content').innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:13px;">Nenhum prestador na base.</p>`; openModal('summary-modal'); return; }
         let countStatus = {};
         let consultoresMap = new Map();
-        let dataToSummarize = userRole === 'common' ? providersData.filter(p => p.status === 'Ativo') : providersData;
-
+        let dataToSummarize = currentUser.perfil !== 'admin' ? providersData.filter(p => (currentUser.status_permitidos || 'Ativo').split(',').map(s=>s.trim()).includes(p.status)) : providersData;
         dataToSummarize.forEach(p => {
             countStatus[p.status] = (countStatus[p.status] || 0) + 1;
             let norm = p.consultorNorm || "SEM CONSULTOR";
-            if (!consultoresMap.has(norm)) {
-                consultoresMap.set(norm, {display: p.consultor ? p.consultor.trim() : "Sem Consultor", count: 0});
-            }
+            if (!consultoresMap.has(norm)) consultoresMap.set(norm, { display: p.consultor ? p.consultor.trim() : "Sem Consultor", count: 0 });
             consultoresMap.get(norm).count++;
         });
-
-        let statusHtml = '';
-        Object.keys(countStatus).forEach(s => {
-            let col = getStatusColor(s);
-            statusHtml += `<div class="summary-status-cell"><span class="val" style="color:${col};">${countStatus[s]}</span><span class="lbl">${s}</span></div>`;
-        });
-
-        let consultorRows = Array.from(consultoresMap.values()).sort((a,b) => b.count - a.count)
-            .map(c => `<li><span>${c.display}</span><span class="count-badge">${c.count}</span></li>`).join('');
-
+        let statusHtml = Object.keys(countStatus).map(s => { let col = getStatusColor(s); return `<div class="summary-status-cell"><span class="val" style="color:${col};">${countStatus[s]}</span><span class="lbl">${s}</span></div>`; }).join('');
+        let consultorRows = Array.from(consultoresMap.values()).sort((a,b) => b.count - a.count).map(c => `<li><span>${c.display}</span><span class="count-badge">${c.count}</span></li>`).join('');
         document.getElementById('summary-content').innerHTML = `
             <div class="summary-modal-total"><span>Total exibido para seu perfil</span><span>${dataToSummarize.length}</span></div>
             <p class="modal-subtitle">Por status</p>
             <div class="summary-status-grid" style="margin-bottom:20px;">${statusHtml}</div>
             <p class="modal-subtitle">Por consultor</p>
             <ul class="consultor-list" style="max-height:180px;overflow-y:auto;">${consultorRows}</ul>`;
-        
         openModal('summary-modal');
     }
 
-    /* =========================================================================
-       GESTÃO DE ACESSOS (USUÁRIOS)
-       ========================================================================= */
-    async function loadUsersTable() {
-        const tbody = document.getElementById('users-table-body');
-        if(!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>';
-        
-        const { data, error } = await _supabase.from('usuarios').select('*').order('email');
-        if (error) {
-            tbody.innerHTML = `<tr><td colspan="4" class="err-text">Erro ao carregar usuários</td></tr>`;
-            return;
-        }
+    /* =====================================================================
+       UTILITÁRIOS
+       ===================================================================== */
+    function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
+    function closeModal(id) { const el = document.getElementById(id); if (el) { el.style.display = 'none'; el.classList.remove('open'); } }
+    function clearAllMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
 
-        tbody.innerHTML = data.map(u => `
-            <tr>
-                <td><strong>${u.email}</strong></td>
-                <td>
-                    <select onchange="updateUserAccess('${u.email}', 'perfil', this.value)" style="padding:4px; font-size:11px;">
-                        <option value="comum" ${u.perfil === 'comum' ? 'selected' : ''}>Comum</option>
-                        <option value="admin" ${u.perfil === 'admin' ? 'selected' : ''}>Admin</option>
-                    </select>
-                </td>
-                <td style="text-align:center;">
-                    <input type="checkbox" onchange="updateUserAccess('${u.email}', 'pode_editar', this.checked)" ${u.pode_editar ? 'checked' : ''} style="transform: scale(1.3); cursor:pointer;">
-                </td>
-                <td style="text-align:center;">
-                    <input type="checkbox" onchange="updateUserAccess('${u.email}', 'ver_cred', this.checked)" ${u.ver_cred ? 'checked' : ''} style="transform: scale(1.3); cursor:pointer;">
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    async function updateUserAccess(email, campo, valor) {
-        let updateData = {};
-        updateData[campo] = valor;
-        
-        if (campo === 'perfil') {
-            updateData['blocos'] = valor === 'admin' ? '1,2,3,4,5,6,7' : '1,2,3';
-        }
-
-        const { error } = await _supabase.from('usuarios').update(updateData).eq('email', email);
-        if (error) {
-            alert('Erro ao atualizar permissão!');
-        }
-    }
-
-    /* =========================================================================
-       UTILITÁRIOS FINAIS DE MODAL
-       ========================================================================= */
-    function openModal(id) { 
-        const el = document.getElementById(id);
-        if(el) el.style.display = 'flex'; 
-    }
-    
-    function closeModal(id) { 
-        const el = document.getElementById(id); 
-        if(el) {
-            el.style.display = 'none'; 
-            el.classList.remove('open');
-        }
-    }
-    
-    function clearAllMarkers() { 
-        markers.forEach(m => m.setMap(null)); 
-        markers = []; 
-    }
-
-    document.querySelectorAll('.modal-backdrop').forEach(m => { 
-        m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }); 
-    });
-    
+    document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }); });
     const btnSummary = document.getElementById('btn-summary');
-    if(btnSummary) btnSummary.addEventListener('click', openSummaryModal);
-
+    if (btnSummary) btnSummary.addEventListener('click', openSummaryModal);
 </script>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap" async defer></script>
