@@ -412,6 +412,54 @@
         .uac-save-btn:active { transform: scale(0.98); }
 
         .users-empty { text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 12px; font-weight: 500; }
+
+        /* RANGE PILLS (topbar) */
+        .rpill {
+            flex: 1;
+            padding: 5px 2px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .rpill:hover { background: rgba(255,255,255,0.18); color: #fff; }
+        .rpill.active { background: var(--cobli-indigo); border-color: var(--cobli-violet); color: #fff; }
+
+        /* AUTOCOMPLETE DROPDOWN */
+        .ac-item {
+            padding: 9px 12px;
+            font-size: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ac-item:last-child { border-bottom: none; }
+        .ac-item:hover { background: var(--cobli-lavender); }
+        .ac-item-icon { font-size: 14px; flex-shrink: 0; }
+        .ac-item-text { flex: 1; }
+        .ac-item-main { font-weight: 600; color: var(--text-primary); }
+        .ac-item-sub { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+        /* ROUTING RESULT in topbar */
+        #routing-result { transition: max-height 0.3s ease; }
+        #routing-result:not(:empty) { margin-top: 8px !important; max-height: 300px !important; overflow-y: auto !important; }
+        #routing-result::-webkit-scrollbar { width: 3px; }
+        #routing-result::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 2px; }
+        .result-section-title { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 0 5px; margin-bottom: 5px; border-top: 1px solid rgba(255,255,255,0.15); }
+        .result-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; padding: 8px 10px; margin-bottom: 5px; }
+        .result-card-name { font-size: 11px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+        .result-card-dist { font-size: 10px; color: var(--cobli-violet); font-weight: 600; margin-bottom: 6px; }
+        .btn-route { width: 100%; padding: 5px 8px; background: var(--cobli-indigo); color: #fff; border: none; border-radius: 5px; font-size: 10px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+        .btn-route:hover { background: var(--cobli-blue); }
     </style>
 </head>
 <body>
@@ -438,6 +486,37 @@
             <button class="btn-ghost btn-logout" onclick="logout()" title="Sair do sistema">Sair</button>
         </div>
     </div>
+    <!-- BARRA DE BUSCA DE ENDEREÇO (TOPO) -->
+    <div id="address-search-bar" style="background:var(--cobli-navy); padding:10px 14px 12px; border-bottom:2px solid var(--cobli-indigo); flex-shrink:0;">
+        <div style="position:relative;">
+            <div style="display:flex;gap:6px;align-items:center;">
+                <div style="position:relative;flex:1;">
+                    <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;">🔍</span>
+                    <input type="text" id="client-address" 
+                        placeholder="CEP, cidade ou endereço..."
+                        autocomplete="off"
+                        oninput="onAddressInput()"
+                        onkeydown="onAddressKeydown(event)"
+                        style="width:100%;padding:8px 8px 8px 30px;border:1.5px solid rgba(255,255,255,0.2);border-radius:7px;font-size:12px;font-family:inherit;background:rgba(255,255,255,0.12);color:#fff;outline:none;transition:border 0.15s;"
+                        onfocus="this.style.borderColor='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.18)'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.2)';this.style.background='rgba(255,255,255,0.12)'">
+                    <div id="autocomplete-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:9999;overflow:hidden;max-height:220px;overflow-y:auto;"></div>
+                </div>
+                <button onclick="clearRoutingAndSearch()" title="Limpar busca" 
+                    style="background:rgba(255,70,51,0.3);border:1px solid rgba(255,70,51,0.5);color:#fff;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center;"
+                    onmouseover="this.style.background='rgba(255,70,51,0.7)'" onmouseout="this.style.background='rgba(255,70,51,0.3)'">✕</button>
+            </div>
+        </div>
+        <!-- Range pills -->
+        <div style="display:flex;gap:5px;margin-top:8px;" id="range-pills">
+            <button class="rpill active" data-val="50" onclick="setRange(50,this)">≤ 50 km</button>
+            <button class="rpill" data-val="100" onclick="setRange(100,this)">≤ 100 km</button>
+            <button class="rpill" data-val="200" onclick="setRange(200,this)">≤ 200 km</button>
+            <button class="rpill" data-val="300" onclick="setRange(300,this)">≤ 300 km</button>
+            <button class="rpill" data-val="999999" onclick="setRange(999999,this)">Todos</button>
+        </div>
+        <div id="routing-result" style="margin-top:0;max-height:0;overflow:hidden;"></div>
+    </div>
 
     <div class="scroll-panel">
 
@@ -460,31 +539,7 @@
             </div>
         </div>
 
-        <div id="bloco-2" class="section-card">
-            <div class="section-header">
-                <div class="section-header-left">
-                    <span class="section-number">2</span>
-                    <span class="section-title">Buscar técnicos próximos</span>
-                </div>
-            </div>
-            <div class="section-body">
-                <div class="form-row">
-                    <label>CEP ou endereço</label>
-                    <input type="text" id="client-address" placeholder="Ex: 02840-080 ou Av. Paulista, 1000">
-                </div>
-                <div class="range-group">
-                    <button class="btn-range active" data-val="50" onclick="setRange(50, this)">≤ 50 km</button>
-                    <button class="btn-range" data-val="100" onclick="setRange(100, this)">≤ 100 km</button>
-                    <button class="btn-range" data-val="200" onclick="setRange(200, this)">≤ 200 km</button>
-                    <button class="btn-range" data-val="999999" onclick="setRange(999999, this)">Qualquer</button>
-                </div>
-                <div class="btn-row">
-                    <button class="btn btn-primary" onclick="findClosestProviders()">Buscar</button>
-                    <button class="btn btn-danger" onclick="clearRoutingAndSearch()">Limpar</button>
-                </div>
-                <div id="routing-result"></div>
-            </div>
-        </div>
+
 
         <div id="bloco-3" class="section-card">
             <div class="section-header">
@@ -1087,6 +1142,7 @@
             });
         }
 
+        initAutocomplete();
         const savedConfig = localStorage.getItem('userConfig');
         if (savedConfig) {
             currentUser = JSON.parse(savedConfig);
@@ -1234,7 +1290,7 @@
 
     function setRange(val, btn) {
         currentSearchRange = val;
-        document.querySelectorAll('.btn-range').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.rpill').forEach(b => b.classList.remove('active'));
         if (btn) btn.classList.add('active');
         const addressInput = document.getElementById('client-address');
         if (addressInput && addressInput.value.trim()) findClosestProviders();
@@ -1242,6 +1298,7 @@
 
     document.addEventListener('click', e => {
         if (!e.target.closest('.dropdown-check-list')) document.querySelectorAll('.dropdown-items').forEach(i => i.classList.remove('visible'));
+        if (!e.target.closest('#address-search-bar')) closeAutocomplete();
     });
 
     function normalizeStr(str) {
@@ -1484,7 +1541,7 @@
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    function openProviderInfoWindow(pId, markerRef = null) {
+    function openProviderInfoWindow(pId, markerRef = null, extraRouteHtml = '') {
         let p = providersData.find(x => x.id === pId);
         if (!p) return;
         if (!markerRef) markerRef = markers.find(m => m.customId === pId);
@@ -1514,7 +1571,19 @@
                     <div class="iw-row">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div></div></div>
                 </div>
             </div>`;
-        infoWindowGlobal.setContent(content);
+        // Add route button if there's a destination address
+        const hasAddr = document.getElementById('client-address')?.value.trim();
+        const routeBtn = hasAddr
+            ? `<div style="padding:0 16px 14px;">
+                <button onclick="traceRealRoute(${p.id},${p.lat},${p.lng})" 
+                    style="width:100%;padding:8px;background:var(--cobli-indigo);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;"
+                    onmouseover="this.style.background='#001BB8'" onmouseout="this.style.background='var(--cobli-indigo)'">
+                    🚗 Calcular rota até o destino
+                </button>
+               </div>`
+            : '';
+        const fullContent = content + (extraRouteHtml ? `<div style="padding:0 16px 14px;">${extraRouteHtml}</div>` : '') + routeBtn;
+        infoWindowGlobal.setContent(fullContent);
         infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
     }
 
@@ -1526,78 +1595,172 @@
     /* =====================================================================
        ROTAS E BUSCA DE PRÓXIMOS
        ===================================================================== */
-    function findClosestProviders() {
-        const clientAddress = document.getElementById('client-address').value;
+    // ── AUTOCOMPLETE ──────────────────────────────────────────
+    let acService = null, acSessionToken = null;
+
+    function initAutocomplete() {
+        if (!google.maps.places) return;
+        acService = new google.maps.places.AutocompleteService();
+        acSessionToken = new google.maps.places.AutocompleteSessionToken();
+    }
+
+    function onAddressInput() {
+        const val = document.getElementById('client-address').value.trim();
+        if (val.length < 3) { closeAutocomplete(); return; }
+        if (!acService) initAutocomplete();
+        if (!acService) return;
+        acService.getPlacePredictions(
+            { input: val, sessionToken: acSessionToken, componentRestrictions: { country: 'br' } },
+            (predictions, status) => {
+                if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) { closeAutocomplete(); return; }
+                showAutocomplete(predictions);
+            }
+        );
+    }
+
+    function showAutocomplete(predictions) {
+        const dd = document.getElementById('autocomplete-dropdown');
+        if (!dd) return;
+        dd.innerHTML = predictions.slice(0, 6).map(p =>
+            `<div class="ac-item" onmousedown="selectPlace('${p.place_id.replace(/'/g,"\'")}','${p.description.replace(/'/g,"\'").replace(/"/g,"&quot;")}')">
+                <span class="ac-item-icon">📍</span>
+                <div class="ac-item-text">
+                    <div class="ac-item-main">${p.structured_formatting?.main_text || p.description}</div>
+                    <div class="ac-item-sub">${p.structured_formatting?.secondary_text || ''}</div>
+                </div>
+            </div>`
+        ).join('');
+        dd.style.display = 'block';
+    }
+
+    function onAddressKeydown(e) {
+        if (e.key === 'Enter') { e.preventDefault(); closeAutocomplete(); findClosestProviders(); }
+        if (e.key === 'Escape') clearRoutingAndSearch();
+    }
+
+    function closeAutocomplete() {
+        const dd = document.getElementById('autocomplete-dropdown');
+        if (dd) dd.style.display = 'none';
+    }
+
+    function selectPlace(placeId, description) {
+        document.getElementById('client-address').value = description;
+        closeAutocomplete();
+        acSessionToken = new google.maps.places.AutocompleteSessionToken();
+        findClosestProviders();
+    }
+
+    function makeDestinationPin() {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="68" viewBox="0 0 52 68">
+            <defs>
+                <filter id="ds3" x="-40%" y="-20%" width="180%" height="180%">
+                    <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
+                </filter>
+            </defs>
+            <g filter="url(#ds3)">
+                <polygon points="26,4 32,20 50,20 36,30 42,47 26,37 10,47 16,30 2,20 20,20"
+                         fill="#FFD700" stroke="#CC8800" stroke-width="1.5" stroke-linejoin="round"/>
+                <circle cx="26" cy="27" r="7" fill="#fff" opacity="0.95"/>
+                <circle cx="26" cy="27" r="4.5" fill="#FF4633"/>
+                <line x1="26" y1="47" x2="26" y2="64" stroke="#CC8800" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="26" cy="65" r="2.5" fill="#CC8800"/>
+            </g>
+        </svg>`;
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
+
+        function findClosestProviders() {
+        const clientAddress = document.getElementById('client-address').value.trim();
         const resultDiv = document.getElementById('routing-result');
-        if (!clientAddress) { resultDiv.innerHTML = `<p class="err-text">Digite o CEP ou endereço.</p>`; return; }
-        resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Calculando…</p>`;
+        if (!clientAddress) return;
+
+        resultDiv.innerHTML = '';
         directionsRenderer.setDirections({ routes: [] });
+
         geocoder.geocode({ address: clientAddress }, (results, status) => {
-            if (status === 'OK') {
-                const loc = results[0].geometry.location;
-                if (clientMarker) clientMarker.setMap(null);
-                const destSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="56" viewBox="0 0 44 56">
-                    <defs>
-                        <filter id="dshadow">
-                            <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.4)"/>
-                        </filter>
-                        <radialGradient id="dgrad" cx="38%" cy="32%" r="65%">
-                            <stop offset="0%" stop-color="#FF7A6B"/>
-                            <stop offset="100%" stop-color="#FF4633"/>
-                        </radialGradient>
-                    </defs>
-                    <g filter="url(#dshadow)">
-                        <path d="M22 2 C11.0 2 2 11.0 2 22 C2 35 22 54 22 54 C22 54 42 35 42 22 C42 11.0 33.0 2 22 2 Z"
-                              fill="url(#dgrad)"/>
-                        <circle cx="22" cy="22" r="11" fill="rgba(255,255,255,0.25)"/>
-                        <circle cx="22" cy="22" r="9" fill="rgba(255,255,255,0.9)"/>
-                        <text x="22" y="27" text-anchor="middle" font-size="13" fill="#FF4633" font-family="Arial" font-weight="bold">✦</text>
-                    </g>
-                </svg>`;
-                const destIcon = {
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(destSvg),
-                    scaledSize: new google.maps.Size(28, 36),
-                    anchor: new google.maps.Point(14, 34)
-                };
-                clientMarker = new google.maps.Marker({ position: loc, map, title: "Destino solicitado", icon: destIcon });
-                let formattedAddr = results[0].formatted_address;
-                clientMarker.addListener("click", () => { clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination"><h4>Destino solicitado</h4></div><div class="iw-body"><div>${formattedAddr}</div></div></div>`); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); });
-                map.setCenter(loc); map.setZoom(10);
+            if (status !== 'OK') {
+                resultDiv.innerHTML = `<p style="color:rgba(255,150,100,0.9);font-size:11px;padding:6px 0;">Endereço não localizado.</p>`;
+                resultDiv.style.maxHeight = '300px';
+                return;
+            }
 
-                let allowedStatuses = currentUser.perfil === 'admin' ? getCheckedValues('status-items') : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
-                const selConsultors = getCheckedValues('consultor-items');
-                const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
-                let distances = [];
+            const loc = results[0].geometry.location;
+            const formattedAddr = results[0].formatted_address;
 
-                providersData.forEach(p => {
-                    if (!p.lat || !p.lng) return;
-                    if (!allowedStatuses.includes(p.status)) return;
-                    let pConsNorm = p.consultorNorm || "SEM CONSULTOR";
-                    if (!selConsultors.includes(pConsNorm)) return;
-                    if (showOnlyPiloto && !p.piloto) return;
-                    let dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat, p.lng));
-                    if (dist <= currentSearchRange * 1000) distances.push({ prestador: p, distance: dist });
-                });
+            // Place distinctive destination marker (star/flag shape)
+            if (clientMarker) clientMarker.setMap(null);
+            clientMarker = new google.maps.Marker({
+                position: loc, map,
+                title: "📍 Destino para cálculo",
+                icon: { url: makeDestinationPin(), scaledSize: new google.maps.Size(52, 64), anchor: new google.maps.Point(26, 62) },
+                zIndex: 999
+            });
+            clientMarker.addListener("click", () => {
+                clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">⭐</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`);
+                clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false });
+            });
 
-                if (!distances.length) { resultDiv.innerHTML = `<p class="err-text">Nenhum prestador neste raio com os filtros ativos.</p>`; return; }
-                distances.sort((a, b) => a.distance - b.distance);
-                let html = `<p class="result-section-title">${distances.length} encontrado${distances.length !== 1 ? 's' : ''}</p>`;
-                distances.slice(0, 50).forEach((item, i) => {
-                    const km = (item.distance / 1000).toFixed(1);
-                    const sa = formattedAddr.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                    let colStatus = getStatusColor(item.prestador.status);
-                    html += `<div class="result-card">
-                        <div class="result-card-name" style="display:flex;align-items:center;gap:6px;">${i + 1}. ${item.prestador.nome} ${item.prestador.piloto ? '<span class="badge-piloto">⭐</span>' : ''}<span class="provider-status-badge" style="background:${colStatus}22;color:${colStatus};">${item.prestador.status}</span></div>
-                        <div class="result-card-dist">⬦ ${km} km (raio linear)</div>
-                        <button class="btn-route" onclick="traceRealRoute(${item.prestador.id},${item.prestador.lat},${item.prestador.lng},'${sa}')">Traçar rota de carro</button>
+            map.setCenter(loc);
+            map.setZoom(11);
+
+            let allowedStatuses = currentUser.perfil === 'admin'
+                ? getCheckedValues('status-items')
+                : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
+            const selConsultors = getCheckedValues('consultor-items');
+            const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
+
+            // Show ONLY markers within range
+            let inRange = [];
+            markers.forEach(m => {
+                const p = providersData.find(x => x.id === m.customId);
+                if (!p || !p.lat || !p.lng) { m.setMap(null); return; }
+                if (!allowedStatuses.includes(p.status)) { m.setMap(null); return; }
+                const pCN = p.consultorNorm || "SEM CONSULTOR";
+                if (!selConsultors.includes(pCN)) { m.setMap(null); return; }
+                if (showOnlyPiloto && !p.piloto) { m.setMap(null); return; }
+                const dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat, p.lng));
+                if (currentSearchRange === 999999 || dist <= currentSearchRange * 1000) {
+                    m.setMap(map);
+                    inRange.push({ prestador: p, distance: dist });
+                } else {
+                    m.setMap(null);
+                }
+            });
+
+            inRange.sort((a, b) => a.distance - b.distance);
+
+            if (!inRange.length) {
+                resultDiv.innerHTML = `<p style="color:rgba(255,200,100,0.9);font-size:11px;padding:6px 0;">Nenhum prestador no raio com os filtros ativos.</p>`;
+                resultDiv.style.maxHeight = '300px';
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <p class="result-section-title">${inRange.length} prestador${inRange.length !== 1 ? 'es' : ''} no raio — clique no pin para detalhes e rota</p>
+                ${inRange.slice(0, 3).map((item, idx) => {
+                    const km = (item.distance/1000).toFixed(1);
+                    const col = getStatusColor(item.prestador.status);
+                    return `<div class="result-card" style="cursor:pointer;" onclick="centerMapOnProvider(${item.prestador.id})">
+                        <div class="result-card-name" style="display:flex;align-items:center;gap:5px;">
+                            ${idx+1}. ${item.prestador.nome}
+                            ${item.prestador.piloto ? '<span class="badge-piloto" style="font-size:8px;">⭐</span>' : ''}
+                            <span style="background:${col}22;color:${col};font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;">${item.prestador.status}</span>
+                        </div>
+                        <div class="result-card-dist">⬦ ${km} km linear</div>
                     </div>`;
-                });
-                resultDiv.innerHTML = html;
-            } else { resultDiv.innerHTML = `<p class="err-text">Endereço não localizado.</p>`; }
+                }).join('')}
+                ${inRange.length > 3 ? `<p style="font-size:10px;color:rgba(255,255,255,0.45);text-align:center;padding:4px 0;">+${inRange.length-3} mais visíveis no mapa</p>` : ''}`;
+            resultDiv.style.maxHeight = '300px';
         });
     }
 
-    function traceRealRoute(pId, pLat, pLng, clientAddress) {
+    function traceRealRoute(pId, pLat, pLng) {
+        const clientAddress = document.getElementById('client-address').value.trim();
+        if (!clientAddress) {
+            // No address — just open the infowindow
+            openProviderInfoWindow(pId);
+            return;
+        }
         const origin = new google.maps.LatLng(pLat, pLng);
         directionsService.route({ origin, destination: clientAddress, travelMode: google.maps.TravelMode.DRIVING }, (response, status) => {
             if (status === 'OK') {
@@ -1605,12 +1768,23 @@
                 const bounds = new google.maps.LatLngBounds();
                 bounds.extend(origin); bounds.extend(response.routes[0].legs[0].end_location);
                 map.fitBounds(bounds);
-                openProviderInfoWindow(pId);
-                if (clientMarker) {
-                    const dc = `<div class="iw-card"><div class="iw-head destination"><h4>Destino solicitado</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div><div class="iw-address-block"><strong>Endereço:</strong><br>${clientAddress}</div></div></div>`;
-                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 200);
+                // Update infowindow with route info
+                const p = providersData.find(x => x.id === pId);
+                const mk = markers.find(m => m.customId === pId);
+                if (p && mk) {
+                    const statusColor = getStatusColor(p.status);
+                    const extraRoute = `<div style="margin-top:10px;padding:8px;background:#F0F4FF;border-radius:6px;border-left:3px solid var(--cobli-indigo);">
+                        <div style="font-size:10px;font-weight:700;color:var(--cobli-indigo);text-transform:uppercase;margin-bottom:4px;">Rota calculada</div>
+                        <div style="font-size:12px;font-weight:600;">🚗 ${response.routes[0].legs[0].distance.text} &nbsp;·&nbsp; ⏱ ${response.routes[0].legs[0].duration.text}</div>
+                    </div>`;
+                    // Re-open infowindow with route info appended
+                    openProviderInfoWindow(pId, mk, extraRoute);
                 }
-            } else { alert('Erro ao traçar rota real.'); }
+                if (clientMarker) {
+                    const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">⭐</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div></div></div>`;
+                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 300);
+                }
+            } else { alert('Erro ao traçar rota. Verifique o endereço de destino.'); }
         });
     }
 
@@ -1618,11 +1792,14 @@
         const addrInput = document.getElementById('client-address');
         if (addrInput) addrInput.value = "";
         const resultDiv = document.getElementById('routing-result');
-        if (resultDiv) resultDiv.innerHTML = "";
+        if (resultDiv) { resultDiv.innerHTML = ""; resultDiv.style.maxHeight = '0'; }
+        closeAutocomplete();
         directionsRenderer.setDirections({ routes: [] });
         if (clientMarker) { clientMarker.setMap(null); clientMarker = null; }
         if (infoWindowGlobal) infoWindowGlobal.close();
         if (clientInfoWindow) clientInfoWindow.close();
+        // Restore all markers visibility
+        applyFilters();
         if (markers.length && map) { map.setZoom(4); map.setCenter({ lat: -15.793889, lng: -47.882778 }); }
     }
 
