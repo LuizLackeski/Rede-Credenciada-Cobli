@@ -5,21 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rede de Prestadores — Cobli</title>
     
-    <!-- Bibliotecas Externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* =====================================================================
-           RESET E VARIÁVEIS GERAIS
-           ===================================================================== */
-        *, *::before, *::after { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
             --cobli-navy:    #07074E;
@@ -31,33 +23,19 @@
             --cobli-red-dk:  #F01A1A;
             --cobli-teal:    #00AE97;
             --cobli-gold:    #FFD700;
-            
             --surface-page:  #D8DCF0;
             --surface-card:  #FFFFFF;
             --surface-muted: #F5F6FA;
-            
             --text-primary:  #07074E;
             --text-secondary:#4B4F7A;
             --text-muted:    #9296B8;
-            
             --border-light:  #E2E5F0;
             --border-mid:    #C4C9E0;
-            
             --sidebar-w: 400px;
         }
 
-        body { 
-            font-family: 'Inter', 'Segoe UI', sans-serif; 
-            display: flex; 
-            height: 100vh; 
-            background: var(--surface-page); 
-            overflow: hidden; 
-            color: var(--text-primary); 
-        }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; display: flex; height: 100vh; background: var(--surface-page); overflow: hidden; color: var(--text-primary); }
 
-        /* =====================================================================
-           LOGIN OVERLAY
-           ===================================================================== */
         #login-overlay { position: fixed; inset: 0; background: var(--cobli-navy); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .login-box { background: #fff; padding: 40px; border-radius: 12px; width: 360px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; }
         .login-box h2 { color: var(--cobli-navy); margin-bottom: 10px; font-size: 20px; }
@@ -68,22 +46,19 @@
 
         body.is-common .admin-only { display: none !important; }
 
-        /* =====================================================================
-           SIDEBAR E LAYOUT PRINCIPAL
-           ===================================================================== */
         #sidebar { width: var(--sidebar-w); background: var(--surface-page); display: flex; flex-direction: column; z-index: 10; border-right: 1px solid var(--border-light); overflow: hidden; }
         .topbar { background: var(--cobli-navy); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
         .topbar-brand { display: flex; flex-direction: column; gap: 2px; }
         .topbar-brand h1 { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.2px; }
         .topbar-brand p { font-size: 11px; color: var(--cobli-lavender); opacity: 0.8; }
-
-        .btn-ghost { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; transition: background 0.15s; white-space: nowrap; }
+        .btn-ghost { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; transition: background 0.15s; white-space: nowrap; }
         .btn-ghost:hover { background: rgba(255,255,255,0.22); }
         .btn-logout { background: rgba(255,70,51,0.2); border-color: rgba(255,70,51,0.4); }
         .btn-logout:hover { background: rgba(255,70,51,0.6); }
         
         .scroll-panel { flex: 1; overflow-y: auto; padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 18px; background: var(--surface-page); }
         .scroll-panel::-webkit-scrollbar { width: 4px; }
+        .scroll-panel::-webkit-scrollbar-track { background: transparent; }
         .scroll-panel::-webkit-scrollbar-thumb { background: var(--cobli-lavender); border-radius: 2px; }
 
         .section-card { background: var(--surface-card); border: 1px solid var(--border-mid); border-left: 4px solid var(--cobli-indigo); border-radius: 10px; box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06); }
@@ -113,7 +88,11 @@
         .btn-row { display: flex; gap: 8px; }
         .btn-row .btn { flex: 1; }
 
-        /* LISTA E BUSCA NA BARRA LATERAL */
+        .range-group { display: flex; gap: 6px; margin-bottom: 10px; }
+        .btn-range { flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-mid); background: var(--surface-muted); color: var(--text-secondary); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+        .btn-range:hover { background: var(--cobli-lavender); color: var(--cobli-navy); }
+        .btn-range.active { background: var(--cobli-blue); color: #fff; border-color: var(--cobli-blue); }
+
         .search-row { display: flex; gap: 6px; margin-bottom: 10px; }
         .search-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; color: var(--text-primary); font-family: inherit; }
         .search-row input:focus { outline: none; border-color: var(--cobli-violet); box-shadow: 0 0 0 3px rgba(127,141,219,0.18); }
@@ -134,7 +113,6 @@
         .btn-edit:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
         .empty-state { padding: 20px; text-align: center; font-size: 12px; color: var(--text-muted); background: var(--surface-muted); border: 1px dashed var(--border-mid); border-radius: 7px; }
 
-        /* DROPDOWN E SUMMARY */
         .dropdown-check-list { position: relative; margin-bottom: 8px; }
         .dropdown-anchor { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; font-size: 12px; font-weight: 500; color: var(--text-primary); user-select: none; }
         .dropdown-anchor::after { content: "▾"; font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
@@ -157,124 +135,26 @@
         .summary-cell-val { font-size: 17px; font-weight: 700; display: block; line-height: 1.2; }
         .summary-cell-lbl { font-size: 9px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 3px; display: block; line-height: 1.3; word-break: break-word; }
 
-        #btn-summary {
-            background-color: var(--cobli-blue);
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: auto;
-            transition: background-color 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        #btn-summary:hover { background-color: var(--cobli-navy); }
+        #routing-result { margin-top: 10px; max-height: 320px; overflow-y: auto; }
+        #routing-result::-webkit-scrollbar { width: 3px; }
+        #routing-result::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+        .result-section-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid var(--border-light); padding-top: 10px; margin-bottom: 8px; }
+        .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
+        .result-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+        .result-card-dist { font-size: 11px; color: var(--cobli-indigo); font-weight: 600; margin-bottom: 8px; }
+        .btn-route { width: 100%; padding: 6px 10px; background: var(--cobli-indigo); color: #fff; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+        .btn-route:hover { background: var(--cobli-blue); }
 
-        /* =====================================================================
-           MAPA, LEGENDA E BARRA DE BUSCA FLUTUANTE
-           ===================================================================== */
         #map-container { flex: 1; position: relative; }
         #map { width: 100%; height: 100%; z-index: 1;}
-
-.floating-search {
-            position: absolute;
-            top: 10px; /* Colou mais no topo */
-            left: 50%;
-            transform: translateX(-50%);
-            background: #fff;
-            border-radius: 8px; /* Borda um pouco mais sutil */
-            box-shadow: 0 6px 20px rgba(7,7,78,0.20);
-            display: flex;
-            flex-direction: column;
-            padding: 0;
-            z-index: 5;
-            width: 700px;
-            max-width: 95%;
-            overflow: hidden;
-            border: 2px solid var(--cobli-indigo);
-        }
-        
-        .search-input-wrapper { 
-            display: flex; 
-            align-items: center; 
-            width: 100%; 
-            padding: 8px 14px; /* Diminuiu a altura da barra branca */
-            background: #fff; 
-        }
-        
-        .search-input-wrapper input { 
-            flex: 1; 
-            border: none; 
-            outline: none; 
-            font-size: 14px; /* Reduziu levemente a fonte */
-            font-weight: 500; 
-            color: var(--text-primary); 
-            font-family: inherit; 
-            background: transparent; 
-        }
-        
-        .search-input-wrapper input::placeholder { color: var(--text-muted); font-weight: 500; }
-        
-        .btn-clear-search { background: transparent; border: none; font-size: 18px; color: var(--text-muted); cursor: pointer; padding: 0 4px; display: none; }
-        .btn-clear-search:hover { color: var(--cobli-red); }
-        
-        .floating-range-group { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px; 
-            padding: 6px 12px; /* Diminuiu a altura da barra azul clara */
-            background: #F5F6FF; 
-            border-top: 1px solid var(--border-light); 
-            width: 100%; 
-        }
-        
-        .floating-range-group .btn-range { 
-            flex: 1; 
-            padding: 6px 6px; /* Botões mais achatados */
-            font-size: 11px; 
-            font-weight: 700; 
-            border: 1px solid var(--border-mid); 
-            background: #fff; 
-            color: var(--text-secondary); 
-            border-radius: 5px; 
-            cursor: pointer; 
-            transition: all 0.15s; 
-        }
-        
-        .floating-range-group .btn-range:hover { background: var(--cobli-lavender); color: var(--cobli-navy); border-color: var(--cobli-violet); }
-        .floating-range-group .btn-range.active { background: var(--cobli-indigo); color: #fff; box-shadow: 0 3px 8px rgba(50,72,198,0.35); border-color: var(--cobli-indigo); }
-
         .map-legend { position: absolute; bottom: 24px; right: 14px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; font-size: 11px; font-family: var(--font-sans); border: 1px solid var(--border-light); max-width: 250px; max-height: 300px; overflow-y: auto; }
         .map-legend::-webkit-scrollbar { width: 4px; }
         .map-legend::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
         .map-legend-title { font-weight: 700; color: var(--cobli-navy); margin-bottom: 8px; text-transform: uppercase; font-size: 10px;}
         #legend-content div { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;}
+        #legend-content div:last-child { margin-bottom: 0; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;}
 
-        /* LABEL DO DESTINO NO MAPA */
-        .map-dest-label {
-            background: var(--cobli-navy) !important;
-            color: #00FFB2 !important;
-            padding: 5px 10px;
-            border-radius: 6px;
-            border: 1.5px solid #00FFB2 !important;
-            margin-top: 45px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            white-space: nowrap;
-            font-weight: 700;
-        }
-
-        /* BOTÃO DE ROTA COMPACTO NO INFOWINDOW */
-        .btn-route { padding: 6px 12px; background: var(--cobli-teal); color: #fff; border: none; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; }
-        .btn-route:hover { background: #007C6B; }
-
-        /* =====================================================================
-           MODAIS E INFOWINDOW
-           ===================================================================== */
         .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(7,7,78,0.55); backdrop-filter: blur(3px); z-index: 200; justify-content: center; align-items: center; }
         .modal-backdrop.open { display: flex; }
         .modal-backdrop[style*="flex"] { display: flex !important; }
@@ -288,11 +168,37 @@
         .modal-body { padding: 20px; }
 
         .gm-style-iw { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
-        .gm-style-iw-d { overflow: hidden !important; }
+        .gm-style-iw-d { overflow: hidden !important; padding: 0 !important; }
         .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
-        .gm-ui-hover-effect { top: 6px !important; right: 6px !important; opacity: 0.7 !important; background: rgba(255,255,255,0.8)!important; border-radius: 50%;}
-        .iw-card { width: 300px; font-family: 'Inter','Segoe UI',sans-serif; }
-        .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+        .gm-style-iw-t::after { display: none !important; }
+        /* Hide default close button - we rely on Google's own X */
+        .gm-ui-hover-effect {
+            top: 4px !important;
+            right: 4px !important;
+            width: 24px !important;
+            height: 24px !important;
+            opacity: 0.8 !important;
+            background: rgba(255,255,255,0.9) !important;
+            border-radius: 50% !important;
+            overflow: hidden !important;
+        }
+        /* Remove the extra top padding Google adds above content */
+        .gm-style-iw-chr {
+            position: absolute !important;
+            top: 0 !important;
+            right: 0 !important;
+            height: 0 !important;
+            overflow: visible !important;
+        }
+        .gm-style-iw-chr button {
+            margin: 4px !important;
+            background: rgba(255,255,255,0.85) !important;
+            border-radius: 50% !important;
+            width: 24px !important;
+            height: 24px !important;
+        }
+        .iw-card { width: 270px; font-family: 'Inter','Segoe UI',sans-serif; }
+        .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
         .iw-head.destination { background: linear-gradient(135deg, #B01010 0%, #FF4633 100%); flex-direction: row;}
         .iw-head-top { display: flex; gap: 10px; align-items: flex-start; }
         .iw-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; letter-spacing: 0.5px; }
@@ -301,7 +207,6 @@
         .iw-status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: var(--cobli-navy); background: #fff; border-radius: 4px; padding: 4px 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 0.3px; }
         .iw-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
         .iw-body { padding: 16px; background: #fff; }
-        .iw-divider { height: 1px; background: #E2E5F0; margin: 10px 0; }
         .iw-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 12px; }
         .iw-row:last-of-type { margin-bottom: 0; }
         .iw-icon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; opacity: 0.45; }
@@ -312,7 +217,6 @@
         .iw-whatsapp-link { color: #00AE97; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;}
         .iw-whatsapp-link:hover { color: #007C6B; text-decoration: underline;}
 
-        /* MODAIS EXTRAS */
         .summary-modal-total { display: flex; align-items: center; justify-content: space-between; background: var(--cobli-navy); color: #fff; padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; }
         .summary-modal-total span:first-child { font-size: 13px; opacity: 0.8; }
         .summary-modal-total span:last-child { font-size: 26px; font-weight: 700; }
@@ -336,48 +240,261 @@
         #loading-indicator { display: none; text-align: center; color: var(--cobli-blue); font-size: 13px; font-weight: 600; padding: 12px; background: #fff; border-radius: 6px; border: 1px solid var(--border-mid); margin-top: 10px; }
 
         /* =====================================================================
-           GESTAO DE ACESSOS 
+           BLOCO 7 — GESTÃO DE ACESSOS (REDESIGNED)
            ===================================================================== */
-        .user-access-card { background: #fff; border: 1.5px solid var(--border-mid); border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(7,7,78,0.07); transition: box-shadow 0.15s; }
+        .user-access-card {
+            background: #fff;
+            border: 1.5px solid var(--border-mid);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(7,7,78,0.07);
+            transition: box-shadow 0.15s;
+        }
         .user-access-card:last-child { margin-bottom: 0; }
         .user-access-card:hover { box-shadow: 0 4px 16px rgba(7,7,78,0.12); }
-        .uac-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: var(--cobli-navy); cursor: pointer; user-select: none; gap: 10px; }
+
+        .uac-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 14px;
+            background: var(--cobli-navy);
+            cursor: pointer;
+            user-select: none;
+            gap: 10px;
+        }
         .uac-header:hover { background: #0d0d6e; }
-        .uac-email { font-size: 12px; font-weight: 600; color: #fff; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .uac-perfil-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.4px; flex-shrink: 0; }
+
+        .uac-email {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .uac-perfil-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            flex-shrink: 0;
+        }
         .uac-perfil-badge.admin { background: var(--cobli-red); color: #fff; }
         .uac-perfil-badge.comum { background: rgba(255,255,255,0.18); color: #fff; }
-        .uac-chevron { color: rgba(255,255,255,0.6); font-size: 14px; flex-shrink: 0; transition: transform 0.2s; }
-        .uac-body { display: none; padding: 14px; border-top: 2px solid var(--cobli-indigo); background: var(--surface-muted); }
+
+        .uac-chevron {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .uac-body {
+            display: none;
+            padding: 14px;
+            border-top: 2px solid var(--cobli-indigo);
+            background: var(--surface-muted);
+        }
         .uac-body.open { display: block; }
+
         .uac-section { margin-bottom: 14px; }
         .uac-section:last-of-type { margin-bottom: 0; }
-        .uac-section-title { font-size: 10px; font-weight: 700; color: var(--cobli-indigo); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-        .uac-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border-mid); }
+
+        .uac-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--cobli-indigo);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .uac-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-mid);
+        }
+
         .uac-perfil-select { display: flex; gap: 6px; }
-        .uac-perfil-btn { flex: 1; padding: 7px 8px; border: 1.5px solid var(--border-mid); border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: var(--text-secondary); text-align: center; transition: all 0.15s; font-family: inherit; }
+        .uac-perfil-btn {
+            flex: 1;
+            padding: 7px 8px;
+            border: 1.5px solid var(--border-mid);
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #fff;
+            color: var(--text-secondary);
+            text-align: center;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
         .uac-perfil-btn.active-comum { background: var(--cobli-violet); border-color: var(--cobli-violet); color: #fff; }
         .uac-perfil-btn.active-admin { background: var(--cobli-red); border-color: var(--cobli-red); color: #fff; }
         .uac-perfil-btn:not(.active-comum):not(.active-admin):hover { border-color: var(--cobli-violet); background: var(--cobli-lavender); }
-        .uac-blocos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .uac-bloco-item { display: flex; align-items: flex-start; gap: 7px; padding: 8px 9px; background: #fff; border: 1.5px solid var(--border-light); border-radius: 7px; cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+
+        .uac-blocos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .uac-bloco-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            padding: 8px 9px;
+            background: #fff;
+            border: 1.5px solid var(--border-light);
+            border-radius: 7px;
+            cursor: pointer;
+            transition: border-color 0.12s, background 0.12s;
+        }
         .uac-bloco-item:hover { border-color: var(--cobli-violet); background: #F5F6FF; }
         .uac-bloco-item.checked { border-color: var(--cobli-indigo); background: #EEF0FF; }
-        .uac-bloco-cb { margin-top: 2px; flex-shrink: 0; accent-color: var(--cobli-blue); cursor: pointer; transform: scale(1.1); }
+
+        .uac-bloco-cb {
+            margin-top: 2px;
+            flex-shrink: 0;
+            accent-color: var(--cobli-blue);
+            cursor: pointer;
+            transform: scale(1.1);
+        }
+
         .uac-bloco-info { min-width: 0; }
         .uac-bloco-num { font-size: 9px; font-weight: 700; color: var(--cobli-indigo); text-transform: uppercase; letter-spacing: 0.3px; }
         .uac-bloco-name { font-size: 11px; font-weight: 600; color: var(--text-primary); line-height: 1.3; margin-top: 1px; }
-        .uac-bloco1-perms { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-mid); display: flex; flex-direction: column; gap: 5px; }
-        .uac-sub-perm { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-secondary); font-weight: 600; cursor: pointer; }
-        .uac-sub-perm input[type="checkbox"] { accent-color: var(--cobli-teal); cursor: pointer; transform: scale(1.1); }
+
+        .uac-bloco1-perms {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border-mid);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .uac-sub-perm {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .uac-sub-perm input[type="checkbox"] {
+            accent-color: var(--cobli-teal);
+            cursor: pointer;
+            transform: scale(1.1);
+        }
+
         .uac-status-grid { display: flex; flex-wrap: wrap; gap: 5px; }
-        .uac-status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border: 1.5px solid var(--border-mid); border-radius: 20px; font-size: 10px; font-weight: 600; cursor: pointer; background: #fff; transition: all 0.12s; user-select: none; }
+
+        .uac-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 1.5px solid var(--border-mid);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #fff;
+            transition: all 0.12s;
+            user-select: none;
+        }
         .uac-status-pill input[type="checkbox"] { display: none; }
         .uac-status-pill.pill-checked { color: #fff; }
-        .uac-save-btn { width: 100%; margin-top: 12px; padding: 10px; background: var(--cobli-blue); color: #fff; border: none; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s, transform 0.1s; letter-spacing: 0.2px; }
+
+        .pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+        .uac-save-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 10px;
+            background: var(--cobli-blue);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, transform 0.1s;
+            letter-spacing: 0.2px;
+        }
         .uac-save-btn:hover { background: var(--cobli-navy); }
         .uac-save-btn:active { transform: scale(0.98); }
+
         .users-empty { text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 12px; font-weight: 500; }
+
+        /* Label do marcador destino */
+        .dest-marker-label {
+            background: #07074E !important;
+            padding: 3px 8px !important;
+            border-radius: 4px !important;
+            margin-top: 4px !important;
+            white-space: nowrap !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+        }
+
+        /* RANGE PILLS (sobre mapa) */
+        .rpill {
+            flex: 1;
+            padding: 6px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            border: none;
+            background: #fff;
+            color: var(--cobli-navy);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .rpill:hover { background: var(--cobli-lavender); }
+        .rpill.active { background: var(--cobli-blue); color: #fff; box-shadow: 0 2px 8px rgba(0,27,184,0.35); }
+
+        /* AUTOCOMPLETE DROPDOWN */
+        .ac-item {
+            padding: 9px 12px;
+            font-size: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ac-item:last-child { border-bottom: none; }
+        .ac-item:hover { background: var(--cobli-lavender); }
+        .ac-item-icon { font-size: 14px; flex-shrink: 0; }
+        .ac-item-text { flex: 1; }
+        .ac-item-main { font-weight: 600; color: var(--text-primary); }
+        .ac-item-sub { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+        /* ROUTING RESULT (floating over map) */
+        #routing-result { max-height: 220px; overflow-y: auto; }
+        #routing-result::-webkit-scrollbar { width: 3px; }
+        #routing-result::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 2px; }
+        .result-section-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 10px 4px; background:#fff; border-radius:8px 8px 0 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .result-card { background: #fff; border-radius: 8px; padding: 8px 12px; margin-bottom: 4px; cursor: pointer; transition: background 0.12s; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+        .result-card:hover { background: #F5F6FF; }
+        .result-card-name { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+        .result-card-dist { font-size: 10px; color: var(--cobli-indigo); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -400,13 +517,13 @@
             <p>Gestão de rotas, distâncias e status</p>
         </div>
         <div style="display: flex; gap: 6px;">
+            <button class="btn-ghost" id="btn-summary">Ver resumo</button>
             <button class="btn-ghost btn-logout" onclick="logout()" title="Sair do sistema">Sair</button>
         </div>
     </div>
 
     <div class="scroll-panel">
 
-        <!-- SECTION 1: Lista -->
         <div id="bloco-1" class="section-card">
             <div class="section-header">
                 <div class="section-header-left">
@@ -426,11 +543,14 @@
             </div>
         </div>
 
-        <!-- SECTION 3: Filtros dinâmicos (Visualmente Passo 2) -->
+
+
+
+
         <div id="bloco-3" class="section-card">
             <div class="section-header">
                 <div class="section-header-left">
-                    <span class="section-number">2</span>
+                    <span class="section-number">3</span>
                     <span class="section-title">Filtros dinâmicos</span>
                 </div>
             </div>
@@ -465,11 +585,10 @@
             </div>
         </div>
 
-        <!-- SECTION 4: Gerenciar Acessos (Visualmente Passo 3) -->
         <div id="bloco-4" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
-                    <span class="section-number">3</span>
+                    <span class="section-number">4</span>
                     <span class="section-title">Gerenciar Acessos</span>
                 </div>
                 <button class="btn-ghost" style="font-size: 11px;" onclick="loadUsersTable()">↻ Atualizar</button>
@@ -490,11 +609,10 @@
             </div>
         </div>
 
-        <!-- SECTION 5: Transferência UF (Visualmente Passo 4) -->
         <div id="bloco-5" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
-                    <span class="section-number">4</span>
+                    <span class="section-number">5</span>
                     <span class="section-title">Transferência por Estado (UF)</span>
                 </div>
             </div>
@@ -527,11 +645,10 @@
             </div>
         </div>
 
-        <!-- SECTION 6: Subst Consultor (Visualmente Passo 5) -->
         <div id="bloco-6" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
-                    <span class="section-number">5</span>
+                    <span class="section-number">6</span>
                     <span class="section-title">Substituição de Consultor (Geral)</span>
                 </div>
             </div>
@@ -553,11 +670,10 @@
             </div>
         </div>
 
-        <!-- SECTION 7: Importar (Visualmente Passo 6) -->
         <div id="bloco-7" class="section-card admin-only">
             <div class="section-header">
                 <div class="section-header-left">
-                    <span class="section-number">6</span>
+                    <span class="section-number">7</span>
                     <span class="section-title">Importar Base (Avançado)</span>
                 </div>
             </div>
@@ -576,29 +692,59 @@
             </div>
         </div>
 
-        <button id="btn-summary">Ver resumo da rede</button>
+    
+
     </div>
 </div>
 
 <div id="map-container">
-    
-    <!-- BARRA DE PESQUISA INTELIGENTE (FLUTUANTE) -->
-    <div id="floating-search-bar" class="floating-search">
-        <div class="search-input-wrapper">
-            <span style="font-size:20px; margin-right:10px; opacity:0.9;">📍</span>
-            <input type="text" id="client-address" placeholder="Buscar endereço (Ex: Av. Paulista, 1000)...">
-            <button class="btn-clear-search" onclick="clearRoutingAndSearch()" title="Limpar Busca">✕</button>
-        </div>
-        <div class="floating-range-group">
-            <button class="btn-range active" data-val="50" onclick="setRange(50, this)">50 km</button>
-            <button class="btn-range" data-val="100" onclick="setRange(100, this)">100 km</button>
-            <button class="btn-range" data-val="200" onclick="setRange(200, this)">200 km</button>
-            <button class="btn-range" data-val="300" onclick="setRange(300, this)">300 km</button>
-            <button class="btn-range" data-val="999999" onclick="setRange(999999, this)">Todos</button>
-        </div>
-    </div>
-
     <div id="map"></div>
+
+    <!-- BARRA DE PESQUISA FLUTUANTE SOBRE O MAPA (estilo Google Maps) -->
+    <div id="map-search-bar" style="
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 32px);
+        max-width: 680px;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+    ">
+        <!-- Linha 1: campo + botão limpar -->
+        <div style="display:flex;gap:8px;pointer-events:all;">
+            <div style="position:relative;flex:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.22));">
+                <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;z-index:1;">📍</span>
+                <input type="text" id="client-address"
+                    placeholder="Pesquisar endereço, cidade ou CEP..."
+                    autocomplete="off"
+                    oninput="onAddressInput()"
+                    onkeydown="onAddressKeydown(event)"
+                    style="width:100%;padding:11px 14px 11px 38px;border:none;border-radius:10px;font-size:13px;font-family:inherit;color:#07074E;background:#fff;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.18);">
+                <div id="autocomplete-dropdown"
+                    style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.22);z-index:9999;overflow:hidden;max-height:260px;overflow-y:auto;"></div>
+            </div>
+            <button onclick="clearRoutingAndSearch()" title="Limpar busca"
+                style="background:#fff;border:none;border-radius:10px;width:42px;height:42px;cursor:pointer;font-size:16px;font-weight:700;color:#FF4633;box-shadow:0 2px 8px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;pointer-events:all;"
+                onmouseover="this.style.background='#FF4633';this.style.color='#fff'"
+                onmouseout="this.style.background='#fff';this.style.color='#FF4633'">✕</button>
+        </div>
+
+        <!-- Linha 2: pills de raio -->
+        <div style="display:flex;gap:6px;pointer-events:all;">
+            <button class="rpill active" data-val="50"     onclick="setRange(50,this)">≤ 50 km</button>
+            <button class="rpill"        data-val="100"    onclick="setRange(100,this)">≤ 100 km</button>
+            <button class="rpill"        data-val="200"    onclick="setRange(200,this)">≤ 200 km</button>
+            <button class="rpill"        data-val="300"    onclick="setRange(300,this)">≤ 300 km</button>
+            <button class="rpill"        data-val="999999" onclick="setRange(999999,this)">Todos</button>
+        </div>
+
+        <!-- Linha 3: resultado compacto -->
+        <div id="routing-result" style="pointer-events:all;"></div>
+    </div>
     <div class="map-legend" id="map-legend-box" style="display:none;">
         <div class="map-legend-title">Cores por Consultor</div>
         <div id="legend-content"></div>
@@ -718,6 +864,7 @@
 
     const BLOCK_LABELS = {
         1: { icon: '📋', name: 'Lista de Prestadores' },
+        2: { icon: '🗺️', name: 'Buscar Técnicos Próximos' },
         3: { icon: '🔍', name: 'Filtros Dinâmicos' },
         4: { icon: '🔐', name: 'Gerenciar Acessos' },
         5: { icon: '🔄', name: 'Transferência por UF' },
@@ -727,6 +874,7 @@
 
     const ALL_STATUSES = ['Ativo', 'Inativo', 'Suspenso', 'Em credenciamento', 'Credenciado fase final', 'Descredenciado', 'Free Lance'];
 
+    // Users pagination state
     let allUsersData = [];
     let usersDisplayCount = 5;
 
@@ -736,8 +884,10 @@
         container.innerHTML = '<div class="users-empty">⏳ Carregando usuários...</div>';
         usersDisplayCount = 5;
 
+        // Order by created_at desc (most recent first), fallback to email
         const { data, error } = await _supabase.from('usuarios').select('*').order('created_at', { ascending: false, nullsFirst: false });
         if (error) {
+            // Fallback: try without created_at ordering
             const { data: data2, error: error2 } = await _supabase.from('usuarios').select('*').order('email');
             if (error2) {
                 container.innerHTML = `<div class="users-empty" style="color:var(--cobli-red);">Erro: ${error2.message}</div>`;
@@ -797,13 +947,14 @@
     }
 
     function buildUserCard(u) {
-        const blocosArr = (u.blocos || '1,3').split(',').map(b => b.trim());
+        const blocosArr = (u.blocos || '1,2,3').split(',').map(b => b.trim());
         const statusArr = (u.status_permitidos || 'Ativo').split(',').map(s => s.trim());
         const isAdmin = u.perfil === 'admin';
         const podeEditar = u.pode_editar === true;
         const podeAdd = u.pode_adicionar === true;
         const emailId = u.email.replace(/[@.]/g, '_');
 
+        // Build blocos grid
         const blocosHTML = Object.entries(BLOCK_LABELS).map(([num, info]) => {
             const checked = blocosArr.includes(String(num));
             let extraPerms = '';
@@ -824,13 +975,14 @@
             <div class="uac-bloco-item${checked ? ' checked' : ''}" onclick="toggleBlocoItem(this)">
                 <input type="checkbox" class="uac-bloco-cb" data-bloco="${num}" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); this.closest('.uac-bloco-item').classList.toggle('checked', this.checked)">
                 <div class="uac-bloco-info">
-                    <div class="uac-bloco-num">Bloco ${num === '3' ? '2' : (num === '4' ? '3' : (num === '5' ? '4' : (num === '6' ? '5' : (num === '7' ? '6' : num))))}</div>
+                    <div class="uac-bloco-num">Bloco ${num}</div>
                     <div class="uac-bloco-name">${info.icon} ${info.name}</div>
                     ${extraPerms}
                 </div>
             </div>`;
         }).join('');
 
+        // Build status pills
         const statusHTML = ALL_STATUSES.map(s => {
             const checked = statusArr.includes(s);
             const col = getStatusColor(s);
@@ -904,6 +1056,7 @@
         if (error) {
             alert('Erro ao remover usuário: ' + error.message);
         } else {
+            // Remove from local array and re-render
             allUsersData = allUsersData.filter(u => u.email !== email);
             renderUsersCards();
         }
@@ -918,6 +1071,7 @@
     }
 
     function toggleBlocoItem(el) {
+        // Only toggle if clicking directly on the div, not on sub-perms
         const cb = el.querySelector('.uac-bloco-cb');
         if (!cb) return;
         const newVal = !cb.checked;
@@ -974,8 +1128,8 @@
 
         let blocos = [];
         card.querySelectorAll('.uac-bloco-cb:checked').forEach(cb => blocos.push(cb.dataset.bloco));
-        if (isAdmin) blocos = ['1','3','4','5','6','7'];
-        const blocosStr = blocos.join(',') || '1,3';
+        if (isAdmin) blocos = ['1','2','3','4','5','6','7'];
+        const blocosStr = blocos.join(',') || '1,2,3';
 
         const cbEditar = document.getElementById(`cb-editar-${emailId}`);
         const cbAdd = document.getElementById(`cb-add-${emailId}`);
@@ -1018,7 +1172,13 @@
     /* =====================================================================
        INICIALIZAÇÃO E LOGIN
        ===================================================================== */
-    function initMap() {
+    // Formata nome: primeira letra de cada palavra maiúscula, resto minúsculo
+    function formatNome(nome) {
+        if (!nome) return nome;
+        return String(nome).toLowerCase().replace(/(?:^|\s|-)\S/g, function(c) { return c.toUpperCase(); });
+    }
+
+        function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: -15.793889, lng: -47.882778 }, zoom: 4,
             mapTypeControl: true, streetViewControl: false
@@ -1027,31 +1187,20 @@
         directionsRenderer = new google.maps.DirectionsRenderer({ preserveViewport: true, suppressMarkers: true });
         directionsRenderer.setMap(map);
         geocoder = new google.maps.Geocoder();
-        infoWindowGlobal = new google.maps.InfoWindow();
-        clientInfoWindow = new google.maps.InfoWindow();
+        infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false });
+        clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
 
-        // Autocomplete setup na barra flutuante
-        const inputAddress = document.getElementById('client-address');
-        if (inputAddress) {
-            const autocomplete = new google.maps.places.Autocomplete(inputAddress, {
-                componentRestrictions: { country: "br" }
-            });
-            autocomplete.addListener('place_changed', () => {
-                findClosestProviders();
-            });
-
-            inputAddress.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    findClosestProviders();
-                }
-            });
-
-            inputAddress.addEventListener('input', function() {
-                const btnClear = document.querySelector('.btn-clear-search');
-                if (btnClear) btnClear.style.display = this.value.trim() ? 'block' : 'none';
-            });
-        }
+        // Remove Google InfoWindow top chrome (white bar with X) after each open
+        google.maps.event.addListener(infoWindowGlobal, 'domready', function() {
+            // Hide the chrome row that creates the white space
+            var chr = document.querySelector('.gm-style-iw-chr');
+            if (chr) chr.style.cssText = 'position:absolute;top:0;right:0;height:0;overflow:visible;';
+            var btn = document.querySelector('.gm-style-iw-chr button');
+            if (btn) btn.style.cssText = 'position:relative;z-index:10;margin:6px 6px 0 0;background:rgba(255,255,255,0.85);border-radius:50%;width:24px;height:24px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+            // Also zero out the default padding on the content wrapper
+            var d = document.querySelector('.gm-style-iw-d');
+            if (d) d.style.cssText = 'overflow:hidden!important;padding:0!important;';
+        });
 
         const fileInput = document.getElementById('file-upload');
         if (fileInput) {
@@ -1063,6 +1212,7 @@
             });
         }
 
+        initAutocomplete();
         const savedConfig = localStorage.getItem('userConfig');
         if (savedConfig) {
             currentUser = JSON.parse(savedConfig);
@@ -1081,11 +1231,11 @@
         if (!userDb) {
             const newUser = {
                 email: emailInput, perfil: 'comum', pode_editar: false, pode_adicionar: false,
-                blocos: '1,3', status_permitidos: 'Ativo'
+                blocos: '1,2,3', status_permitidos: 'Ativo'
             };
             if (emailInput.includes('luiz.lackeski') || emailInput.includes('admin@cobli') || emailInput.includes('gerente@cobli')) {
                 newUser.perfil = 'admin'; newUser.pode_editar = true; newUser.pode_adicionar = true;
-                newUser.blocos = '1,3,4,5,6,7';
+                newUser.blocos = '1,2,3,4,5,6,7';
                 newUser.status_permitidos = 'Ativo,Inativo,Suspenso,Em credenciamento,Credenciado fase final,Descredenciado,Free Lance';
             }
             const { error: insertError } = await _supabase.from('usuarios').insert([newUser]);
@@ -1116,12 +1266,14 @@
 
         if (currentUser.perfil === 'comum') {
             document.body.classList.add('is-common');
+            // Controla botão Novo no bloco 1
             const btnNovo = document.querySelector('#bloco-1 .btn-secondary');
             if (btnNovo) btnNovo.style.display = currentUser.pode_adicionar ? 'inline-flex' : 'none';
         } else {
             document.body.classList.remove('is-common');
         }
 
+        // Exibe blocos conforme permissão
         for (let i = 1; i <= 7; i++) {
             const bloco = document.getElementById(`bloco-${i}`);
             if (bloco) {
@@ -1203,27 +1355,20 @@
     }
 
     function selectAll(id) { document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => cb.checked = true); applyFilters(); }
-    
-    function clearAll(id) { 
-        document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => cb.checked = false); 
-        applyFilters(); 
-    }
-    
-    function clearSearchName() { 
-        const s = document.getElementById('search-provider'); 
-        if (s) s.value = ''; 
-        applyFilters(); 
-    }
+    function clearAll(id) { document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => cb.checked = false); applyFilters(); }
+    function clearSearchName() { const s = document.getElementById('search-provider'); if (s) s.value = ''; applyFilters(); }
 
     function setRange(val, btn) {
         currentSearchRange = val;
-        document.querySelectorAll('.btn-range').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.rpill').forEach(b => b.classList.remove('active'));
         if (btn) btn.classList.add('active');
-        applyFilters();
+        const addressInput = document.getElementById('client-address');
+        if (addressInput && addressInput.value.trim()) findClosestProviders();
     }
 
     document.addEventListener('click', e => {
         if (!e.target.closest('.dropdown-check-list')) document.querySelectorAll('.dropdown-items').forEach(i => i.classList.remove('visible'));
+        if (!e.target.closest('#map-search-bar')) closeAutocomplete();
     });
 
     function normalizeStr(str) {
@@ -1318,33 +1463,17 @@
         const searchText = (document.getElementById('search-provider')?.value || '').normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
 
         let filteredList = [];
-        let clientLoc = clientMarker ? clientMarker.getPosition() : null;
-
         markers.forEach(m => {
             let p = providersData.find(x => x.id === m.customId);
             if (!p) return;
-            
             let matchName = p.nome.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().includes(searchText);
             let showStatus = allowedStatuses.includes(p.status);
             let pConsNorm = p.consultorNorm || "SEM CONSULTOR";
             let showConsultor = selConsultors.includes(pConsNorm);
             let showPiloto = showOnlyPiloto ? p.piloto === true : true;
-            
-            let showDistance = true;
-            if (clientLoc && currentSearchRange < 999999) {
-                let pLoc = new google.maps.LatLng(p.lat, p.lng);
-                let dist = google.maps.geometry.spherical.computeDistanceBetween(clientLoc, pLoc);
-                if (dist > currentSearchRange * 1000) {
-                    showDistance = false;
-                }
-            }
-
-            let show = matchName && showStatus && showConsultor && showPiloto && showDistance;
-            
+            let show = matchName && showStatus && showConsultor && showPiloto;
             m.setMap(show ? map : null);
-            if (show) {
-                filteredList.push(p);
-            }
+            if (show) filteredList.push(p);
         });
 
         updateDashboardSummary(filteredList);
@@ -1369,12 +1498,7 @@
         const list = document.getElementById('providers-list');
         if (!list) return;
         list.innerHTML = "";
-        
-        if (!filtered || !filtered.length) { 
-            list.innerHTML = '<li style="list-style:none;"><div class="empty-state">Nenhum prestador encontrado</div></li>'; 
-            return; 
-        }
-        
+        if (!filtered.length) { list.innerHTML = '<li style="list-style:none;"><div class="empty-state">Nenhum prestador encontrado</div></li>'; return; }
         filtered.forEach(p => {
             let colStatus = getStatusColor(p.status);
             let colConsultant = getConsultantColor(p.consultorNorm);
@@ -1383,9 +1507,10 @@
             let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar)
                 ? `<button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>` : '';
             let pilotoBadge = p.piloto ? `<span class="badge-piloto">⭐ PILOTO</span>` : '';
+            const nomeFormatado = formatNome(p.nome);
             li.innerHTML = `
                 <span class="provider-dot" style="background:${colConsultant};" title="Consultor: ${p.consultor||'Nenhum'}"></span>
-                <span class="provider-name" onclick="centerMapOnProvider(${p.id})" title="${p.nome}">${p.nome} ${pilotoBadge}</span>
+                <span class="provider-name" onclick="centerMapOnProvider(${p.id})" title="${nomeFormatado}">${nomeFormatado} ${pilotoBadge}</span>
                 <span class="provider-status-badge" style="background:${colStatus}22;color:${colStatus};">${p.status}</span>
                 ${btnEditHtml}`;
             list.appendChild(li);
@@ -1415,6 +1540,7 @@
     }
 
     function makeMarkerSvg(color, isPiloto) {
+        // Beautiful custom pin: rounded body, white inner circle, shadow, gold ring for piloto
         const ring = isPiloto
             ? `<circle cx="20" cy="20" r="19" fill="none" stroke="#FFD700" stroke-width="3.5" opacity="0.95"/>`
             : `<circle cx="20" cy="20" r="19" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>`;
@@ -1433,11 +1559,14 @@
                     <stop offset="100%" stop-color="${color}"/>
                 </radialGradient>
             </defs>
+            <!-- Pin body with shadow -->
             <g filter="url(#shadow)">
                 <path d="M20 2 C10.06 2 2 10.06 2 20 C2 32 20 50 20 50 C20 50 38 32 38 20 C38 10.06 29.94 2 20 2 Z"
                       fill="url(#grad-${color.replace('#','')})" />
                 ${ring}
+                <!-- White inner circle -->
                 <circle cx="20" cy="20" r="8" fill="rgba(255,255,255,0.92)"/>
+                <!-- Colored dot inside -->
                 <circle cx="20" cy="20" r="5" fill="${color}"/>
                 ${star}
             </g>
@@ -1446,6 +1575,7 @@
     }
 
     function lightenColor(hex, amount) {
+        // Lighten a hex color by amount (0-255)
         const num = parseInt(hex.replace('#',''), 16);
         const r = Math.min(255, (num >> 16) + amount);
         const g = Math.min(255, ((num >> 8) & 0xff) + amount);
@@ -1482,39 +1612,30 @@
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    function openProviderInfoWindow(pId, markerRef = null) {
+    function openProviderInfoWindow(pId, markerRef = null, extraRouteHtml = '') {
         let p = providersData.find(x => x.id === pId);
         if (!p) return;
         if (!markerRef) markerRef = markers.find(m => m.customId === pId);
         let statusColor = getStatusColor(p.status);
-        const initials = getInitials(p.nome);
+        const nomeDisplay = formatNome(p.nome);
+        const initials = getInitials(nomeDisplay);
         const pilotoBadge = p.piloto ? `<span class="badge-piloto" style="margin-left:5px;">⭐ PILOTO</span>` : '';
         const iconPerson = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>`;
         const iconPhone = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M3 2h3l1.5 3.5-1.75 1.25a8 8 0 004.5 4.5L11.5 9.5 15 11v3a1 1 0 01-1 1C5.16 15 1 10.84 1 3a1 1 0 011-1z"/></svg>`;
         const iconMail = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 4l7 5 7-5"/></svg>`;
         const iconLocation = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.375 4.5 8.5 4.5 8.5S12.5 9.375 12.5 6c0-2.485-2.015-4.5-4.5-4.5z"/><circle cx="8" cy="6" r="1.5"/></svg>`;
-        
         const wappUrl = getWhatsappLink(p.contato);
         let phoneHtml = `<div class="iw-field-val">${p.contato}</div>`;
         if (wappUrl) phoneHtml = `<a href="${wappUrl}" target="_blank" class="iw-whatsapp-link">${p.contato} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>`;
-        
-        let routeBtnHtml = '';
-        if (clientMarker) {
-            const destAddr = document.getElementById('client-address').value;
-            const sa = destAddr.replace(/'/g,"\\'").replace(/"/g,"&quot;");
-            routeBtnHtml = `<button class="btn-route" style="margin-left:auto;" onclick="traceRealRoute(${p.id}, ${p.lat}, ${p.lng}, '${sa}')">🚗 Calcular Rota</button>`;
-        }
-
         const content = `
             <div class="iw-card">
                 <div class="iw-head">
                     <div class="iw-head-top">
                         <div class="iw-avatar">${initials}</div>
-                        <div class="iw-head-text"><h4 title="${p.nome}">${p.nome}</h4>${pilotoBadge}</div>
+                        <div class="iw-head-text"><h4 title="${nomeDisplay}">${nomeDisplay}</h4>${pilotoBadge}</div>
                     </div>
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px;">
-                        <span class="iw-status-pill"><span class="iw-status-dot" style="background:${statusColor};"></span>${p.status}</span>
-                        ${routeBtnHtml}
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span class="iw-status-pill"><span class="iw-status-dot" style="background:${statusColor};"></span>${p.status}</span>ROUTE_BTN_HERE
                     </div>
                 </div>
                 <div class="iw-body">
@@ -1524,7 +1645,20 @@
                     <div class="iw-row">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div></div></div>
                 </div>
             </div>`;
-        infoWindowGlobal.setContent(content);
+        // Add route button if there's a destination address — compact inline in header
+        const hasAddr = document.getElementById('client-address')?.value.trim();
+        const routeBtn = hasAddr
+            ? `<button onclick="traceRealRoute(${p.id},${p.lat || 0},${p.lng || 0})"
+                style="display:inline-flex;align-items:center;gap:4px;background:var(--cobli-indigo);color:#fff;border:none;border-radius:5px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;"
+                onmouseover="this.style.background='#001BB8'" onmouseout="this.style.background='var(--cobli-indigo)'">
+                🚗 Calcular rota
+               </button>`
+            : '';
+        const fullContent = content.replace(
+            'ROUTE_BTN_HERE',
+            routeBtn
+        ) + (extraRouteHtml ? '<div style="padding:0 16px 12px;">' + extraRouteHtml + '</div>' : '');
+        infoWindowGlobal.setContent(fullContent);
         infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
     }
 
@@ -1536,59 +1670,231 @@
     /* =====================================================================
        ROTAS E BUSCA DE PRÓXIMOS
        ===================================================================== */
-    function findClosestProviders() {
-        const clientAddress = document.getElementById('client-address').value;
-        if (!clientAddress) { 
-            clearRoutingAndSearch(); 
-            return; 
-        }
+    // ── AUTOCOMPLETE ──────────────────────────────────────────
+    let acService = null, acSessionToken = null;
 
-        const btnClear = document.querySelector('.btn-clear-search');
-        if (btnClear) btnClear.style.display = 'block';
+    function initAutocomplete() {
+        if (!google.maps.places) return;
+        acService = new google.maps.places.AutocompleteService();
+        acSessionToken = new google.maps.places.AutocompleteSessionToken();
+    }
+
+    function onAddressInput() {
+        const val = document.getElementById('client-address').value.trim();
+        if (val.length < 3) { closeAutocomplete(); return; }
+        if (!acService) initAutocomplete();
+        if (!acService) return;
+        acService.getPlacePredictions(
+            { input: val, sessionToken: acSessionToken, componentRestrictions: { country: 'br' } },
+            (predictions, status) => {
+                if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) { closeAutocomplete(); return; }
+                showAutocomplete(predictions);
+            }
+        );
+    }
+
+    function showAutocomplete(predictions) {
+        const dd = document.getElementById('autocomplete-dropdown');
+        if (!dd) return;
+        dd.innerHTML = predictions.slice(0, 6).map(p =>
+            `<div class="ac-item" onmousedown="selectPlace('${p.place_id.replace(/'/g,"\'")}','${p.description.replace(/'/g,"\'").replace(/"/g,"&quot;")}')">
+                <span class="ac-item-icon">📍</span>
+                <div class="ac-item-text">
+                    <div class="ac-item-main">${p.structured_formatting?.main_text || p.description}</div>
+                    <div class="ac-item-sub">${p.structured_formatting?.secondary_text || ''}</div>
+                </div>
+            </div>`
+        ).join('');
+        dd.style.display = 'block';
+    }
+
+    function onAddressKeydown(e) {
+        if (e.key === 'Enter') { e.preventDefault(); closeAutocomplete(); findClosestProviders(); }
+        if (e.key === 'Escape') clearRoutingAndSearch();
+    }
+
+    function closeAutocomplete() {
+        const dd = document.getElementById('autocomplete-dropdown');
+        if (dd) dd.style.display = 'none';
+    }
+
+    function selectPlace(placeId, description) {
+        document.getElementById('client-address').value = description;
+        closeAutocomplete();
+        acSessionToken = new google.maps.places.AutocompleteSessionToken();
+        findClosestProviders();
+    }
+
+    function makeDestinationPin() {
+        // 📍 pin with pulsing red ring — very distinct from provider markers
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="60" height="72" viewBox="0 0 60 72">
+            <defs>
+                <filter id="dsf" x="-30%" y="-20%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(200,0,0,0.5)"/>
+                </filter>
+            </defs>
+            <!-- Outer pulsing ring -->
+            <circle cx="30" cy="28" r="26" fill="none" stroke="#FF4633" stroke-width="2.5" opacity="0.35"/>
+            <circle cx="30" cy="28" r="21" fill="none" stroke="#FF4633" stroke-width="2" opacity="0.55"/>
+            <!-- Pin body -->
+            <g filter="url(#dsf)">
+                <path d="M30 4 C18 4 8 14 8 26 C8 42 30 68 30 68 C30 68 52 42 52 26 C52 14 42 4 30 4 Z" fill="#FF4633"/>
+                <path d="M30 4 C18 4 8 14 8 26 C8 42 30 68 30 68 C30 68 52 42 52 26 C52 14 42 4 30 4 Z" fill="url(#dpg)" opacity="0.4"/>
+                <circle cx="30" cy="26" r="11" fill="#fff" opacity="0.95"/>
+                <text x="30" y="31" text-anchor="middle" font-size="14" font-family="Arial">📍</text>
+            </g>
+            <defs>
+                <linearGradient id="dpg" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#fff" stop-opacity="0.6"/>
+                    <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+        </svg>`;
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
+
+        // ── RESULT LIST (module-scope so toggle button can call it) ──────────
+    function renderResults() {
+        var resultDiv = document.getElementById('routing-result');
+        if (!resultDiv) return;
+        var inRange = window._lastInRange || [];
+        if (!inRange.length) return;
+
+        var exp = window._resultExpanded;
+        var topN = inRange.slice(0, 5);
+        var totalExtra = inRange.length - 5;
+
+        var cards = topN.map(function(item, i) {
+            var km = (item.distance / 1000).toFixed(1);
+            var col = getStatusColor(item.prestador.status);
+            var consultor = item.prestador.consultor ? '<div>👤 ' + item.prestador.consultor + '</div>' : '';
+            var contato   = item.prestador.contato   ? '<div>📞 ' + item.prestador.contato   + '</div>' : '';
+            var details   = exp
+                ? '<div style="margin-top:5px;padding-top:5px;border-top:1px solid #eee;font-size:10px;color:#4B4F7A;display:flex;flex-direction:column;gap:2px;">' + consultor + contato + '</div>'
+                : '';
+            var piloto = item.prestador.piloto ? ' ⭐' : '';
+            return '<div class="result-card" onclick="centerMapOnProvider(' + item.prestador.id + ')">'
+                + '<div style="display:flex;align-items:center;gap:5px;">'
+                +   '<span style="font-size:10px;font-weight:800;color:var(--cobli-indigo);flex-shrink:0;">#' + (i + 1) + '</span>'
+                +   '<span class="result-card-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + formatNome(item.prestador.nome) + piloto + '</span>'
+                +   '<span style="background:' + col + '22;color:' + col + ';font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;flex-shrink:0;">' + item.prestador.status + '</span>'
+                + '</div>'
+                + '<div class="result-card-dist">⬦ ' + km + ' km</div>'
+                + details
+                + '</div>';
+        }).join('');
+
+        var plural    = inRange.length !== 1 ? 'es' : '';
+        var toggleBtn = exp ? '▲ Recolher' : '▼ Ver detalhes';
+        var footer    = totalExtra > 0
+            ? '<div style="background:#fff;border-radius:0 0 8px 8px;padding:5px 12px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.08);"><span style="font-size:10px;color:var(--text-muted);font-weight:600;">+' + totalExtra + ' mais visíveis no mapa</span></div>'
+            : '';
+
+        resultDiv.innerHTML =
+            '<div style="background:#fff;border-radius:8px 8px 0 0;padding:7px 12px 6px;box-shadow:0 1px 4px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:space-between;">'
+            + '<span style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">' + inRange.length + ' prestador' + plural + ' no raio</span>'
+            + '<button onclick="window._resultExpanded=!window._resultExpanded;renderResults();" style="background:none;border:none;font-size:10px;font-weight:700;color:var(--cobli-indigo);cursor:pointer;padding:0;font-family:inherit;">' + toggleBtn + '</button>'
+            + '</div>'
+            + cards
+            + footer;
+    }
+
+        function findClosestProviders() {
+        const clientAddress = document.getElementById('client-address').value.trim();
+        const resultDiv = document.getElementById('routing-result');
+        if (!clientAddress) return;
+
+        resultDiv.innerHTML = '';
+        directionsRenderer.setDirections({ routes: [] });
 
         geocoder.geocode({ address: clientAddress }, (results, status) => {
-            if (status === 'OK') {
-                const loc = results[0].geometry.location;
-                if (clientMarker) clientMarker.setMap(null);
-                
-                const destSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><text x="20" y="32" font-size="30" text-anchor="middle">📍</text></svg>`;
-                
-                clientMarker = new google.maps.Marker({ 
-                    position: loc, 
-                    map, 
-                    title: "Destino solicitado", 
-                    icon: {
-                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(destSvg),
-                        scaledSize: new google.maps.Size(40, 40),
-                        anchor: new google.maps.Point(20, 32)
-                    },
-                    label: {
-                        text: "Destino para cálculo",
-                        color: "#FFFFFF",
-                        fontSize: "11px",
-                        fontWeight: "bold",
-                        className: "map-dest-label"
-                    },
-                    zIndex: 999 
-                });
-                
-                let formattedAddr = results[0].formatted_address;
-                clientMarker.addListener("click", () => { 
-                    clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination"><h4>Destino solicitado</h4></div><div class="iw-body"><div>${formattedAddr}</div></div></div>`); 
-                    clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); 
-                });
-                
-                map.setCenter(loc); map.setZoom(10);
-
-                applyFilters();
-
-            } else { 
-                alert("Endereço não localizado."); 
+            if (status !== 'OK') {
+                resultDiv.innerHTML = `<p style="color:rgba(255,150,100,0.9);font-size:11px;padding:6px 0;">Endereço não localizado.</p>`;
+                return;
             }
+
+            const loc = results[0].geometry.location;
+            const formattedAddr = results[0].formatted_address;
+
+            // Place distinctive destination marker (star/flag shape)
+            if (clientMarker) clientMarker.setMap(null);
+            clientMarker = new google.maps.Marker({
+                position: loc, map,
+                title: "Destino da rota",
+                icon: { url: makeDestinationPin(), scaledSize: new google.maps.Size(52, 68), anchor: new google.maps.Point(26, 66) },
+                label: {
+                    text: "Destino da rota",
+                    color: "#ffffff",
+                    fontSize: "11px",
+                    fontWeight: "800",
+                    fontFamily: "Inter, sans-serif",
+                    className: "dest-marker-label"
+                },
+                zIndex: 999
+            });
+            clientMarker.addListener("click", () => {
+                clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">⭐</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`);
+                clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false });
+            });
+
+            map.setCenter(loc);
+            map.setZoom(11);
+
+            let allowedStatuses = currentUser.perfil === 'admin'
+                ? getCheckedValues('status-items')
+                : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
+            const selConsultors = getCheckedValues('consultor-items');
+            const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
+
+            // Show ONLY markers within range
+            let inRange = [];
+            markers.forEach(m => {
+                const p = providersData.find(x => x.id === m.customId);
+                if (!p || !p.lat || !p.lng) { m.setMap(null); return; }
+                if (!allowedStatuses.includes(p.status)) { m.setMap(null); return; }
+                const pCN = p.consultorNorm || "SEM CONSULTOR";
+                if (!selConsultors.includes(pCN)) { m.setMap(null); return; }
+                if (showOnlyPiloto && !p.piloto) { m.setMap(null); return; }
+                const dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat, p.lng));
+                if (currentSearchRange === 999999 || dist <= currentSearchRange * 1000) {
+                    m.setMap(map);
+                    inRange.push({ prestador: p, distance: dist });
+                } else {
+                    m.setMap(null);
+                }
+            });
+
+            inRange.sort((a, b) => a.distance - b.distance);
+
+            if (!inRange.length) {
+                resultDiv.innerHTML = `
+                    <div style="background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.15);text-align:center;">
+                        <div style="font-size:22px;margin-bottom:6px;">🔍</div>
+                        <div style="font-size:12px;font-weight:700;color:var(--cobli-navy);margin-bottom:4px;">Nenhum prestador encontrado</div>
+                        <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;">Tente ampliar o raio de busca<br>ou ajustar os filtros ativos.</div>
+                        <div style="display:flex;gap:6px;margin-top:10px;justify-content:center;">
+                            <button onclick="setRange(200,document.querySelector('.rpill[data-val=\'200\']'))" style="padding:5px 12px;background:var(--cobli-blue);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Ampliar para 200 km</button>
+                            <button onclick="setRange(999999,document.querySelector('.rpill[data-val=\'999999\']'))" style="padding:5px 12px;background:var(--surface-muted);color:var(--cobli-navy);border:1px solid var(--border-mid);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Ver todos</button>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            // Store results globally so renderResults can access after geocoder callback ends
+            window._lastInRange = inRange;
+            window._resultExpanded = false;
+            renderResults();
+
         });
     }
 
-    function traceRealRoute(pId, pLat, pLng, clientAddress) {
+    function traceRealRoute(pId, pLat, pLng) {
+        const clientAddress = document.getElementById('client-address').value.trim();
+        if (!clientAddress) {
+            // No address — just open the infowindow
+            openProviderInfoWindow(pId);
+            return;
+        }
         const origin = new google.maps.LatLng(pLat, pLng);
         directionsService.route({ origin, destination: clientAddress, travelMode: google.maps.TravelMode.DRIVING }, (response, status) => {
             if (status === 'OK') {
@@ -1596,33 +1902,41 @@
                 const bounds = new google.maps.LatLngBounds();
                 bounds.extend(origin); bounds.extend(response.routes[0].legs[0].end_location);
                 map.fitBounds(bounds);
-                openProviderInfoWindow(pId);
-                if (clientMarker) {
-                    const dc = `<div class="iw-card"><div class="iw-head destination"><h4>Destino solicitado</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div><div class="iw-address-block"><strong>Endereço:</strong><br>${clientAddress}</div></div></div>`;
-                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 200);
+                // Update infowindow with route info
+                const p = providersData.find(x => x.id === pId);
+                const mk = markers.find(m => m.customId === pId);
+                if (p && mk) {
+                    const statusColor = getStatusColor(p.status);
+                    const extraRoute = `<div style="margin-top:10px;padding:8px;background:#F0F4FF;border-radius:6px;border-left:3px solid var(--cobli-indigo);">
+                        <div style="font-size:10px;font-weight:700;color:var(--cobli-indigo);text-transform:uppercase;margin-bottom:4px;">Rota calculada</div>
+                        <div style="font-size:12px;font-weight:600;">🚗 ${response.routes[0].legs[0].distance.text} &nbsp;·&nbsp; ⏱ ${response.routes[0].legs[0].duration.text}</div>
+                    </div>`;
+                    // Re-open infowindow with route info appended
+                    openProviderInfoWindow(pId, mk, extraRoute);
                 }
-            } else { alert('Erro ao traçar rota real. Pode não haver caminho terrestre válido.'); }
+                if (clientMarker) {
+                    const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">⭐</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div></div></div>`;
+                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 300);
+                }
+            } else { alert('Erro ao traçar rota. Verifique o endereço de destino.'); }
         });
     }
 
     function clearRoutingAndSearch() {
+        window._lastInRange = [];
+        window._resultExpanded = false;
         const addrInput = document.getElementById('client-address');
         if (addrInput) addrInput.value = "";
-        
-        const btnClear = document.querySelector('.btn-clear-search');
-        if (btnClear) btnClear.style.display = 'none';
-        
+        const resultDiv = document.getElementById('routing-result');
+        if (resultDiv) { resultDiv.innerHTML = ""; }
+        closeAutocomplete();
         directionsRenderer.setDirections({ routes: [] });
         if (clientMarker) { clientMarker.setMap(null); clientMarker = null; }
         if (infoWindowGlobal) infoWindowGlobal.close();
         if (clientInfoWindow) clientInfoWindow.close();
-        
-        if (markers.length && map) { 
-            map.setZoom(4); 
-            map.setCenter({ lat: -15.793889, lng: -47.882778 }); 
-        }
-        
+        // Restore all markers visibility
         applyFilters();
+        if (markers.length && map) { map.setZoom(4); map.setCenter({ lat: -15.793889, lng: -47.882778 }); }
     }
 
     /* =====================================================================
