@@ -716,14 +716,16 @@
     ">
         <!-- Linha 1: campo + botão limpar -->
         <div style="display:flex;gap:8px;pointer-events:all;">
-            <div style="position:relative;flex:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.22));">
-                <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;z-index:1;">📍</span>
+            <div style="position:relative;flex:1;filter:drop-shadow(0 3px 12px rgba(0,0,0,0.28));">
                 <input type="text" id="client-address"
-                    placeholder="Pesquisar endereço, cidade ou CEP..."
+                    placeholder="🔍  Pesquisar endereço, cidade ou CEP..."
                     autocomplete="off"
                     oninput="onAddressInput()"
                     onkeydown="onAddressKeydown(event)"
-                    style="width:100%;padding:11px 14px 11px 38px;border:none;border-radius:10px;font-size:13px;font-family:inherit;color:#07074E;background:#fff;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.18);">
+                    style="width:100%;padding:11px 16px;border:2px solid rgba(50,72,198,0.25);border-radius:10px;font-size:13px;font-family:inherit;color:#07074E;background:#fff;outline:none;box-shadow:0 4px 16px rgba(0,0,0,0.18),0 1px 4px rgba(50,72,198,0.15);transition:border 0.2s,box-shadow 0.2s;"
+                    onfocus="this.style.border='2px solid #3248C6';this.style.boxShadow='0 4px 20px rgba(50,72,198,0.25),0 1px 4px rgba(0,0,0,0.1)'"
+                    onblur="this.style.border='2px solid rgba(50,72,198,0.25)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.18),0 1px 4px rgba(50,72,198,0.15)'"
+                    >
                 <div id="autocomplete-dropdown"
                     style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.22);z-index:9999;overflow:hidden;max-height:260px;overflow-y:auto;"></div>
             </div>
@@ -783,6 +785,7 @@
                     <div class="form-row"><label>CEP</label><select id="map-cep" class="map-dropdown"></select></div>
                     <div class="form-row"><label>Status *</label><select id="map-status" class="map-dropdown" required></select></div>
                     <div class="form-row"><label>Piloto (Sim/Não)</label><select id="map-piloto" class="map-dropdown"></select></div>
+                    <div class="form-row"><label>CNPJ (vínculo)</label><select id="map-cnpj" class="map-dropdown"></select></div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-full" style="margin-top: 12px;">Processar e Inserir no Banco</button>
             </form>
@@ -802,6 +805,7 @@
                 <div class="form-row"><label>Consultor responsável</label><input type="text" id="m-consultor"></div>
                 <div class="form-row"><label>E-mail</label><input type="email" id="m-email"></div>
                 <div class="form-row"><label>Contato / Telefone</label><input type="text" id="m-contato"></div>
+                <div class="form-row"><label>CNPJ</label><input type="text" id="m-cnpj" placeholder="00.000.000/0001-00"></div>
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="m-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="m-status" required></select></div>
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
@@ -830,6 +834,7 @@
                 <div class="form-row"><label>Consultor responsável</label><input type="text" id="e-consultor"></div>
                 <div class="form-row"><label>E-mail</label><input type="email" id="e-email"></div>
                 <div class="form-row"><label>Contato / Telefone</label><input type="text" id="e-contato"></div>
+                <div class="form-row"><label>CNPJ</label><input type="text" id="e-cnpj" placeholder="00.000.000/0001-00"></div>
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="e-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="e-status" required></select></div>
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
@@ -841,6 +846,53 @@
                     <button type="submit" class="btn btn-primary">Salvar alterações</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: MOTIVO DE ALTERAÇÃO DE STATUS -->
+<div id="status-reason-modal" class="modal-backdrop">
+    <div class="modal-box" style="width:420px;">
+        <div class="modal-head">
+            <h3>📋 Motivo da alteração de status</h3>
+            <button class="modal-close" onclick="closeModal('status-reason-modal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div style="background:var(--surface-muted);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span id="srm-status-old" style="padding:3px 10px;border-radius:10px;font-weight:700;font-size:11px;"></span>
+                    <span style="color:var(--text-muted);">→</span>
+                    <span id="srm-status-new" style="padding:3px 10px;border-radius:10px;font-weight:700;font-size:11px;"></span>
+                </div>
+                <div style="margin-top:6px;font-size:11px;color:var(--text-muted);" id="srm-provider-name"></div>
+            </div>
+            <div class="form-row">
+                <label>Motivo da alteração *</label>
+                <textarea id="srm-motivo" rows="3" required
+                    placeholder="Descreva o motivo da alteração de status..."
+                    style="width:100%;padding:8px 10px;border:1px solid var(--border-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;outline:none;"
+                    onfocus="this.style.borderColor='var(--cobli-violet)'" onblur="this.style.borderColor=''"></textarea>
+            </div>
+            <div class="btn-row" style="margin-top:12px;">
+                <button class="btn btn-outline" onclick="closeModal('status-reason-modal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmStatusChange()">Confirmar alteração</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: HISTÓRICO DE STATUS -->
+<div id="status-log-modal" class="modal-backdrop">
+    <div class="modal-box" style="width:500px;">
+        <div class="modal-head">
+            <h3>📋 Histórico de status</h3>
+            <button class="modal-close" onclick="closeModal('status-log-modal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div id="slm-provider-info" style="background:var(--cobli-navy);color:#fff;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;"></div>
+            <div id="slm-content">
+                <div class="empty-state">Carregando histórico...</div>
+            </div>
         </div>
     </div>
 </div>
@@ -1190,17 +1242,22 @@
         infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false });
         clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
 
-        // Remove Google InfoWindow top chrome (white bar with X) after each open
-        google.maps.event.addListener(infoWindowGlobal, 'domready', function() {
-            // Hide the chrome row that creates the white space
+        // Fix InfoWindow chrome: remove white space, style close button
+        function fixInfoWindowChrome() {
             var chr = document.querySelector('.gm-style-iw-chr');
-            if (chr) chr.style.cssText = 'position:absolute;top:0;right:0;height:0;overflow:visible;';
+            if (chr) chr.style.cssText = 'position:absolute;top:0;right:0;height:0;overflow:visible;z-index:10;';
+            // Style the close button: white X on dark background
             var btn = document.querySelector('.gm-style-iw-chr button');
-            if (btn) btn.style.cssText = 'position:relative;z-index:10;margin:6px 6px 0 0;background:rgba(255,255,255,0.85);border-radius:50%;width:24px;height:24px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;';
-            // Also zero out the default padding on the content wrapper
+            if (btn) {
+                btn.style.cssText = 'position:relative;z-index:10;margin:6px 6px 0 0;background:#07074E;border-radius:50%;width:26px;height:26px;border:none;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;';
+                // Replace the gray icon with a white X
+                btn.innerHTML = '<span style="color:#fff;font-size:14px;font-weight:700;line-height:1;pointer-events:none;">×</span>';
+            }
             var d = document.querySelector('.gm-style-iw-d');
             if (d) d.style.cssText = 'overflow:hidden!important;padding:0!important;';
-        });
+        }
+        google.maps.event.addListener(infoWindowGlobal, 'domready', fixInfoWindowChrome);
+        google.maps.event.addListener(clientInfoWindow, 'domready', fixInfoWindowChrome);
 
         const fileInput = document.getElementById('file-upload');
         if (fileInput) {
@@ -1643,6 +1700,12 @@
                     ${p.contato ? `<div class="iw-row">${iconPhone}<div class="iw-field"><div class="iw-field-label">Contato</div>${phoneHtml}</div></div>` : ''}
                     ${p.email ? `<div class="iw-row">${iconMail}<div class="iw-field"><div class="iw-field-label">E-mail</div><div class="iw-field-val" style="word-break:break-all;">${p.email}</div></div></div>` : ''}
                     <div class="iw-row">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div></div></div>
+                    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light);">
+                        <button onclick="openStatusLog(${p.id})" style="width:100%;padding:6px 10px;background:var(--surface-muted);border:1px solid var(--border-mid);border-radius:6px;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;"
+                            onmouseover="this.style.background='var(--cobli-lavender)'" onmouseout="this.style.background='var(--surface-muted)'">
+                            📋 Ver histórico de status
+                        </button>
+                    </div>
                 </div>
             </div>`;
         // Add route button if there's a destination address — compact inline in header
@@ -1753,7 +1816,12 @@
         return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
     }
 
-        // ── RESULT LIST (module-scope so toggle button can call it) ──────────
+        function toggleResultDetails() {
+        window._resultExpanded = !window._resultExpanded;
+        renderResults();
+    }
+
+    // ── RESULT LIST (module-scope so toggle button can call it) ──────────
     function renderResults() {
         var resultDiv = document.getElementById('routing-result');
         if (!resultDiv) return;
@@ -1763,40 +1831,50 @@
         var exp = window._resultExpanded;
         var topN = inRange.slice(0, 5);
         var totalExtra = inRange.length - 5;
+        var plural = inRange.length !== 1 ? 'es' : '';
 
+        // Header: counter + toggle button
+        var toggleIcon = exp ? '▲' : '▼';
+        var toggleLbl  = exp ? ' Ocultar lista' : ' Ver prestadores';
+        var toggleColor = exp ? 'var(--cobli-indigo)' : '#00AE97';
+
+        var header = '<div style="background:#fff;border-radius:' + (exp ? '8px 8px 0 0' : '8px') + ';padding:9px 14px;box-shadow:0 2px 6px rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:space-between;">'
+            + '<span style="font-size:11px;font-weight:800;color:var(--cobli-navy);letter-spacing:0.3px;">' + inRange.length + ' PRESTADOR' + (inRange.length !== 1 ? 'ES' : '') + ' NO RAIO</span>'
+            + '<button onclick="toggleResultDetails()" style="background:none;border:none;font-size:11px;font-weight:700;color:' + toggleColor + ';cursor:pointer;padding:0;font-family:inherit;">' + toggleIcon + toggleLbl + '</button>'
+            + '</div>';
+
+        // If collapsed: show only header
+        if (!exp) {
+            resultDiv.innerHTML = header;
+            return;
+        }
+
+        // If expanded: show list with phone inline
         var cards = topN.map(function(item, i) {
             var km = (item.distance / 1000).toFixed(1);
             var col = getStatusColor(item.prestador.status);
-            var consultor = item.prestador.consultor ? '<div>👤 ' + item.prestador.consultor + '</div>' : '';
-            var contato   = item.prestador.contato   ? '<div>📞 ' + item.prestador.contato   + '</div>' : '';
-            var details   = exp
-                ? '<div style="margin-top:5px;padding-top:5px;border-top:1px solid #eee;font-size:10px;color:#4B4F7A;display:flex;flex-direction:column;gap:2px;">' + consultor + contato + '</div>'
-                : '';
             var piloto = item.prestador.piloto ? ' ⭐' : '';
+            var nome = formatNome(item.prestador.nome);
+            var tel = item.prestador.contato
+                ? '<span style="color:#00AE97;font-size:10px;font-weight:600;white-space:nowrap;">📞 ' + item.prestador.contato + '</span>'
+                : '';
+
             return '<div class="result-card" onclick="centerMapOnProvider(' + item.prestador.id + ')">'
-                + '<div style="display:flex;align-items:center;gap:5px;">'
-                +   '<span style="font-size:10px;font-weight:800;color:var(--cobli-indigo);flex-shrink:0;">#' + (i + 1) + '</span>'
-                +   '<span class="result-card-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + formatNome(item.prestador.nome) + piloto + '</span>'
-                +   '<span style="background:' + col + '22;color:' + col + ';font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;flex-shrink:0;">' + item.prestador.status + '</span>'
+                + '<div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;">'
+                +   '<span style="font-size:10px;font-weight:800;color:var(--cobli-indigo);flex-shrink:0;">#' + (i+1) + '</span>'
+                +   '<span style="flex:1;font-size:11px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + nome + piloto + '</span>'
+                +   tel
+                +   '<span style="background:' + col + '22;color:' + col + ';font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;flex-shrink:0;margin-left:4px;">' + item.prestador.status + '</span>'
                 + '</div>'
-                + '<div class="result-card-dist">⬦ ' + km + ' km</div>'
-                + details
+                + '<div style="font-size:10px;color:var(--cobli-indigo);font-weight:600;margin-top:2px;">⬦ ' + km + ' km</div>'
                 + '</div>';
         }).join('');
 
-        var plural    = inRange.length !== 1 ? 'es' : '';
-        var toggleBtn = exp ? '▲ Recolher' : '▼ Ver detalhes';
-        var footer    = totalExtra > 0
+        var footer = totalExtra > 0
             ? '<div style="background:#fff;border-radius:0 0 8px 8px;padding:5px 12px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.08);"><span style="font-size:10px;color:var(--text-muted);font-weight:600;">+' + totalExtra + ' mais visíveis no mapa</span></div>'
             : '';
 
-        resultDiv.innerHTML =
-            '<div style="background:#fff;border-radius:8px 8px 0 0;padding:7px 12px 6px;box-shadow:0 1px 4px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:space-between;">'
-            + '<span style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">' + inRange.length + ' prestador' + plural + ' no raio</span>'
-            + '<button onclick="window._resultExpanded=!window._resultExpanded;renderResults();" style="background:none;border:none;font-size:10px;font-weight:700;color:var(--cobli-indigo);cursor:pointer;padding:0;font-family:inherit;">' + toggleBtn + '</button>'
-            + '</div>'
-            + cards
-            + footer;
+        resultDiv.innerHTML = header + cards + footer;
     }
 
         function findClosestProviders() {
@@ -2004,7 +2082,120 @@
     /* =====================================================================
        CRUD PRESTADORES
        ===================================================================== */
-    async function saveManualProvider(event) {
+    // ── STATUS LOG FUNCTIONS ──────────────────────────────────────────────
+
+    async function confirmStatusChange() {
+        const motivo = document.getElementById('srm-motivo').value.trim();
+        if (!motivo) { alert('Por favor, descreva o motivo da alteração.'); return; }
+        if (!_pendingStatusChange) return;
+
+        const { id, newStatus, oldStatus } = _pendingStatusChange;
+        _pendingStatusChange = null;
+        closeModal('status-reason-modal');
+
+        // Save log entry
+        await _supabase.from('status_log').insert([{
+            prestador_id: id,
+            status_anterior: oldStatus,
+            status_novo: newStatus,
+            motivo: motivo,
+            usuario_email: currentUser.email
+        }]);
+
+        // Now apply the status change + full save
+        const pIndex = providersData.findIndex(x => x.id === id);
+        if (pIndex === -1) return;
+        let p = providersData[pIndex];
+        const oldEnd = p.endereco;
+
+        p.nome = document.getElementById('e-nome').value;
+        p.consultor = document.getElementById('e-consultor').value;
+        p.consultorNorm = normalizeStr(p.consultor);
+        p.email = document.getElementById('e-email').value;
+        p.contato = document.getElementById('e-contato').value;
+        p.endereco = document.getElementById('e-endereco').value;
+        p.status = newStatus;
+        p.piloto = document.getElementById('e-piloto').checked;
+        if (document.getElementById('e-cnpj')) p.cnpj = document.getElementById('e-cnpj').value.replace(/[^0-9]/g,'') || null;
+
+        let coordsChanged = false;
+        if (oldEnd !== p.endereco) {
+            let coords = await getGeocode(p.endereco); p.lat = coords.lat; p.lng = coords.lng; coordsChanged = true;
+        }
+
+        const { error } = await _supabase.from('prestadores').update({
+            nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm,
+            email: p.email, contato: p.contato, endereco: p.endereco,
+            status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng, cnpj: p.cnpj
+        }).eq('id', id);
+
+        if (error) { alert("Erro ao atualizar: " + error.message); return; }
+        _afterEditSave(id, p, coordsChanged);
+    }
+
+    function _afterEditSave(id, p, coordsChanged) {
+        generateConsultantColors(providersData);
+        if (coordsChanged) {
+            const mi = markers.findIndex(m => m.customId === id);
+            if (mi > -1) { markers[mi].setMap(null); markers.splice(mi, 1); }
+            if (p.lat) createMarker(p);
+        } else {
+            const mk = markers.find(m => m.customId === id);
+            if (mk) {
+                mk.setTitle(p.nome);
+                const newColor = getConsultantColor(p.consultorNorm);
+                const newIconUrl = makeMarkerSvg(newColor, p.piloto);
+                const newSize = p.piloto ? new google.maps.Size(30, 39) : new google.maps.Size(24, 32);
+                const newAnchor = p.piloto ? new google.maps.Point(15, 37) : new google.maps.Point(12, 30);
+                mk.setIcon({ url: newIconUrl, scaledSize: newSize, anchor: newAnchor });
+                mk.setZIndex(p.piloto ? 10 : 1);
+            }
+        }
+        updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('edit-modal');
+    }
+
+    async function openStatusLog(prestadorId) {
+        const p = providersData.find(x => x.id === prestadorId);
+        if (!p) return;
+
+        const nameEl = document.getElementById('slm-provider-info');
+        const contentEl = document.getElementById('slm-content');
+        nameEl.textContent = formatNome(p.nome) + (p.cnpj ? ' · CNPJ: ' + p.cnpj : '');
+        contentEl.innerHTML = '<div class="empty-state">Carregando...</div>';
+        openModal('status-log-modal');
+
+        const { data, error } = await _supabase
+            .from('status_log')
+            .select('*')
+            .eq('prestador_id', prestadorId)
+            .order('created_at', { ascending: false });
+
+        if (error || !data || !data.length) {
+            contentEl.innerHTML = '<div class="empty-state">Nenhuma alteração de status registrada.</div>';
+            return;
+        }
+
+        contentEl.innerHTML = data.map(log => {
+            const dt = new Date(log.created_at);
+            const dtStr = dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+            const colOld = getStatusColor(log.status_anterior);
+            const colNew = getStatusColor(log.status_novo);
+            return `<div style="background:#fff;border:1px solid var(--border-light);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                    <span style="background:${colOld}22;color:${colOld};padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">${log.status_anterior}</span>
+                    <span style="color:var(--text-muted);font-size:12px;">→</span>
+                    <span style="background:${colNew}22;color:${colNew};padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">${log.status_novo}</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;line-height:1.5;">"${log.motivo}"</div>
+                <div style="font-size:10px;color:var(--text-muted);display:flex;gap:12px;">
+                    <span>👤 ${log.usuario_email}</span>
+                    <span>🕐 ${dtStr}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+        async function saveManualProvider(event) {
         event.preventDefault();
         let cNome = document.getElementById('m-consultor').value;
         let p = { nome: document.getElementById('m-nome').value, consultor: cNome, consultorNorm: normalizeStr(cNome), email: document.getElementById('m-email').value, contato: document.getElementById('m-contato').value, endereco: document.getElementById('m-endereco').value, status: formatStatus(document.getElementById('m-status').value), piloto: document.getElementById('m-piloto').checked };
@@ -2026,8 +2217,12 @@
         document.getElementById('e-endereco').value = p.endereco || '';
         document.getElementById('e-status').value = p.status || 'Ativo';
         document.getElementById('e-piloto').checked = p.piloto || false;
+        if (document.getElementById('e-cnpj')) document.getElementById('e-cnpj').value = p.cnpj || '';
         openModal('edit-modal');
     }
+
+    // Pending status change data (waiting for reason input)
+    let _pendingStatusChange = null;
 
     async function saveEditProvider(event) {
         event.preventDefault();
@@ -2035,16 +2230,41 @@
         const pIndex = providersData.findIndex(x => x.id === id);
         if (pIndex === -1) return;
         let p = providersData[pIndex];
+
+        const newStatus = formatStatus(document.getElementById('e-status').value);
+        const statusChanged = p.status !== newStatus;
+
+        // If status changed, require reason before saving
+        if (statusChanged) {
+            _pendingStatusChange = { id, newStatus, oldStatus: p.status };
+            document.getElementById('srm-provider-name').textContent = formatNome(p.nome);
+            const oldEl = document.getElementById('srm-status-old');
+            const newEl = document.getElementById('srm-status-new');
+            const colOld = getStatusColor(p.status), colNew = getStatusColor(newStatus);
+            oldEl.textContent = p.status;
+            oldEl.style.cssText = `background:${colOld}22;color:${colOld};padding:3px 10px;border-radius:10px;font-weight:700;font-size:11px;`;
+            newEl.textContent = newStatus;
+            newEl.style.cssText = `background:${colNew}22;color:${colNew};padding:3px 10px;border-radius:10px;font-weight:700;font-size:11px;`;
+            document.getElementById('srm-motivo').value = '';
+            openModal('status-reason-modal');
+            return; // Wait for reason confirmation
+        }
+
         const oldEnd = p.endereco;
         p.nome = document.getElementById('e-nome').value; p.consultor = document.getElementById('e-consultor').value;
         p.consultorNorm = normalizeStr(p.consultor); p.email = document.getElementById('e-email').value;
         p.contato = document.getElementById('e-contato').value; p.endereco = document.getElementById('e-endereco').value;
-        p.status = formatStatus(document.getElementById('e-status').value); p.piloto = document.getElementById('e-piloto').checked;
+        p.status = newStatus; p.piloto = document.getElementById('e-piloto').checked;
+        if (document.getElementById('e-cnpj')) p.cnpj = document.getElementById('e-cnpj').value.replace(/\D/g,'') || null;
         let coordsChanged = false;
         if (oldEnd !== p.endereco) { let coords = await getGeocode(p.endereco); p.lat = coords.lat; p.lng = coords.lng; coordsChanged = true; }
-        const { error } = await _supabase.from('prestadores').update({ nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm, email: p.email, contato: p.contato, endereco: p.endereco, status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng }).eq('id', id);
+        const { error } = await _supabase.from('prestadores').update({
+            nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm,
+            email: p.email, contato: p.contato, endereco: p.endereco,
+            status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng, cnpj: p.cnpj || null
+        }).eq('id', id);
         if (error) { alert("Erro ao atualizar."); console.error(error); }
-        else { generateConsultantColors(providersData); if (coordsChanged) { const mi = markers.findIndex(m => m.customId === id); if (mi > -1) { markers[mi].setMap(null); markers.splice(mi, 1); } if (p.lat) createMarker(p); } else { const mk = markers.find(m => m.customId === id); if (mk) { mk.setTitle(p.nome); let ic = mk.getIcon(); ic.fillColor = getConsultantColor(p.consultorNorm); ic.strokeColor = p.piloto ? '#FFD700' : '#ffffff'; ic.strokeWeight = p.piloto ? 3.5 : 1.5; ic.scale = p.piloto ? 1.7 : 1.5; mk.setIcon(ic); } } updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('edit-modal'); }
+        else { _afterEditSave(id, p, coordsChanged); }
     }
 
     /* =====================================================================
@@ -2099,6 +2319,7 @@
                 if (select.id === 'map-cep' && cl.includes('cep')) opt.selected = true;
                 if (select.id === 'map-status' && cl === 'status') opt.selected = true;
                 if (select.id === 'map-piloto' && cl.includes('piloto')) opt.selected = true;
+                if (select.id === 'map-cnpj' && cl.includes('cnpj')) opt.selected = true;
                 select.appendChild(opt);
             });
         });
@@ -2107,29 +2328,85 @@
     async function confirmMapping(event) {
         event.preventDefault();
         const gv = id => document.getElementById(id).value;
-        const [cN,cC,cE,cT,cL,cNum,cB,cCid,cEst,cCep,cS,cP] = ['map-nome','map-consultor','map-email','map-telefone','map-logradouro','map-numero','map-bairro','map-cidade','map-estado','map-cep','map-status','map-piloto'].map(gv);
+        const [cN,cC,cE,cT,cL,cNum,cB,cCid,cEst,cCep,cS,cP,cCNPJ] = ['map-nome','map-consultor','map-email','map-telefone','map-logradouro','map-numero','map-bairro','map-cidade','map-estado','map-cep','map-status','map-piloto','map-cnpj'].map(gv);
         const indicator = document.getElementById('loading-indicator');
         if (indicator) { indicator.style.display = 'block'; indicator.innerText = 'Iniciando processamento...'; }
         closeModal('mapping-modal');
-        let novosPrestadores = [];
+
+        let toInsert = [], toUpdate = [], skipped = 0;
+        const hasCnpj = !!cCNPJ;
+
         for (let i = 0; i < rawImportedData.length; i++) {
-            let row = rawImportedData[i]; const f = col => fixStr(row[col] || "");
+            let row = rawImportedData[i];
+            const f = col => fixStr(row[col] || "");
             let end = `${f(cL)}${cNum&&row[cNum]?`, ${f(cNum)}`:""}${cB&&row[cB]?` - ${f(cB)}`:""}, ${f(cCid)} - ${f(cEst)}${cCep&&row[cCep]?` (CEP: ${f(cCep)})`:""}`;
             let consultRaw = cC ? fixStr(row[cC]) : "";
             let isPiloto = false;
-            if (cP && row[cP]) { let pStr = String(row[cP]).toLowerCase().trim(); isPiloto = (pStr === 'sim' || pStr === 'true' || pStr === '1' || pStr === 'x' || pStr === 'ok'); }
-            if (indicator) indicator.innerText = `Buscando localização: ${i + 1} de ${rawImportedData.length}...`;
+            if (cP && row[cP]) { let pStr = String(row[cP]).toLowerCase().trim(); isPiloto = (pStr==='sim'||pStr==='true'||pStr==='1'||pStr==='x'||pStr==='ok'); }
+            let cnpjRaw = cCNPJ ? fixStr(row[cCNPJ] || "").replace(/\D/g,'') : "";
+
+            if (indicator) indicator.innerText = `Processando ${i+1} de ${rawImportedData.length}...`;
+
+            let record = {
+                nome: (cN ? fixStr(row[cN]) : "Sem Nome") || "Sem Nome",
+                consultor: consultRaw,
+                consultorNorm: normalizeStr(consultRaw),
+                email: cE ? fixStr(row[cE]) : "",
+                contato: cT ? fixStr(row[cT]) : "",
+                endereco: end,
+                status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
+                piloto: isPiloto,
+                cnpj: cnpjRaw || null
+            };
+
+            // Check if CNPJ exists in current DB
+            if (hasCnpj && cnpjRaw) {
+                const existing = providersData.find(p => p.cnpj && p.cnpj.replace(/\D/g,'') === cnpjRaw);
+                if (existing) {
+                    // Check if address changed — only re-geocode if needed
+                    if (existing.endereco !== end) {
+                        let coords = await getGeocode(end);
+                        await new Promise(r => setTimeout(r, 150));
+                        record.lat = coords.lat; record.lng = coords.lng;
+                    } else {
+                        record.lat = existing.lat; record.lng = existing.lng;
+                    }
+                    toUpdate.push({ id: existing.id, data: record });
+                    continue;
+                }
+            }
+
+            // New record — geocode
+            if (indicator) indicator.innerText = `Geocodificando ${i+1} de ${rawImportedData.length}...`;
             let coords = await getGeocode(end);
-            await new Promise(r => setTimeout(r, 200));
-            novosPrestadores.push({ nome: (cN ? fixStr(row[cN]) : "Sem Nome") || "Sem Nome", consultor: consultRaw, consultorNorm: normalizeStr(consultRaw), email: cE ? fixStr(row[cE]) : "", contato: cT ? fixStr(row[cT]) : "", endereco: end, status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"), piloto: isPiloto, lat: coords.lat, lng: coords.lng });
+            await new Promise(r => setTimeout(r, 150));
+            record.lat = coords.lat; record.lng = coords.lng;
+            toInsert.push(record);
         }
-        if (indicator) indicator.innerText = "Limpando base antiga...";
-        await _supabase.from('prestadores').delete().neq('id', 0);
-        if (indicator) indicator.innerText = "Salvando novos dados...";
-        const { error } = await _supabase.from('prestadores').insert(novosPrestadores);
+
+        // Execute updates
+        if (indicator) indicator.innerText = `Atualizando ${toUpdate.length} registros...`;
+        let errCount = 0;
+        for (const u of toUpdate) {
+            const { error } = await _supabase.from('prestadores').update(u.data).eq('id', u.id);
+            if (error) errCount++;
+        }
+
+        // Execute inserts
+        if (indicator) indicator.innerText = `Inserindo ${toInsert.length} novos registros...`;
+        if (toInsert.length > 0) {
+            const { error } = await _supabase.from('prestadores').insert(toInsert);
+            if (error) { alert("Erro ao inserir: " + error.message); }
+        }
+
         if (indicator) indicator.style.display = 'none';
-        if (error) { alert("Erro ao salvar no Supabase. " + error.message); }
-        else { alert("Base importada com sucesso!"); clearAllMarkers(); await loadDataFromSupabase(); }
+        var msg = 'Importação concluída!\n\n'
+            + '✅ ' + toUpdate.length + ' atualizados\n'
+            + '➕ ' + toInsert.length + ' novos inseridos'
+            + (errCount ? '\n⚠️ ' + errCount + ' erros na atualização' : '');
+        alert(msg);
+        clearAllMarkers();
+        await loadDataFromSupabase();
     }
 
     /* =====================================================================
