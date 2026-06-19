@@ -2820,7 +2820,7 @@
     function closeModal(id) { const el = document.getElementById(id); if (el) { el.style.display = 'none'; el.classList.remove('open'); } }
     function clearAllMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
 
-    document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m && m.id !== 'custom-dialog-backdrop') closeModal(m.id); }); });
+    document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m && m.id !== 'custom-dialog-backdrop') { if (m.id === 'edit-modal') { confirmDiscardEdit(); } else { closeModal(m.id); } } }); });
 
     const btnSummary = document.getElementById('btn-summary');
     if (btnSummary) btnSummary.addEventListener('click', openSummaryModal);
