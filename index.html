@@ -62,7 +62,6 @@
         .scroll-panel::-webkit-scrollbar-thumb { background: var(--cobli-lavender); border-radius: 2px; }
 
         .section-card { background: var(--surface-card); border: 1px solid var(--border-mid); border-left: 4px solid var(--cobli-indigo); border-radius: 10px; box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06); }
-        /* Adicionada transição suave e cursor pointer no cabeçalho */
         .section-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 12px 14px; background: var(--cobli-navy); border-bottom: 3px solid var(--cobli-indigo); border-top-left-radius: 6px; border-top-right-radius: 9px; transition: background 0.15s; }
         .section-header:hover { background: #0d0d6e; }
         .section-header-left { display: flex; align-items: center; gap: 8px; }
@@ -70,7 +69,6 @@
         .section-number { width: 22px; height: 22px; border-radius: 50%; background: var(--cobli-indigo); border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
         .section-title { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.2px; display: flex; align-items: center;}
         
-        /* Controles de colapso de blocos */
         .section-body { padding: 16px 16px 14px; }
         .section-body.collapsed { display: none; }
         .block-toggle-btn { background: transparent; border: none; color: rgba(255,255,255,0.8); font-size: 14px; cursor: pointer; transition: transform 0.25s; display: flex; align-items: center; justify-content: center; padding: 4px; pointer-events: none;}
@@ -175,9 +173,6 @@
         .modal-close:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
         .modal-body { padding: 20px; }
 
-        /* =====================================================================
-           INFOWINDOW — botão fechar limpo e elegante (ATUALIZADO)
-           ===================================================================== */
         .gm-style-iw { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
         .gm-style-iw-d { overflow: hidden !important; padding: 0 !important; }
         .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
@@ -238,9 +233,6 @@
         .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         #loading-indicator { display: none; text-align: center; color: var(--cobli-blue); font-size: 13px; font-weight: 600; padding: 12px; background: #fff; border-radius: 6px; border: 1px solid var(--border-mid); margin-top: 10px; }
 
-        /* =====================================================================
-           BLOCO 7 — GESTÃO DE ACESSOS (REDESIGNED)
-           ===================================================================== */
         .user-access-card {
             background: #fff;
             border: 1.5px solid var(--border-mid);
@@ -438,9 +430,6 @@
 
         .users-empty { text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 12px; font-weight: 500; }
 
-        /* =====================================================================
-           DARK MODE
-           ===================================================================== */
         body.dark-mode {
             --cobli-navy:    #0f0f6e;
             --cobli-indigo:  #4a5fd4;
@@ -485,9 +474,6 @@
         body.dark-mode .btn-outline { background: var(--surface-muted); color: var(--text-secondary); border-color: var(--border-mid); }
         body.dark-mode #id="client-address" { background: var(--surface-card) !important; color: var(--text-primary) !important; }
 
-        /* =====================================================================
-           TOPBAR ENHANCEMENTS
-           ===================================================================== */
         .topbar-logo {
             width: 32px; height: 32px; border-radius: 8px;
             background: rgba(127,141,219,0.15);
@@ -499,9 +485,6 @@
         .topbar-brand h1 { font-size: 13px !important; }
         .topbar-brand p { font-size: 10px !important; }
 
-        /* =====================================================================
-           SECTION ICON (replaces section-number)
-           ===================================================================== */
         .section-icon {
             font-size: 15px;
             flex-shrink: 0;
@@ -510,9 +493,6 @@
         .section-header-left { gap: 10px !important; }
         .section-title { font-size: 12px !important; }
 
-        /* =====================================================================
-           MOBILE RESPONSIVE
-           ===================================================================== */
         .mobile-menu-btn {
             display: none;
             flex-direction: column;
@@ -545,7 +525,6 @@
         @media (max-width: 768px) {
             body { flex-direction: column; overflow: hidden; }
 
-            /* Show mobile topbar, hide desktop topbar inside sidebar */
             #mobile-topbar {
                 display: flex !important;
                 position: fixed;
@@ -558,10 +537,8 @@
                 z-index: 200;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             }
-            /* Hide the topbar that's inside sidebar on mobile */
             #sidebar .topbar { display: none !important; }
 
-            /* Sidebar slides in from left, starts BELOW the mobile topbar */
             #sidebar {
                 position: fixed;
                 top: 52px; left: 0; bottom: 0;
@@ -575,7 +552,6 @@
             }
             #sidebar.mobile-open { transform: translateX(0); }
 
-            /* Map fills full screen below mobile topbar */
             #map-container {
                 position: fixed;
                 top: 52px; left: 0; right: 0; bottom: 0;
@@ -583,7 +559,6 @@
                 height: calc(100vh - 52px);
             }
 
-            /* Search bar */
             #map-search-bar {
                 width: calc(100% - 16px) !important;
                 top: 8px !important;
@@ -592,13 +567,10 @@
 
             .hide-mobile { display: none !important; }
 
-            /* Map legend repositioned for mobile */
             .map-legend { bottom: 20px; right: 8px; max-width: 160px; font-size: 10px; }
 
-            /* Modals full width on mobile */
             .modal-box { width: calc(100vw - 20px) !important; max-height: 92vh; }
 
-            /* Overlay covers map behind open sidebar */
             .mobile-overlay { top: 52px !important; }
         }
 
@@ -607,7 +579,6 @@
             #map-search-bar { top: 6px !important; }
         }
 
-        /* Label do marcador destino (ATUALIZADO) */
         .dest-marker-label {
             background: #07074E !important;
             color: #00AE97 !important;
@@ -615,13 +586,12 @@
             border-radius: 6px !important;
             font-size: 11px !important;
             font-weight: 700 !important;
-            margin-top: -65px !important; /* Move para cima do PIN */
+            margin-top: -65px !important; 
             white-space: nowrap !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
             border: 1px solid rgba(0, 174, 151, 0.4) !important;
         }
 
-        /* RANGE PILLS (sobre mapa) */
         .rpill {
             flex: 1;
             padding: 6px 4px;
@@ -640,7 +610,6 @@
         .rpill:hover { background: var(--cobli-lavender); }
         .rpill.active { background: var(--cobli-blue); color: #fff; box-shadow: 0 2px 8px rgba(0,27,184,0.35); }
 
-        /* AUTOCOMPLETE DROPDOWN */
         .ac-item {
             padding: 9px 12px;
             font-size: 12px;
@@ -658,18 +627,40 @@
         .ac-item-main { font-weight: 600; color: var(--text-primary); }
         .ac-item-sub { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 
-        /* ROUTING RESULT (floating over map) */
         #routing-result { max-height: 220px; overflow-y: auto; }
         #routing-result::-webkit-scrollbar { width: 3px; }
         #routing-result::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 2px; }
         .result-section-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 10px 4px; background:#fff; border-radius:8px 8px 0 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        .result-card { background: #fff; border-radius: 8px; padding: 8px 12px; margin-bottom: 4px; cursor: pointer; transition: background 0.12s; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+        .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 4px; cursor: pointer; transition: background 0.12s; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
         .result-card:hover { background: #F5F6FF; }
         .result-card-name { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
         .result-card-dist { font-size: 10px; color: var(--cobli-indigo); font-weight: 600; }
+
+        /* Estilos do Toast de Notificação - 100% CENTRALIZADO */
+        #toast-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: center; }
+        .toast { background: var(--cobli-navy); color: var(--cobli-teal); padding: 14px 24px; border-radius: 8px; font-size: 13px; font-weight: 700; box-shadow: 0 8px 32px rgba(7,7,78,0.3); border: 1px solid rgba(0,174,151,0.3); opacity: 0; transform: scale(0.95); animation: toast-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: auto; display: flex; align-items: center; gap: 10px; text-align: center; }
+        .toast.error { color: var(--cobli-red); border-color: rgba(255,70,51,0.3); }
+        .toast.fade-out { animation: toast-out 0.25s ease forwards; }
+        @keyframes toast-in { to { opacity: 1; transform: scale(1); } }
+        @keyframes toast-out { to { opacity: 0; transform: scale(0.95); } }
     </style>
 </head>
 <body>
+
+<div id="toast-container"></div>
+
+<!-- NOVO: Modal Customizado para substituir os alerts e confirms feios do navegador -->
+<div id="custom-dialog-backdrop" class="modal-backdrop" style="z-index: 10001;">
+    <div class="modal-box" style="width: 380px; text-align: center; padding: 24px;">
+        <div style="font-size: 28px; margin-bottom: 12px;" id="cd-icon">⚠️</div>
+        <h3 style="color: var(--cobli-navy); font-size: 16px; margin-bottom: 10px;" id="cd-title">Aviso</h3>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px; line-height: 1.5;" id="cd-message"></p>
+        <div style="display: flex; gap: 10px; justify-content: center;" id="cd-buttons">
+            <button class="btn btn-outline" id="cd-btn-cancel" style="padding: 10px 20px;">Cancelar</button>
+            <button class="btn btn-primary" id="cd-btn-confirm" style="padding: 10px 20px;">OK</button>
+        </div>
+    </div>
+</div>
 
 <div id="login-overlay">
     <div class="login-box">
@@ -1126,8 +1117,54 @@
     let consultantColors = {};
 
     /* =====================================================================
-       FUNÇÃO DE ACORDEÃO PARA OS BLOCOS
+       MENSAGENS MODAIS CUSTOMIZADAS
        ===================================================================== */
+    function showCustomDialog(message, title = 'Aviso', isConfirm = false) {
+        return new Promise((resolve) => {
+            const backdrop = document.getElementById('custom-dialog-backdrop');
+            const titleEl = document.getElementById('cd-title');
+            const messageEl = document.getElementById('cd-message');
+            const btnCancel = document.getElementById('cd-btn-cancel');
+            const btnConfirm = document.getElementById('cd-btn-confirm');
+            const iconEl = document.getElementById('cd-icon');
+
+            titleEl.textContent = title;
+            messageEl.innerHTML = message.replace(/\n/g, '<br>');
+            
+            btnCancel.style.display = isConfirm ? 'inline-flex' : 'none';
+            iconEl.textContent = isConfirm ? '❓' : (title === 'Erro' ? '❌' : '⚠️');
+
+            backdrop.classList.add('open');
+            backdrop.style.display = 'flex';
+
+            const cleanup = () => {
+                backdrop.classList.remove('open');
+                backdrop.style.display = 'none';
+                btnCancel.onclick = null;
+                btnConfirm.onclick = null;
+            };
+
+            btnCancel.onclick = () => { cleanup(); resolve(false); };
+            btnConfirm.onclick = () => { cleanup(); resolve(true); };
+        });
+    }
+
+    /* =====================================================================
+       FUNÇÃO DE TOAST (NOTIFICAÇÃO) CENTRALIZADO
+       ===================================================================== */
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+        toast.innerHTML = (type === 'success' ? '✅ ' : '⚠️ ') + message.replace(/\n/g, '<br>');
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 250);
+        }, 4000);
+    }
+
     function toggleBlock(blockId) {
         const body = document.getElementById('body-' + blockId);
         const btn = document.getElementById('btn-toggle-' + blockId);
@@ -1138,7 +1175,6 @@
             body.classList.remove('collapsed');
             btn.classList.remove('collapsed');
             
-            // Se for o bloco 4, marca que vimos as novidades
             if (blockId === 'bloco-4') {
                 localStorage.setItem('knownUsersCount', allUsersData.length.toString());
                 const newBadge = document.getElementById('new-users-badge');
@@ -1149,10 +1185,6 @@
             btn.classList.add('collapsed');
         }
     }
-
-    /* =====================================================================
-       BLOCO 7 — GESTÃO DE ACESSOS
-       ===================================================================== */
 
     const BLOCK_LABELS = {
         1: { icon: '📋', name: 'Lista de Prestadores' },
@@ -1166,7 +1198,6 @@
 
     const ALL_STATUSES = ['Ativo', 'Inativo', 'Suspenso', 'Em credenciamento', 'Credenciado fase final', 'Descredenciado', 'Free Lance'];
 
-    // Users pagination state
     let allUsersData = [];
     let usersDisplayCount = 5;
 
@@ -1193,7 +1224,6 @@
             return;
         }
 
-        // Verifica novos usuários baseados no histórico local
         const knownUsersCount = parseInt(localStorage.getItem('knownUsersCount') || '0');
         const newBadge = document.getElementById('new-users-badge');
         if (allUsersData.length > knownUsersCount && currentUser && currentUser.perfil === 'admin') {
@@ -1348,10 +1378,10 @@
     }
 
     async function deleteUser(email) {
-        if (!confirm(`Remover o acesso de "${email}"?\n\nO usuário não conseguirá mais entrar no sistema.`)) return;
+        if (!(await showCustomDialog(`Remover o acesso de "${email}"?\n\nO usuário não conseguirá mais entrar no sistema.`, 'Confirmar exclusão', true))) return;
         const { error } = await _supabase.from('usuarios').delete().eq('email', email);
         if (error) {
-            alert('Erro ao remover usuário: ' + error.message);
+            await showCustomDialog('Erro ao remover usuário: ' + error.message, 'Erro');
         } else {
             allUsersData = allUsersData.filter(u => u.email !== email);
             renderUsersCards();
@@ -1362,7 +1392,6 @@
         const body = document.getElementById(`body-${emailId}`);
         const isOpening = !body.classList.contains('open');
 
-        // Fecha todos os outros antes de abrir este
         document.querySelectorAll('.uac-body').forEach(b => b.classList.remove('open'));
         document.querySelectorAll('.uac-chevron').forEach(c => c.style.transform = 'rotate(180deg)');
 
@@ -1458,7 +1487,7 @@
         if (btn) { btn.textContent = originalText; btn.disabled = false; }
 
         if (error) {
-            alert(`Erro ao salvar: ${error.message}`);
+            await showCustomDialog(`Erro ao salvar: ${error.message}`, 'Erro');
         } else {
             if (btn) {
                 btn.textContent = '✅ Permissões Salvas!';
@@ -1468,12 +1497,10 @@
                     btn.style.background = '';
                 }, 2500);
             }
+            showToast('Permissões atualizadas com sucesso!');
         }
     }
 
-    /* =====================================================================
-       INICIALIZAÇÃO E LOGIN
-       ===================================================================== */
     function formatNome(nome) {
         if (!nome) return nome;
         return String(nome).toLowerCase().replace(/(?:^|\s|-)\S/g, function(c) { return c.toUpperCase(); });
@@ -1518,15 +1545,11 @@
         infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false });
         clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
 
-        // ── CORREÇÃO: botão fechar infowindow FIXO e Vermelho ────────────────────────────
-function fixInfoWindowChrome() {
-            // Cria a regra CSS blindada uma única vez no documento
-            // Isso impede que o Google Maps tente sobrescrever nosso "X"
+        function fixInfoWindowChrome() {
             if (!document.getElementById('cobli-iw-close-fix')) {
                 var style = document.createElement('style');
                 style.id = 'cobli-iw-close-fix';
                 style.innerHTML = `
-                    /* 1. Força o visual do botão (círculo vermelho) */
                     .gm-style-iw-chr button, 
                     button.gm-ui-hover-effect {
                         position: relative !important;
@@ -1545,19 +1568,16 @@ function fixInfoWindowChrome() {
                         transition: background 0.15s !important;
                     }
                     
-                    /* Efeito hover mantendo a cor que você definiu */
                     .gm-style-iw-chr button:hover, 
                     button.gm-ui-hover-effect:hover {
                         background: #FF4633 !important;
                     }
 
-                    /* 2. Oculta QUALQUER elemento interno que o Google tentar injetar (adeus quadrado preto!) */
                     .gm-style-iw-chr button > *, 
                     button.gm-ui-hover-effect > * {
                         display: none !important;
                     }
 
-                    /* 3. Desenha o nosso 'X' perfeito de forma nativa e imune a atualizações do Google */
                     .gm-style-iw-chr button::after, 
                     button.gm-ui-hover-effect::after {
                         content: "×" !important;
@@ -1572,7 +1592,6 @@ function fixInfoWindowChrome() {
                         pointer-events: none !important;
                     }
 
-                    /* Ajuste fino do container do Google Maps para evitar bordas brancas */
                     .gm-style-iw-d {
                         overflow: hidden !important;
                         padding: 0 !important;
@@ -1622,7 +1641,7 @@ function fixInfoWindowChrome() {
             }
             const { error: insertError } = await _supabase.from('usuarios').insert([newUser]);
             if (insertError) {
-                alert("Erro ao gravar usuário: " + insertError.message);
+                await showCustomDialog("Erro ao gravar usuário: " + insertError.message, "Erro");
                 if (btnLogin) { btnLogin.innerText = "Acessar Sistema"; btnLogin.disabled = false; }
                 return;
             }
@@ -1658,7 +1677,7 @@ function fixInfoWindowChrome() {
             if (btnNovo) btnNovo.style.display = currentUser.pode_adicionar ? 'inline-flex' : 'none';
         } else {
             document.body.classList.remove('is-common');
-            loadUsersTable(); // Se for admin, já carrega a lista para checar "novos"
+            loadUsersTable();
         }
 
         for (let i = 1; i <= 7; i++) {
@@ -1673,15 +1692,12 @@ function fixInfoWindowChrome() {
         loadDataFromSupabase();
     }
 
-    /* =====================================================================
-       DADOS DO SUPABASE
-       ===================================================================== */
     async function loadDataFromSupabase() {
         const listElement = document.getElementById('providers-list');
         if (listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Carregando banco de dados...</div></li>';
 
         const { data, error } = await _supabase.from('prestadores').select('*');
-        if (error) { console.error("Erro Supabase:", error); alert("Erro ao conectar no banco de dados."); return; }
+        if (error) { console.error("Erro Supabase:", error); await showCustomDialog("Erro ao conectar no banco de dados.", "Erro"); return; }
 
         if (data && data.length > 0) {
             providersData = data;
@@ -1697,9 +1713,6 @@ function fixInfoWindowChrome() {
         }
     }
 
-    /* =====================================================================
-       CORES E LEGENDA
-       ===================================================================== */
     function generateConsultantColors(data) {
         consultantColors = {};
         let cIndex = 0;
@@ -1731,9 +1744,6 @@ function fixInfoWindowChrome() {
         legendContent.innerHTML = Object.values(uniqueConsultants).map(c => `<div><div class="legend-dot" style="background:${c.color};"></div> ${c.name}</div>`).join('');
     }
 
-    /* =====================================================================
-       HELPERS
-       ===================================================================== */
     function toggleDropdown(id) {
         const el = document.getElementById(id);
         if (!el) return;
@@ -1781,9 +1791,6 @@ function fixInfoWindowChrome() {
         return map[status] || '#9296B8';
     }
 
-    /* =====================================================================
-       FILTROS E LISTA
-       ===================================================================== */
     function updateStatusFilter() {
         const ul = document.getElementById('status-items');
         if (!ul) return;
@@ -1904,9 +1911,6 @@ function fixInfoWindowChrome() {
         });
     }
 
-    /* =====================================================================
-       GEOCODE E MARCADORES
-       ===================================================================== */
     function getGeocode(address) {
         return new Promise(resolve => {
             geocoder.geocode({ address }, (results, status) => {
@@ -2063,9 +2067,6 @@ function fixInfoWindowChrome() {
         }
     }
 
-    /* =====================================================================
-       ROTAS E BUSCA DE PRÓXIMOS
-       ===================================================================== */
     let acService = null, acSessionToken = null;
 
     function initAutocomplete() {
@@ -2196,7 +2197,6 @@ function fixInfoWindowChrome() {
 
             if (clientMarker) clientMarker.setMap(null);
             
-            // ── CORREÇÃO: Badge de destino anexada ao Marker via LABEL API ────────────────
             clientMarker = new google.maps.Marker({
                 position: loc, map,
                 title: "Destino da rota",
@@ -2285,7 +2285,7 @@ function fixInfoWindowChrome() {
                     const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div></div></div>`;
                     setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 300);
                 }
-            } else { alert('Erro ao traçar rota. Verifique o endereço de destino.'); }
+            } else { showCustomDialog('Erro ao traçar rota. Verifique o endereço de destino.', "Erro"); }
         });
     }
 
@@ -2305,9 +2305,6 @@ function fixInfoWindowChrome() {
         if (markers.length && map) { map.setZoom(4); map.setCenter({ lat: -15.793889, lng: -47.882778 }); }
     }
 
-    /* =====================================================================
-       TRANSFERÊNCIA EM LOTE
-       ===================================================================== */
     function populateBulkConsultants() {
         const selStateNew = document.getElementById('bulk-new-consultant-select');
         const selReplaceOld = document.getElementById('replace-old-consultant');
@@ -2334,18 +2331,20 @@ function fixInfoWindowChrome() {
         const selectNew = document.getElementById('bulk-new-consultant-select');
         const inputNew = document.getElementById('bulk-new-consultant-input');
         let newConsultant = selectNew.disabled ? inputNew.value.trim() : selectNew.value;
-        if (!uf) { alert("Selecione a UF."); return; }
-        if (!newConsultant) { alert("Selecione ou digite o novo consultor."); return; }
+        if (!uf) { await showCustomDialog("Selecione a UF.", "Atenção"); return; }
+        if (!newConsultant) { await showCustomDialog("Selecione ou digite o novo consultor.", "Atenção"); return; }
         let toUpdate = providersData.filter(p => { let e = p.endereco.toUpperCase(); return e.includes(`- ${uf}`) || e.includes(` ${uf} `) || e.includes(` ${uf}(`) || e.endsWith(uf); });
-        if (!toUpdate.length) { alert(`Nenhum prestador encontrado para ${uf}.`); return; }
-        if (!confirm(`Transferir ${toUpdate.length} prestadores de ${uf} para "${newConsultant}"?`)) return;
+        if (!toUpdate.length) { await showCustomDialog(`Nenhum prestador encontrado para ${uf}.`, "Atenção"); return; }
+        
+        if (!(await showCustomDialog(`Transferir ${toUpdate.length} prestadores de ${uf} para "${newConsultant}"?`, "Confirmar Transferência", true))) return;
+        
         const indicator = document.getElementById('bulk-loading-indicator');
         indicator.style.display = 'block';
         const normNew = normalizeStr(newConsultant);
         const { error } = await _supabase.from('prestadores').update({ consultor: newConsultant, consultorNorm: normNew }).in('id', toUpdate.map(p => p.id));
         indicator.style.display = 'none';
-        if (error) { alert("Erro: " + error.message); }
-        else { alert(`Sucesso! ${toUpdate.length} prestadores transferidos para ${newConsultant}.`); clearAllMarkers(); await loadDataFromSupabase(); }
+        if (error) { await showCustomDialog("Erro: " + error.message, "Erro"); }
+        else { showToast(`Sucesso! ${toUpdate.length} prestadores transferidos para ${newConsultant}.`); clearAllMarkers(); await loadDataFromSupabase(); }
     }
 
     async function executeConsultantReplacement() {
@@ -2353,23 +2352,21 @@ function fixInfoWindowChrome() {
         const selectNew = document.getElementById('replace-new-consultant-select');
         const inputNew = document.getElementById('replace-new-consultant-input');
         let newConsultant = selectNew.disabled ? inputNew.value.trim() : selectNew.value;
-        if (!oldConsultant || !newConsultant) { alert("Preencha os campos."); return; }
-        if (oldConsultant === newConsultant) { alert("Consultores não podem ser iguais."); return; }
+        if (!oldConsultant || !newConsultant) { await showCustomDialog("Preencha os campos.", "Atenção"); return; }
+        if (oldConsultant === newConsultant) { await showCustomDialog("Consultores não podem ser iguais.", "Atenção"); return; }
         let toUpdate = providersData.filter(p => p.consultor && p.consultor.trim() === oldConsultant);
-        if (!toUpdate.length) { alert(`Nenhum prestador para ${oldConsultant}.`); return; }
-        if (!confirm(`Transferir TODA a carteira (${toUpdate.length}) de "${oldConsultant}" para "${newConsultant}"?`)) return;
+        if (!toUpdate.length) { await showCustomDialog(`Nenhum prestador para ${oldConsultant}.`, "Atenção"); return; }
+        
+        if (!(await showCustomDialog(`Transferir TODA a carteira (${toUpdate.length}) de "${oldConsultant}" para "${newConsultant}"?`, "Confirmar Substituição", true))) return;
+        
         const indicator = document.getElementById('replace-loading-indicator');
         indicator.style.display = 'block';
         const normNew = normalizeStr(newConsultant);
         const { error } = await _supabase.from('prestadores').update({ consultor: newConsultant, consultorNorm: normNew }).in('id', toUpdate.map(p => p.id));
         indicator.style.display = 'none';
-        if (error) { alert("Erro: " + error.message); }
-        else { alert(`Sucesso! Carteira transferida para ${newConsultant}.`); clearAllMarkers(); await loadDataFromSupabase(); }
+        if (error) { await showCustomDialog("Erro: " + error.message, "Erro"); }
+        else { showToast(`Sucesso! Carteira transferida para ${newConsultant}.`); clearAllMarkers(); await loadDataFromSupabase(); }
     }
-
-    /* =====================================================================
-       CRUD PRESTADORES — LOG COMPLETO DE ALTERAÇÕES
-       ===================================================================== */
 
     let _pendingStatusChange = null;
     let _pendingFieldSnapshot = null;  
@@ -2398,7 +2395,7 @@ function fixInfoWindowChrome() {
 
     async function confirmStatusChange() {
         const motivo = document.getElementById('srm-motivo').value.trim();
-        if (!motivo) { alert('Por favor, descreva o motivo da alteração.'); return; }
+        if (!motivo) { await showCustomDialog('Por favor, descreva o motivo da alteração.', "Atenção"); return; }
         if (!_pendingStatusChange) return;
 
         const { id, newStatus, oldStatus } = _pendingStatusChange;
@@ -2456,7 +2453,7 @@ function fixInfoWindowChrome() {
             status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng, cnpj: p.cnpj
         }).eq('id', id);
 
-        if (error) { alert("Erro ao atualizar: " + error.message); return; }
+        if (error) { await showCustomDialog("Erro ao atualizar: " + error.message, "Erro"); return; }
         _afterEditSave(id, p, coordsChanged);
     }
 
@@ -2478,7 +2475,7 @@ function fixInfoWindowChrome() {
                 mk.setZIndex(p.piloto ? 10 : 1);
             }
         }
-        updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('edit-modal');
+        updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('edit-modal'); showToast('Prestador atualizado com sucesso!');
     }
 
     async function openStatusLog(prestadorId) {
@@ -2545,8 +2542,8 @@ function fixInfoWindowChrome() {
         let coords = await getGeocode(p.endereco);
         p.lat = coords.lat; p.lng = coords.lng;
         const { data, error } = await _supabase.from('prestadores').insert([p]).select();
-        if (error) { alert("Erro ao salvar prestador."); console.error(error); }
-        else if (data && data.length > 0) { providersData.push(data[0]); generateConsultantColors(providersData); if (data[0].lat) createMarker(data[0]); updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('register-modal'); }
+        if (error) { await showCustomDialog("Erro ao salvar prestador.", "Erro"); console.error(error); }
+        else if (data && data.length > 0) { providersData.push(data[0]); generateConsultantColors(providersData); if (data[0].lat) createMarker(data[0]); updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('register-modal'); showToast('Prestador cadastrado com sucesso!'); }
     }
 
     function openEditModal(id) {
@@ -2622,7 +2619,7 @@ function fixInfoWindowChrome() {
             status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng, cnpj: p.cnpj || null
         }).eq('id', id);
 
-        if (error) { alert("Erro ao atualizar."); console.error(error); }
+        if (error) { await showCustomDialog("Erro ao atualizar.", "Erro"); console.error(error); }
         else {
             if (_pendingFieldSnapshot) {
                 const afterSnap = {
@@ -2647,9 +2644,6 @@ function fixInfoWindowChrome() {
         }
     }
 
-    /* =====================================================================
-       IMPORTAÇÃO DE PLANILHA
-       ===================================================================== */
     function fixStr(s) {
         if (!s) return s; let str = String(s);
         try { return decodeURIComponent(escape(str)); } catch(e) { return str; }
@@ -2669,13 +2663,13 @@ function fixInfoWindowChrome() {
                     wb = XLSX.read(text, { type: 'string' });
                 } else { const data = new Uint8Array(ev.target.result); wb = XLSX.read(data, { type: 'array', codepage: 1252 }); }
                 processWorkbook(wb);
-            } catch(err) { alert("Erro ao ler o arquivo: " + err.message); }
+            } catch(err) { showCustomDialog("Erro ao ler o arquivo: " + err.message, "Erro"); }
         };
         if (isCsv) reader.readAsText(file, 'UTF-8'); else reader.readAsArrayBuffer(file);
     }
 
     function processWorkbook(wb) {
-        const ws = wb.Sheets[wb.SheetNames[0]]; if (!ws) { alert("Erro ao ler a planilha."); return; }
+        const ws = wb.Sheets[wb.SheetNames[0]]; if (!ws) { showCustomDialog("Erro ao ler a planilha.", "Erro"); return; }
         const headers = XLSX.utils.sheet_to_json(ws, { header: 1 })[0];
         rawImportedData = XLSX.utils.sheet_to_json(ws, { defval: "" });
         if (headers && headers.length) { populateMappingDropdowns(headers); openModal('mapping-modal'); }
@@ -2767,7 +2761,7 @@ function fixInfoWindowChrome() {
         if (indicator) indicator.innerText = `Inserindo ${toInsert.length} novos registros...`;
         if (toInsert.length > 0) {
             const { error } = await _supabase.from('prestadores').insert(toInsert);
-            if (error) { alert("Erro ao inserir: " + error.message); }
+            if (error) { await showCustomDialog("Erro ao inserir: " + error.message, "Erro"); }
         }
 
         if (indicator) indicator.style.display = 'none';
@@ -2775,14 +2769,11 @@ function fixInfoWindowChrome() {
             + '✅ ' + toUpdate.length + ' atualizados\n'
             + '➕ ' + toInsert.length + ' novos inseridos'
             + (errCount ? '\n⚠️ ' + errCount + ' erros na atualização' : '');
-        alert(msg);
+        showToast(msg);
         clearAllMarkers();
         await loadDataFromSupabase();
     }
 
-    /* =====================================================================
-       MODAL RESUMO
-       ===================================================================== */
     function openSummaryModal() {
         if (!providersData.length) { document.getElementById('summary-content').innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:13px;">Nenhum prestador na base.</p>`; openModal('summary-modal'); return; }
         let countStatus = {};
@@ -2805,14 +2796,11 @@ function fixInfoWindowChrome() {
         openModal('summary-modal');
     }
 
-    /* =====================================================================
-       UTILITÁRIOS
-       ===================================================================== */
     function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
     function closeModal(id) { const el = document.getElementById(id); if (el) { el.style.display = 'none'; el.classList.remove('open'); } }
     function clearAllMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
 
-    document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }); });
+    document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m && m.id !== 'custom-dialog-backdrop') closeModal(m.id); }); });
 
     const btnSummary = document.getElementById('btn-summary');
     if (btnSummary) btnSummary.addEventListener('click', openSummaryModal);
