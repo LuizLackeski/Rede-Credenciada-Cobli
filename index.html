@@ -966,7 +966,7 @@
     <div class="modal-box wide">
         <div class="modal-head">
             <h3>Resumo geral da rede</h3>
-            <button class="modal-close" onclick="closeModal('summary-modal')">×</button>
+            <button class="modal-close" onclick="confirmDiscardEdit()">×</button>
         </div>
         <div class="modal-body" id="summary-content"></div>
     </div>
@@ -1050,7 +1050,7 @@
                     <label for="e-piloto" style="margin: 0; color: var(--cobli-navy); font-size: 12px; text-transform: none;">⭐ Prestador Piloto (Casos Críticos)</label>
                 </div>
                 <div class="btn-row" style="margin-top: 16px;">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('edit-modal')">Cancelar</button>
+                    <button type="button" class="btn btn-outline" onclick="confirmDiscardEdit()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar alterações</button>
                 </div>
             </form>
@@ -1149,6 +1149,27 @@
         });
     }
 
+    function confirmDiscardEdit() {
+    const fields = ['e-nome','e-consultor','e-email','e-contato','e-cnpj','e-endereco'];
+    const id = parseInt(document.getElementById('e-id').value);
+    const p = providersData.find(x => x.id === id);
+    if (!p) { closeModal('edit-modal'); return; }
+
+    const isDirty = 
+        document.getElementById('e-nome').value !== (p.nome || '') ||
+        document.getElementById('e-consultor').value !== (p.consultor || '') ||
+        document.getElementById('e-email').value !== (p.email || '') ||
+        document.getElementById('e-contato').value !== (p.contato || '') ||
+        document.getElementById('e-cnpj').value !== (p.cnpj || '') ||
+        document.getElementById('e-endereco').value !== (p.endereco || '') ||
+        document.getElementById('e-status').value !== (p.status || 'Ativo') ||
+        document.getElementById('e-piloto').checked !== (p.piloto || false);
+
+    if (!isDirty) { closeModal('edit-modal'); return; }
+
+    showCustomDialog('Você tem alterações não salvas. Deseja descartar?', 'Descartar alterações?', true)
+        .then(confirmed => { if (confirmed) closeModal('edit-modal'); });
+}
     /* =====================================================================
        FUNÇÃO DE TOAST (NOTIFICAÇÃO) CENTRALIZADO
        ===================================================================== */
@@ -1542,8 +1563,8 @@
         directionsRenderer = new google.maps.DirectionsRenderer({ preserveViewport: true, suppressMarkers: true });
         directionsRenderer.setMap(map);
         geocoder = new google.maps.Geocoder();
-        infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false });
-        clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
+        infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false, pixelOffset: new google.maps.Size(-170, 0) });
+        clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false, pixelOffset: new google.maps.Size(170, 0) });
 
         function fixInfoWindowChrome() {
             if (!document.getElementById('cobli-iw-close-fix')) {
@@ -2054,7 +2075,7 @@
         const fullContent = content.replace('ROUTE_BTN_HERE', routeBtn)
             + (extraRouteHtml ? '<div style="padding:0 16px 12px;">' + extraRouteHtml + '</div>' : '');
         infoWindowGlobal.setContent(fullContent);
-        infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false, pixelOffset: new google.maps.Size(-160, 0) });
+        infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
     }
 
     function centerMapOnProvider(id) {
@@ -2211,7 +2232,7 @@
             
             clientMarker.addListener("click", () => {
                 clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`);
-                clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false, pixelOffset: new google.maps.Size(160, 0) });
+                clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false });
             });
 
             map.setCenter(loc);
@@ -2283,7 +2304,7 @@
                 }
                 if (clientMarker) {
                     const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div></div></div>`;
-                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false, pixelOffset: new google.maps.Size(160, 0) }); }, 300);
+                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 300);
                 }
             } else { showCustomDialog('Erro ao traçar rota. Verifique o endereço de destino.', "Erro"); }
         });
