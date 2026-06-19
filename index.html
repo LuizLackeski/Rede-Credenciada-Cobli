@@ -167,36 +167,50 @@
         .modal-close:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
         .modal-body { padding: 20px; }
 
+        /* =====================================================================
+           INFOWINDOW — botão fechar limpo e elegante
+           ===================================================================== */
         .gm-style-iw { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
         .gm-style-iw-d { overflow: hidden !important; padding: 0 !important; }
         .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
         .gm-style-iw-t::after { display: none !important; }
-        /* Hide default close button - we rely on Google's own X */
-        .gm-ui-hover-effect {
-            top: 4px !important;
-            right: 4px !important;
-            width: 24px !important;
-            height: 24px !important;
-            opacity: 0.8 !important;
-            background: rgba(255,255,255,0.9) !important;
-            border-radius: 50% !important;
-            overflow: hidden !important;
-        }
-        /* Remove the extra top padding Google adds above content */
+
+        /* Esconde o botão padrão feio do Google — vamos usar o .gm-style-iw-chr button estilizado */
+        .gm-ui-hover-effect { display: none !important; }
+
+        /* Posiciona o container do botão fechar como overlay no canto superior direito */
         .gm-style-iw-chr {
             position: absolute !important;
             top: 0 !important;
             right: 0 !important;
             height: 0 !important;
             overflow: visible !important;
+            z-index: 20 !important;
         }
+        /* O botão em si: círculo escuro navy com X branco */
         .gm-style-iw-chr button {
-            margin: 4px !important;
-            background: rgba(255,255,255,0.85) !important;
+            margin: 6px 6px 0 0 !important;
+            background: #07074E !important;
             border-radius: 50% !important;
-            width: 24px !important;
-            height: 24px !important;
+            width: 26px !important;
+            height: 26px !important;
+            border: none !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+            opacity: 1 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            overflow: hidden !important;
+            cursor: pointer !important;
         }
+        /* Força ícone interno branco */
+        .gm-style-iw-chr button img,
+        .gm-style-iw-chr button span {
+            filter: brightness(0) invert(1) !important;
+            width: 14px !important;
+            height: 14px !important;
+        }
+
         .iw-card { width: 270px; font-family: 'Inter','Segoe UI',sans-serif; }
         .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
         .iw-head.destination { background: linear-gradient(135deg, #B01010 0%, #FF4633 100%); flex-direction: row;}
@@ -691,7 +705,8 @@
         <span style="color:#fff;font-size:13px;font-weight:700;letter-spacing:-0.2px;">Rede de Prestadores</span>
     </div>
     <div style="display:flex;gap:6px;">
-        <button class="btn-ghost" id="btn-summary-mobile" title="Resumo" style="padding:6px 8px;">
+        <!-- CORREÇÃO: onclick adicionado diretamente no botão mobile de resumo -->
+        <button class="btn-ghost" id="btn-summary-mobile" onclick="openSummaryModal()" title="Resumo" style="padding:6px 8px;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         </button>
         <button class="btn-ghost" onclick="toggleDarkMode()" title="Modo escuro" style="padding:6px 8px;">
@@ -752,10 +767,6 @@
                 </ul>
             </div>
         </div>
-
-
-
-
 
         <div id="bloco-3" class="section-card">
             <div class="section-header">
@@ -896,8 +907,6 @@
                 <div id="loading-indicator">Processando...</div>
             </div>
         </div>
-
-    
 
     </div>
 </div>
@@ -1089,11 +1098,11 @@
     </div>
 </div>
 
-<!-- MODAL: HISTÓRICO DE STATUS -->
+<!-- MODAL: HISTÓRICO DE ALTERAÇÕES -->
 <div id="status-log-modal" class="modal-backdrop">
     <div class="modal-box" style="width:500px;">
         <div class="modal-head">
-            <h3>📋 Histórico de status</h3>
+            <h3>📋 Histórico de alterações</h3>
             <button class="modal-close" onclick="closeModal('status-log-modal')">×</button>
         </div>
         <div class="modal-body">
@@ -1144,10 +1153,8 @@
         container.innerHTML = '<div class="users-empty">⏳ Carregando usuários...</div>';
         usersDisplayCount = 5;
 
-        // Order by created_at desc (most recent first), fallback to email
         const { data, error } = await _supabase.from('usuarios').select('*').order('created_at', { ascending: false, nullsFirst: false });
         if (error) {
-            // Fallback: try without created_at ordering
             const { data: data2, error: error2 } = await _supabase.from('usuarios').select('*').order('email');
             if (error2) {
                 container.innerHTML = `<div class="users-empty" style="color:var(--cobli-red);">Erro: ${error2.message}</div>`;
@@ -1214,7 +1221,6 @@
         const podeAdd = u.pode_adicionar === true;
         const emailId = u.email.replace(/[@.]/g, '_');
 
-        // Build blocos grid
         const blocosHTML = Object.entries(BLOCK_LABELS).map(([num, info]) => {
             const checked = blocosArr.includes(String(num));
             let extraPerms = '';
@@ -1242,7 +1248,6 @@
             </div>`;
         }).join('');
 
-        // Build status pills
         const statusHTML = ALL_STATUSES.map(s => {
             const checked = statusArr.includes(s);
             const col = getStatusColor(s);
@@ -1271,7 +1276,6 @@
                 <span class="uac-chevron" id="chevron-${emailId}">▾</span>
             </div>
             <div class="uac-body" id="body-${emailId}">
-
                 <div class="uac-section">
                     <div class="uac-section-title">Perfil de Acesso</div>
                     <div class="uac-perfil-select">
@@ -1287,7 +1291,6 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="uac-section" id="blocos-section-${emailId}"
                      style="${isAdmin ? 'opacity:0.45; pointer-events:none;' : ''}">
                     <div class="uac-section-title">Blocos Visíveis</div>
@@ -1295,14 +1298,12 @@
                         ${blocosHTML}
                     </div>
                 </div>
-
                 <div class="uac-section">
                     <div class="uac-section-title">Status que pode visualizar</div>
                     <div class="uac-status-grid" id="status-grid-${emailId}">
                         ${statusHTML}
                     </div>
                 </div>
-
                 <button class="uac-save-btn" onclick="saveUserPermissions('${u.email}', '${emailId}')">
                     💾 Salvar Permissões
                 </button>
@@ -1316,7 +1317,6 @@
         if (error) {
             alert('Erro ao remover usuário: ' + error.message);
         } else {
-            // Remove from local array and re-render
             allUsersData = allUsersData.filter(u => u.email !== email);
             renderUsersCards();
         }
@@ -1331,7 +1331,6 @@
     }
 
     function toggleBlocoItem(el) {
-        // Only toggle if clicking directly on the div, not on sub-perms
         const cb = el.querySelector('.uac-bloco-cb');
         if (!cb) return;
         const newVal = !cb.checked;
@@ -1432,13 +1431,11 @@
     /* =====================================================================
        INICIALIZAÇÃO E LOGIN
        ===================================================================== */
-    // Formata nome: primeira letra de cada palavra maiúscula, resto minúsculo
     function formatNome(nome) {
         if (!nome) return nome;
         return String(nome).toLowerCase().replace(/(?:^|\s|-)\S/g, function(c) { return c.toUpperCase(); });
     }
 
-        // ── DARK MODE ──────────────────────────────────────────────────────────
     function toggleDarkMode() {
         const isDark = document.body.classList.toggle('dark-mode');
         localStorage.setItem('darkMode', isDark ? '1' : '0');
@@ -1450,13 +1447,11 @@
         }
     }
 
-    // ── MOBILE SIDEBAR ─────────────────────────────────────────────────────
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('mobile-overlay');
         const isOpen = sidebar.classList.toggle('mobile-open');
         if (overlay) overlay.classList.toggle('open', isOpen);
-        // Rotate hamburger lines when open
         const btn = document.getElementById('mobile-menu-btn');
         if (btn) btn.classList.toggle('active', isOpen);
     }
@@ -1468,7 +1463,7 @@
         if (overlay) overlay.classList.remove('open');
     }
 
-        function initMap() {
+    function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: -15.793889, lng: -47.882778 }, zoom: 4,
             mapTypeControl: true, streetViewControl: false
@@ -1480,19 +1475,34 @@
         infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false });
         clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
 
-        // Fix InfoWindow chrome: remove white space, style close button
+        // ── CORREÇÃO: botão fechar infowindow ────────────────────────────
+        // Aplica via setTimeout para garantir que o DOM do IW esteja pronto
         function fixInfoWindowChrome() {
-            var chr = document.querySelector('.gm-style-iw-chr');
-            if (chr) chr.style.cssText = 'position:absolute;top:0;right:0;height:0;overflow:visible;z-index:10;';
-            // Style the close button: white X on dark background
-            var btn = document.querySelector('.gm-style-iw-chr button');
-            if (btn) {
-                btn.style.cssText = 'position:relative;z-index:10;margin:6px 6px 0 0;background:#07074E;border-radius:50%;width:26px;height:26px;border:none;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;';
-                // Replace the gray icon with a white X
-                btn.innerHTML = '<span style="color:#fff;font-size:14px;font-weight:700;line-height:1;pointer-events:none;">×</span>';
-            }
-            var d = document.querySelector('.gm-style-iw-d');
-            if (d) d.style.cssText = 'overflow:hidden!important;padding:0!important;';
+            setTimeout(function() {
+                // Remove qualquer ícone/imagem do botão e coloca um X branco limpo
+                var btn = document.querySelector('.gm-style-iw-chr button');
+                if (btn) {
+                    btn.style.cssText = [
+                        'position:relative',
+                        'z-index:20',
+                        'margin:6px 6px 0 0',
+                        'background:#07074E',
+                        'border-radius:50%',
+                        'width:26px',
+                        'height:26px',
+                        'border:none',
+                        'cursor:pointer',
+                        'box-shadow:0 2px 8px rgba(0,0,0,0.4)',
+                        'display:flex',
+                        'align-items:center',
+                        'justify-content:center',
+                        'flex-shrink:0'
+                    ].join(';');
+                    btn.innerHTML = '<span style="color:#fff;font-size:16px;font-weight:700;line-height:1;pointer-events:none;display:block;margin-top:-1px;">×</span>';
+                }
+                var d = document.querySelector('.gm-style-iw-d');
+                if (d) d.style.cssText = 'overflow:hidden!important;padding:0!important;';
+            }, 50);
         }
         google.maps.event.addListener(infoWindowGlobal, 'domready', fixInfoWindowChrome);
         google.maps.event.addListener(clientInfoWindow, 'domready', fixInfoWindowChrome);
@@ -1559,7 +1569,6 @@
         const loginOverlay = document.getElementById('login-overlay');
         if (loginOverlay) loginOverlay.style.display = 'none';
 
-        // Restore dark mode preference
         if (localStorage.getItem('darkMode') === '1') {
             document.body.classList.add('dark-mode');
             const icon = document.getElementById('dark-icon');
@@ -1568,14 +1577,12 @@
 
         if (currentUser.perfil === 'comum') {
             document.body.classList.add('is-common');
-            // Controla botão Novo no bloco 1
             const btnNovo = document.querySelector('#bloco-1 .btn-secondary');
             if (btnNovo) btnNovo.style.display = currentUser.pode_adicionar ? 'inline-flex' : 'none';
         } else {
             document.body.classList.remove('is-common');
         }
 
-        // Exibe blocos conforme permissão
         for (let i = 1; i <= 7; i++) {
             const bloco = document.getElementById(`bloco-${i}`);
             if (bloco) {
@@ -1842,15 +1849,12 @@
     }
 
     function makeMarkerSvg(color, isPiloto) {
-        // Beautiful custom pin: rounded body, white inner circle, shadow, gold ring for piloto
         const ring = isPiloto
             ? `<circle cx="20" cy="20" r="19" fill="none" stroke="#FFD700" stroke-width="3.5" opacity="0.95"/>`
             : `<circle cx="20" cy="20" r="19" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>`;
-
         const star = isPiloto
             ? `<text x="20" y="15" text-anchor="middle" font-size="9" fill="#FFD700" font-family="Arial">⭐</text>`
             : '';
-
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="52" viewBox="0 0 40 52">
             <defs>
                 <filter id="shadow" x="-30%" y="-10%" width="160%" height="160%">
@@ -1861,14 +1865,11 @@
                     <stop offset="100%" stop-color="${color}"/>
                 </radialGradient>
             </defs>
-            <!-- Pin body with shadow -->
             <g filter="url(#shadow)">
                 <path d="M20 2 C10.06 2 2 10.06 2 20 C2 32 20 50 20 50 C20 50 38 32 38 20 C38 10.06 29.94 2 20 2 Z"
                       fill="url(#grad-${color.replace('#','')})" />
                 ${ring}
-                <!-- White inner circle -->
                 <circle cx="20" cy="20" r="8" fill="rgba(255,255,255,0.92)"/>
-                <!-- Colored dot inside -->
                 <circle cx="20" cy="20" r="5" fill="${color}"/>
                 ${star}
             </g>
@@ -1877,12 +1878,20 @@
     }
 
     function lightenColor(hex, amount) {
-        // Lighten a hex color by amount (0-255)
         const num = parseInt(hex.replace('#',''), 16);
         const r = Math.min(255, (num >> 16) + amount);
         const g = Math.min(255, ((num >> 8) & 0xff) + amount);
         const b = Math.min(255, (num & 0xff) + amount);
         return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    // ── CORREÇÃO: marcador destino — emoji 📍 minimalista ────────────────
+    function makeDestinationPin() {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44">
+            <text x="18" y="34" text-anchor="middle" font-size="32"
+                  font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">📍</text>
+        </svg>`;
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
     }
 
     function createMarker(prestador) {
@@ -1948,12 +1957,11 @@
                     <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light);">
                         <button onclick="openStatusLog(${p.id})" style="width:100%;padding:6px 10px;background:var(--surface-muted);border:1px solid var(--border-mid);border-radius:6px;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;"
                             onmouseover="this.style.background='var(--cobli-lavender)'" onmouseout="this.style.background='var(--surface-muted)'">
-                            📋 Ver histórico de status
+                            📋 Ver histórico de alterações
                         </button>
                     </div>
                 </div>
             </div>`;
-        // Add route button if there's a destination address — compact inline in header
         const hasAddr = document.getElementById('client-address')?.value.trim();
         const routeBtn = hasAddr
             ? `<button onclick="traceRealRoute(${p.id},${p.lat || 0},${p.lng || 0})"
@@ -1962,10 +1970,8 @@
                 🚗 Calcular rota
                </button>`
             : '';
-        const fullContent = content.replace(
-            'ROUTE_BTN_HERE',
-            routeBtn
-        ) + (extraRouteHtml ? '<div style="padding:0 16px 12px;">' + extraRouteHtml + '</div>' : '');
+        const fullContent = content.replace('ROUTE_BTN_HERE', routeBtn)
+            + (extraRouteHtml ? '<div style="padding:0 16px 12px;">' + extraRouteHtml + '</div>' : '');
         infoWindowGlobal.setContent(fullContent);
         infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
     }
@@ -1976,14 +1982,13 @@
             map.setCenter({ lat: p.lat, lng: p.lng });
             map.setZoom(15);
             openProviderInfoWindow(p.id);
-            closeSidebar(); // Close sidebar on mobile after selecting
+            closeSidebar();
         }
     }
 
     /* =====================================================================
        ROTAS E BUSCA DE PRÓXIMOS
        ===================================================================== */
-    // ── AUTOCOMPLETE ──────────────────────────────────────────
     let acService = null, acSessionToken = null;
 
     function initAutocomplete() {
@@ -2038,31 +2043,11 @@
         findClosestProviders();
     }
 
-    function makeDestinationPin() {
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="52" viewBox="0 0 36 52">
-            <defs>
-                <filter id="ps" x="-50%" y="-20%" width="200%" height="200%">
-                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.4)"/>
-                </filter>
-            </defs>
-            <g filter="url(#ps)">
-                <path d="M18 2C10.3 2 4 8.3 4 16C4 26 18 44 18 44C18 44 32 26 32 16C32 8.3 25.7 2 18 2Z" fill="#E53935"/>
-                <circle cx="18" cy="16" r="7" fill="white" opacity="0.95"/>
-                <circle cx="18" cy="16" r="4" fill="#E53935"/>
-            </g>
-            <rect x="1" y="45" width="34" height="6" rx="3" fill="#07074E"/>
-            <text x="18" y="50" text-anchor="middle" font-size="5.5" font-weight="800"
-                  fill="white" font-family="Arial,sans-serif">DESTINO DA ROTA</text>
-        </svg>`;
-        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-    }
-
-        function toggleResultDetails() {
+    function toggleResultDetails() {
         window._resultExpanded = !window._resultExpanded;
         renderResults();
     }
 
-    // ── RESULT LIST (module-scope so toggle button can call it) ──────────
     function renderResults() {
         var resultDiv = document.getElementById('routing-result');
         if (!resultDiv) return;
@@ -2070,11 +2055,7 @@
         if (!inRange.length) return;
 
         var exp = window._resultExpanded;
-        var topN = inRange.slice(0, 5);
-        var totalExtra = inRange.length - 5;
-        var plural = inRange.length !== 1 ? 'es' : '';
 
-        // Header: counter + toggle button
         var toggleIcon = exp ? '▲' : '▼';
         var toggleLbl  = exp ? ' Ocultar lista' : ' Ver prestadores';
         var toggleColor = exp ? 'var(--cobli-indigo)' : '#00AE97';
@@ -2084,13 +2065,14 @@
             + '<button onclick="toggleResultDetails()" style="background:none;border:none;font-size:11px;font-weight:700;color:' + toggleColor + ';cursor:pointer;padding:0;font-family:inherit;">' + toggleIcon + toggleLbl + '</button>'
             + '</div>';
 
-        // If collapsed: show only header
         if (!exp) {
             resultDiv.innerHTML = header;
             return;
         }
 
-        // If expanded: show list with phone inline
+        var topN = inRange.slice(0, 5);
+        var totalExtra = inRange.length - 5;
+
         var cards = topN.map(function(item, i) {
             var km = (item.distance / 1000).toFixed(1);
             var col = getStatusColor(item.prestador.status);
@@ -2118,7 +2100,7 @@
         resultDiv.innerHTML = header + cards + footer;
     }
 
-        function findClosestProviders() {
+    function findClosestProviders() {
         const clientAddress = document.getElementById('client-address').value.trim();
         const resultDiv = document.getElementById('routing-result');
         if (!clientAddress) return;
@@ -2135,16 +2117,16 @@
             const loc = results[0].geometry.location;
             const formattedAddr = results[0].formatted_address;
 
-            // Place distinctive destination marker (star/flag shape)
             if (clientMarker) clientMarker.setMap(null);
+            // ── CORREÇÃO: marcador destino com emoji 📍 (tamanho e anchor corretos)
             clientMarker = new google.maps.Marker({
                 position: loc, map,
                 title: "Destino da rota",
-                icon: { url: makeDestinationPin(), scaledSize: new google.maps.Size(36, 52), anchor: new google.maps.Point(18, 44) },
+                icon: { url: makeDestinationPin(), scaledSize: new google.maps.Size(36, 44), anchor: new google.maps.Point(18, 40) },
                 zIndex: 999
             });
             clientMarker.addListener("click", () => {
-                clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">⭐</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`);
+                clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`);
                 clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false });
             });
 
@@ -2157,7 +2139,6 @@
             const selConsultors = getCheckedValues('consultor-items');
             const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
 
-            // Show ONLY markers within range
             let inRange = [];
             markers.forEach(m => {
                 const p = providersData.find(x => x.id === m.customId);
@@ -2191,21 +2172,15 @@
                 return;
             }
 
-            // Store results globally so renderResults can access after geocoder callback ends
             window._lastInRange = inRange;
             window._resultExpanded = false;
             renderResults();
-
         });
     }
 
     function traceRealRoute(pId, pLat, pLng) {
         const clientAddress = document.getElementById('client-address').value.trim();
-        if (!clientAddress) {
-            // No address — just open the infowindow
-            openProviderInfoWindow(pId);
-            return;
-        }
+        if (!clientAddress) { openProviderInfoWindow(pId); return; }
         const origin = new google.maps.LatLng(pLat, pLng);
         directionsService.route({ origin, destination: clientAddress, travelMode: google.maps.TravelMode.DRIVING }, (response, status) => {
             if (status === 'OK') {
@@ -2213,20 +2188,17 @@
                 const bounds = new google.maps.LatLngBounds();
                 bounds.extend(origin); bounds.extend(response.routes[0].legs[0].end_location);
                 map.fitBounds(bounds);
-                // Update infowindow with route info
                 const p = providersData.find(x => x.id === pId);
                 const mk = markers.find(m => m.customId === pId);
                 if (p && mk) {
-                    const statusColor = getStatusColor(p.status);
                     const extraRoute = `<div style="margin-top:10px;padding:8px;background:#F0F4FF;border-radius:6px;border-left:3px solid var(--cobli-indigo);">
                         <div style="font-size:10px;font-weight:700;color:var(--cobli-indigo);text-transform:uppercase;margin-bottom:4px;">Rota calculada</div>
                         <div style="font-size:12px;font-weight:600;">🚗 ${response.routes[0].legs[0].distance.text} &nbsp;·&nbsp; ⏱ ${response.routes[0].legs[0].duration.text}</div>
                     </div>`;
-                    // Re-open infowindow with route info appended
                     openProviderInfoWindow(pId, mk, extraRoute);
                 }
                 if (clientMarker) {
-                    const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">⭐</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div></div></div>`;
+                    const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div></div></div>`;
                     setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 300);
                 }
             } else { alert('Erro ao traçar rota. Verifique o endereço de destino.'); }
@@ -2245,7 +2217,6 @@
         if (clientMarker) { clientMarker.setMap(null); clientMarker = null; }
         if (infoWindowGlobal) infoWindowGlobal.close();
         if (clientInfoWindow) clientInfoWindow.close();
-        // Restore all markers visibility
         applyFilters();
         if (markers.length && map) { map.setZoom(4); map.setCenter({ lat: -15.793889, lng: -47.882778 }); }
     }
@@ -2313,9 +2284,35 @@
     }
 
     /* =====================================================================
-       CRUD PRESTADORES
+       CRUD PRESTADORES — LOG COMPLETO DE ALTERAÇÕES
        ===================================================================== */
-    // ── STATUS LOG FUNCTIONS ──────────────────────────────────────────────
+
+    // Pending state para mudança de status
+    let _pendingStatusChange = null;
+    let _pendingFieldSnapshot = null;  // snapshot dos campos ANTES de editar
+
+    // Monta diff legível entre dois objetos de prestador
+    function buildChangeDiff(before, after) {
+        const labels = {
+            nome:      'Nome',
+            consultor: 'Consultor',
+            email:     'E-mail',
+            contato:   'Telefone',
+            cnpj:      'CNPJ',
+            endereco:  'Endereço',
+            status:    'Status',
+            piloto:    'Piloto'
+        };
+        let parts = [];
+        for (const key of Object.keys(labels)) {
+            const bv = before[key] == null ? '' : String(before[key]);
+            const av = after[key] == null ? '' : String(after[key]);
+            if (bv !== av) {
+                parts.push(`${labels[key]}: "${bv}" → "${av}"`);
+            }
+        }
+        return parts.join(' | ');
+    }
 
     async function confirmStatusChange() {
         const motivo = document.getElementById('srm-motivo').value.trim();
@@ -2326,30 +2323,48 @@
         _pendingStatusChange = null;
         closeModal('status-reason-modal');
 
-        // Save log entry
-        await _supabase.from('status_log').insert([{
-            prestador_id: id,
-            status_anterior: oldStatus,
-            status_novo: newStatus,
-            motivo: motivo,
-            usuario_email: currentUser.email
-        }]);
-
-        // Now apply the status change + full save
         const pIndex = providersData.findIndex(x => x.id === id);
         if (pIndex === -1) return;
         let p = providersData[pIndex];
         const oldEnd = p.endereco;
 
-        p.nome = document.getElementById('e-nome').value;
-        p.consultor = document.getElementById('e-consultor').value;
+        const afterSnap = {
+            nome:      document.getElementById('e-nome').value,
+            consultor: document.getElementById('e-consultor').value,
+            email:     document.getElementById('e-email').value,
+            contato:   document.getElementById('e-contato').value,
+            cnpj:      document.getElementById('e-cnpj') ? document.getElementById('e-cnpj').value.replace(/[^0-9]/g,'') : (p.cnpj || ''),
+            endereco:  document.getElementById('e-endereco').value,
+            status:    newStatus,
+            piloto:    document.getElementById('e-piloto').checked
+        };
+
+        // Monta diff completo para o log
+        const before = _pendingFieldSnapshot || { status: oldStatus };
+        const diff = buildChangeDiff(before, afterSnap);
+        const logAlteracoes = diff || `Status: "${oldStatus}" → "${newStatus}"`;
+
+        // Salva entrada no log
+        await _supabase.from('status_log').insert([{
+            prestador_id: id,
+            status_anterior: oldStatus,
+            status_novo: newStatus,
+            motivo: motivo,
+            usuario_email: currentUser.email,
+            alteracoes: logAlteracoes
+        }]);
+        _pendingFieldSnapshot = null;
+
+        // Aplica no objeto local
+        p.nome = afterSnap.nome;
+        p.consultor = afterSnap.consultor;
         p.consultorNorm = normalizeStr(p.consultor);
-        p.email = document.getElementById('e-email').value;
-        p.contato = document.getElementById('e-contato').value;
-        p.endereco = document.getElementById('e-endereco').value;
+        p.email = afterSnap.email;
+        p.contato = afterSnap.contato;
+        p.endereco = afterSnap.endereco;
         p.status = newStatus;
-        p.piloto = document.getElementById('e-piloto').checked;
-        if (document.getElementById('e-cnpj')) p.cnpj = document.getElementById('e-cnpj').value.replace(/[^0-9]/g,'') || null;
+        p.piloto = afterSnap.piloto;
+        if (document.getElementById('e-cnpj')) p.cnpj = afterSnap.cnpj || null;
 
         let coordsChanged = false;
         if (oldEnd !== p.endereco) {
@@ -2404,7 +2419,7 @@
             .order('created_at', { ascending: false });
 
         if (error || !data || !data.length) {
-            contentEl.innerHTML = '<div class="empty-state">Nenhuma alteração de status registrada.</div>';
+            contentEl.innerHTML = '<div class="empty-state">Nenhuma alteração registrada ainda.</div>';
             return;
         }
 
@@ -2413,13 +2428,31 @@
             const dtStr = dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
             const colOld = getStatusColor(log.status_anterior);
             const colNew = getStatusColor(log.status_novo);
+            const isStatusChange = log.status_anterior !== log.status_novo;
+            const hasAlteracoes = log.alteracoes && log.alteracoes.trim();
+
+            // Header: pill de/para se status mudou, ou badge "Alteração cadastral"
+            const headerHtml = isStatusChange
+                ? `<span style="background:${colOld}22;color:${colOld};padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">${log.status_anterior}</span>
+                   <span style="color:var(--text-muted);font-size:12px;">→</span>
+                   <span style="background:${colNew}22;color:${colNew};padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">${log.status_novo}</span>`
+                : `<span style="background:var(--cobli-lavender);color:var(--cobli-navy);padding:2px 10px;border-radius:8px;font-size:10px;font-weight:700;">✏️ Alteração cadastral</span>`;
+
+            // Linhas do diff, uma por campo alterado
+            let detailHtml = '';
+            if (hasAlteracoes) {
+                const linhas = log.alteracoes.split(' | ').map(l =>
+                    `<div style="font-size:11px;color:var(--text-secondary);padding:3px 0;border-bottom:1px dashed var(--border-light);line-height:1.5;">${l}</div>`
+                ).join('');
+                detailHtml = `<div style="background:var(--surface-muted);border-radius:6px;padding:8px 10px;margin-bottom:6px;">${linhas}</div>`;
+            }
+
             return `<div style="background:#fff;border:1px solid var(--border-light);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-                    <span style="background:${colOld}22;color:${colOld};padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">${log.status_anterior}</span>
-                    <span style="color:var(--text-muted);font-size:12px;">→</span>
-                    <span style="background:${colNew}22;color:${colNew};padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">${log.status_novo}</span>
+                    ${headerHtml}
                 </div>
-                <div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;line-height:1.5;">"${log.motivo}"</div>
+                ${detailHtml}
+                <div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;line-height:1.5;">"<em>${log.motivo}</em>"</div>
                 <div style="font-size:10px;color:var(--text-muted);display:flex;gap:12px;">
                     <span>👤 ${log.usuario_email}</span>
                     <span>🕐 ${dtStr}</span>
@@ -2428,7 +2461,7 @@
         }).join('');
     }
 
-        async function saveManualProvider(event) {
+    async function saveManualProvider(event) {
         event.preventDefault();
         let cNome = document.getElementById('m-consultor').value;
         let p = { nome: document.getElementById('m-nome').value, consultor: cNome, consultorNorm: normalizeStr(cNome), email: document.getElementById('m-email').value, contato: document.getElementById('m-contato').value, endereco: document.getElementById('m-endereco').value, status: formatStatus(document.getElementById('m-status').value), piloto: document.getElementById('m-piloto').checked };
@@ -2454,9 +2487,6 @@
         openModal('edit-modal');
     }
 
-    // Pending status change data (waiting for reason input)
-    let _pendingStatusChange = null;
-
     async function saveEditProvider(event) {
         event.preventDefault();
         const id = parseInt(document.getElementById('e-id').value);
@@ -2467,7 +2497,19 @@
         const newStatus = formatStatus(document.getElementById('e-status').value);
         const statusChanged = p.status !== newStatus;
 
-        // If status changed, require reason before saving
+        // Captura snapshot ANTES das alterações para diff no log
+        _pendingFieldSnapshot = {
+            nome:      p.nome || '',
+            consultor: p.consultor || '',
+            email:     p.email || '',
+            contato:   p.contato || '',
+            cnpj:      p.cnpj || '',
+            endereco:  p.endereco || '',
+            status:    p.status || '',
+            piloto:    p.piloto || false
+        };
+
+        // Se status mudou, abre modal de motivo antes de salvar
         if (statusChanged) {
             _pendingStatusChange = { id, newStatus, oldStatus: p.status };
             document.getElementById('srm-provider-name').textContent = formatNome(p.nome);
@@ -2480,24 +2522,56 @@
             newEl.style.cssText = `background:${colNew}22;color:${colNew};padding:3px 10px;border-radius:10px;font-weight:700;font-size:11px;`;
             document.getElementById('srm-motivo').value = '';
             openModal('status-reason-modal');
-            return; // Wait for reason confirmation
+            return; // Aguarda confirmação
         }
 
+        // Sem mudança de status: aplica diretamente
         const oldEnd = p.endereco;
-        p.nome = document.getElementById('e-nome').value; p.consultor = document.getElementById('e-consultor').value;
-        p.consultorNorm = normalizeStr(p.consultor); p.email = document.getElementById('e-email').value;
-        p.contato = document.getElementById('e-contato').value; p.endereco = document.getElementById('e-endereco').value;
-        p.status = newStatus; p.piloto = document.getElementById('e-piloto').checked;
+        p.nome = document.getElementById('e-nome').value;
+        p.consultor = document.getElementById('e-consultor').value;
+        p.consultorNorm = normalizeStr(p.consultor);
+        p.email = document.getElementById('e-email').value;
+        p.contato = document.getElementById('e-contato').value;
+        p.endereco = document.getElementById('e-endereco').value;
+        p.status = newStatus;
+        p.piloto = document.getElementById('e-piloto').checked;
         if (document.getElementById('e-cnpj')) p.cnpj = document.getElementById('e-cnpj').value.replace(/\D/g,'') || null;
+
         let coordsChanged = false;
-        if (oldEnd !== p.endereco) { let coords = await getGeocode(p.endereco); p.lat = coords.lat; p.lng = coords.lng; coordsChanged = true; }
+        if (oldEnd !== p.endereco) {
+            let coords = await getGeocode(p.endereco); p.lat = coords.lat; p.lng = coords.lng; coordsChanged = true;
+        }
+
         const { error } = await _supabase.from('prestadores').update({
             nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm,
             email: p.email, contato: p.contato, endereco: p.endereco,
             status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng, cnpj: p.cnpj || null
         }).eq('id', id);
+
         if (error) { alert("Erro ao atualizar."); console.error(error); }
-        else { _afterEditSave(id, p, coordsChanged); }
+        else {
+            // Grava log de campos alterados mesmo sem mudança de status
+            if (_pendingFieldSnapshot) {
+                const afterSnap = {
+                    nome: p.nome, consultor: p.consultor, email: p.email,
+                    contato: p.contato, cnpj: p.cnpj || '', endereco: p.endereco,
+                    status: p.status, piloto: p.piloto
+                };
+                const diff = buildChangeDiff(_pendingFieldSnapshot, afterSnap);
+                if (diff) {
+                    await _supabase.from('status_log').insert([{
+                        prestador_id: id,
+                        status_anterior: p.status,
+                        status_novo: p.status,
+                        motivo: 'Alteração de dados cadastrais',
+                        usuario_email: currentUser.email,
+                        alteracoes: diff
+                    }]);
+                }
+                _pendingFieldSnapshot = null;
+            }
+            _afterEditSave(id, p, coordsChanged);
+        }
     }
 
     /* =====================================================================
@@ -2582,21 +2656,15 @@
 
             let record = {
                 nome: (cN ? fixStr(row[cN]) : "Sem Nome") || "Sem Nome",
-                consultor: consultRaw,
-                consultorNorm: normalizeStr(consultRaw),
-                email: cE ? fixStr(row[cE]) : "",
-                contato: cT ? fixStr(row[cT]) : "",
-                endereco: end,
-                status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
-                piloto: isPiloto,
-                cnpj: cnpjRaw || null
+                consultor: consultRaw, consultorNorm: normalizeStr(consultRaw),
+                email: cE ? fixStr(row[cE]) : "", contato: cT ? fixStr(row[cT]) : "",
+                endereco: end, status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
+                piloto: isPiloto, cnpj: cnpjRaw || null
             };
 
-            // Check if CNPJ exists in current DB
             if (hasCnpj && cnpjRaw) {
                 const existing = providersData.find(p => p.cnpj && p.cnpj.replace(/\D/g,'') === cnpjRaw);
                 if (existing) {
-                    // Check if address changed — only re-geocode if needed
                     if (existing.endereco !== end) {
                         let coords = await getGeocode(end);
                         await new Promise(r => setTimeout(r, 150));
@@ -2609,7 +2677,6 @@
                 }
             }
 
-            // New record — geocode
             if (indicator) indicator.innerText = `Geocodificando ${i+1} de ${rawImportedData.length}...`;
             let coords = await getGeocode(end);
             await new Promise(r => setTimeout(r, 150));
@@ -2617,7 +2684,6 @@
             toInsert.push(record);
         }
 
-        // Execute updates
         if (indicator) indicator.innerText = `Atualizando ${toUpdate.length} registros...`;
         let errCount = 0;
         for (const u of toUpdate) {
@@ -2625,7 +2691,6 @@
             if (error) errCount++;
         }
 
-        // Execute inserts
         if (indicator) indicator.innerText = `Inserindo ${toInsert.length} novos registros...`;
         if (toInsert.length > 0) {
             const { error } = await _supabase.from('prestadores').insert(toInsert);
@@ -2675,8 +2740,13 @@
     function clearAllMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
 
     document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }); });
+
+    // Botão Resumo — desktop
     const btnSummary = document.getElementById('btn-summary');
     if (btnSummary) btnSummary.addEventListener('click', openSummaryModal);
+    // Botão Resumo — mobile (já tem onclick inline, mas garantir via JS também)
+    const btnSummaryMobile = document.getElementById('btn-summary-mobile');
+    if (btnSummaryMobile) btnSummaryMobile.addEventListener('click', openSummaryModal);
 </script>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap" async defer></script>
