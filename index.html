@@ -2018,8 +2018,8 @@ function makeMarkerSvg(color, isPiloto) {
     function createMarker(prestador) {
         let color = getConsultantColor(prestador.consultorNorm);
         const iconUrl = makeMarkerSvg(color, prestador.piloto);
-        const iconSize = prestador.piloto ? new google.maps.Size(36, 47) : new google.maps.Size(24, 32);
-        const iconAnchor = prestador.piloto ? new google.maps.Point(18, 45) : new google.maps.Point(12, 30);
+        const iconSize = new google.maps.Size(24, 32);
+        const iconAnchor = new google.maps.Point(12, 30);
 
 const marker = new google.maps.Marker({
     position: { lat: prestador.lat, lng: prestador.lng },
@@ -2510,8 +2510,8 @@ for (const key of Object.keys(labels)) {
                 mk.setTitle(p.nome);
                 const newColor = getConsultantColor(p.consultorNorm);
                 const newIconUrl = makeMarkerSvg(newColor, p.piloto);
-                const newSize = p.piloto ? new google.maps.Size(36, 47) : new google.maps.Size(24, 32);
-                const newAnchor = p.piloto ? new google.maps.Point(18, 45) : new google.maps.Point(12, 30);
+                const newSize = new google.maps.Size(24, 32);
+                const newAnchor = new google.maps.Point(12, 30);
                 mk.setIcon({ url: newIconUrl, scaledSize: newSize, anchor: newAnchor });
                 mk.setZIndex(p.piloto ? 10 : 1);
             }
