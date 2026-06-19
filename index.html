@@ -1922,16 +1922,18 @@
             let colStatus = getStatusColor(p.status);
             let colConsultant = getConsultantColor(p.consultorNorm);
             let li = document.createElement('li');
-            li.className = 'provider-item';
-            let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar)
-                ? `<button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>` : '';
-            let pilotoBadge = p.piloto ? `<span class="badge-piloto">⭐ PILOTO</span>` : '';
-            const nomeFormatado = formatNome(p.nome);
-            li.innerHTML = `
-                <span class="provider-dot" style="background:${colConsultant};" title="Consultor: ${p.consultor||'Nenhum'}"></span>
-                <span class="provider-name" onclick="centerMapOnProvider(${p.id})" title="${nomeFormatado}">${nomeFormatado} ${pilotoBadge}</span>
-                <span class="provider-status-badge" style="background:${colStatus}22;color:${colStatus};">${p.status}</span>
-                ${btnEditHtml}`;
+li.className = 'provider-item';
+li.onclick = function(e) { if (!e.target.closest('.btn-edit')) centerMapOnProvider(${p.id}); };
+li.style.cursor = 'pointer';
+let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar)
+    ? `<button class="btn-edit" onclick="event.stopPropagation(); openEditModal(${p.id})">Editar</button>` : '';
+let pilotoBadge = p.piloto ? `<span class="badge-piloto">⭐ PILOTO</span>` : '';
+const nomeFormatado = formatNome(p.nome);
+li.innerHTML = `
+    <span class="provider-dot" style="background:${colConsultant};" title="Consultor: ${p.consultor||'Nenhum'}"></span>
+    <span class="provider-name" title="${nomeFormatado}">${nomeFormatado} ${pilotoBadge}</span>
+    <span class="provider-status-badge" style="background:${colStatus}22;color:${colStatus};">${p.status}</span>
+    ${btnEditHtml}`;
             list.appendChild(li);
         });
     }
