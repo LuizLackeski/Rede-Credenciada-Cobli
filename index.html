@@ -1973,6 +1973,12 @@ li.innerHTML = `
     }
 
 function makeMarkerSvg(color, isPiloto) {
+    const centro = isPiloto
+        ? `<polygon points="20,11 22.5,17 29,17 23.5,21 25.5,28 20,24 14.5,28 16.5,21 11,17 17.5,17" 
+               fill="#FFD700" stroke="#B8860B" stroke-width="0.8"/>`
+        : `<circle cx="20" cy="20" r="8" fill="rgba(255,255,255,0.92)"/>
+           <circle cx="20" cy="20" r="5" fill="${color}"/>`;
+
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="52" viewBox="0 0 40 52">
         <defs>
             <filter id="shadow" x="-30%" y="-10%" width="160%" height="160%">
@@ -1987,8 +1993,7 @@ function makeMarkerSvg(color, isPiloto) {
             <path d="M20 2 C10.06 2 2 10.06 2 20 C2 32 20 50 20 50 C20 50 38 32 38 20 C38 10.06 29.94 2 20 2 Z"
                   fill="url(#grad-${color.replace('#','')})" />
             <circle cx="20" cy="20" r="19" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-            <circle cx="20" cy="20" r="8" fill="rgba(255,255,255,0.92)"/>
-            <circle cx="20" cy="20" r="5" fill="${color}"/>
+            ${centro}
         </g>
     </svg>`;
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
@@ -2020,16 +2025,7 @@ const marker = new google.maps.Marker({
     position: { lat: prestador.lat, lng: prestador.lng },
     map,
     title: prestador.nome,
-    icon: {
-        url: iconUrl,
-        scaledSize: iconSize,
-        anchor: iconAnchor
-    },
-    label: prestador.piloto ? {
-        text: '⭐',
-        fontSize: '14px',
-        className: 'piloto-star-label'
-    } : undefined,
+    icon: { url: iconUrl, scaledSize: iconSize, anchor: iconAnchor },
     customId: prestador.id,
     zIndex: prestador.piloto ? 10 : 1
 });
@@ -2517,7 +2513,6 @@ for (const key of Object.keys(labels)) {
                 const newSize = p.piloto ? new google.maps.Size(36, 47) : new google.maps.Size(24, 32);
                 const newAnchor = p.piloto ? new google.maps.Point(18, 45) : new google.maps.Point(12, 30);
                 mk.setIcon({ url: newIconUrl, scaledSize: newSize, anchor: newAnchor });
-                mk.setLabel(p.piloto ? { text: '⭐', fontSize: '14px', className: 'piloto-star-label' } : null);
                 mk.setZIndex(p.piloto ? 10 : 1);
             }
         }
