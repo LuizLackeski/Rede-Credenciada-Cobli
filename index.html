@@ -1634,12 +1634,11 @@
             });
         }
 
-        initAutocomplete();
-        const savedConfig = localStorage.getItem('userConfig');
-        if (savedConfig) {
-            currentUser = JSON.parse(savedConfig);
-            initSystem();
-        }
+const savedConfig = localStorage.getItem('userConfig');
+if (savedConfig) {
+    currentUser = JSON.parse(savedConfig);
+    initSystem().catch(console.error);
+}
     }
 
     async function handleLogin(event) {
@@ -1682,9 +1681,21 @@
         location.reload();
     }
 
-    function initSystem() {
-        const loginOverlay = document.getElementById('login-overlay');
-        if (loginOverlay) loginOverlay.style.display = 'none';
+async function initSystem() {
+    const loginOverlay = document.getElementById('login-overlay');
+    if (loginOverlay) loginOverlay.style.display = 'none';
+
+    // Revalida permissões do banco sempre que inicializa
+    const { data: freshUser } = await _supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', currentUser.email)
+        .single();
+
+    if (freshUser) {
+        currentUser = freshUser;
+        localStorage.setItem('userConfig', JSON.stringify(freshUser));
+    }
 
         if (localStorage.getItem('darkMode') === '1') {
             document.body.classList.add('dark-mode');
