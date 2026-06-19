@@ -2054,7 +2054,7 @@
         const fullContent = content.replace('ROUTE_BTN_HERE', routeBtn)
             + (extraRouteHtml ? '<div style="padding:0 16px 12px;">' + extraRouteHtml + '</div>' : '');
         infoWindowGlobal.setContent(fullContent);
-        infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
+        infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false, pixelOffset: new google.maps.Size(-160, 0) });
     }
 
     function centerMapOnProvider(id) {
@@ -2211,7 +2211,7 @@
             
             clientMarker.addListener("click", () => {
                 clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`);
-                clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false });
+                clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false, pixelOffset: new google.maps.Size(160, 0) });
             });
 
             map.setCenter(loc);
@@ -2283,7 +2283,7 @@
                 }
                 if (clientMarker) {
                     const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div></div></div>`;
-                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 300);
+                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false, pixelOffset: new google.maps.Size(160, 0) }); }, 300);
                 }
             } else { showCustomDialog('Erro ao traçar rota. Verifique o endereço de destino.', "Erro"); }
         });
