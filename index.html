@@ -1115,6 +1115,7 @@
 
     const PALETTE = ['#001BB8', '#00AE97', '#FF4633', '#7F8DDB', '#F01A1A', '#07074E', '#E455C6', '#228B22', '#D2691E'];
     let consultantColors = {};
+    let prestadoresComLog = new Set();
 
     /* =====================================================================
        MENSAGENS MODAIS CUSTOMIZADAS
@@ -1716,8 +1717,12 @@
         const listElement = document.getElementById('providers-list');
         if (listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Carregando banco de dados...</div></li>';
 
-        const { data, error } = await _supabase.from('prestadores').select('*');
-        if (error) { console.error("Erro Supabase:", error); await showCustomDialog("Erro ao conectar no banco de dados.", "Erro"); return; }
+        const [{ data, error }, { data: logIds }] = await Promise.all([
+    _supabase.from('prestadores').select('*'),
+    _supabase.from('status_log').select('prestador_id')
+    ]);
+       if (error) { console.error("Erro Supabase:", error); await showCustomDialog("Erro ao conectar no banco de dados.", "Erro"); return; }
+    prestadoresComLog = new Set((logIds || []).map(l => l.prestador_id));
 
         if (data && data.length > 0) {
             providersData = data;
@@ -2056,10 +2061,10 @@
                     ${p.email ? `<div class="iw-row">${iconMail}<div class="iw-field"><div class="iw-field-label">E-mail</div><div class="iw-field-val" style="word-break:break-all;">${p.email}</div></div></div>` : ''}
                     <div class="iw-row">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div></div></div>
                     <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light);">
-                        <button onclick="openStatusLog(${p.id})" style="width:100%;padding:6px 10px;background:var(--surface-muted);border:1px solid var(--border-mid);border-radius:6px;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;"
-                            onmouseover="this.style.background='var(--cobli-lavender)'" onmouseout="this.style.background='var(--surface-muted)'">
-                            📋 Ver histórico de alterações
-                        </button>
+${prestadoresComLog.has(p.id) ? `<button onclick="openStatusLog(${p.id})" style="width:100%;padding:6px 10px;background:var(--surface-muted);border:1px solid var(--border-mid);border-radius:6px;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;"
+    onmouseover="this.style.background='var(--cobli-lavender)'" onmouseout="this.style.background='var(--surface-muted)'">
+    📋 Ver histórico de alterações
+</button>` : ''}
                     </div>
                 </div>
             </div>`;
@@ -2478,7 +2483,8 @@
     }
 
     function _afterEditSave(id, p, coordsChanged) {
-        generateConsultantColors(providersData);
+    prestadoresComLog.add(id);
+    generateConsultantColors(providersData);
         if (coordsChanged) {
             const mi = markers.findIndex(m => m.customId === id);
             if (mi > -1) { markers[mi].setMap(null); markers.splice(mi, 1); }
