@@ -62,11 +62,19 @@
         .scroll-panel::-webkit-scrollbar-thumb { background: var(--cobli-lavender); border-radius: 2px; }
 
         .section-card { background: var(--surface-card); border: 1px solid var(--border-mid); border-left: 4px solid var(--cobli-indigo); border-radius: 10px; box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06); }
-        .section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 12px 14px; background: var(--cobli-navy); border-bottom: 3px solid var(--cobli-indigo); border-top-left-radius: 6px; border-top-right-radius: 9px; }
+        /* Adicionada transição suave e cursor pointer no cabeçalho */
+        .section-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 12px 14px; background: var(--cobli-navy); border-bottom: 3px solid var(--cobli-indigo); border-top-left-radius: 6px; border-top-right-radius: 9px; transition: background 0.15s; }
+        .section-header:hover { background: #0d0d6e; }
         .section-header-left { display: flex; align-items: center; gap: 8px; }
+        .section-header-right { display: flex; align-items: center; gap: 10px; }
         .section-number { width: 22px; height: 22px; border-radius: 50%; background: var(--cobli-indigo); border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
-        .section-title { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.2px; }
+        .section-title { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.2px; display: flex; align-items: center;}
+        
+        /* Controles de colapso de blocos */
         .section-body { padding: 16px 16px 14px; }
+        .section-body.collapsed { display: none; }
+        .block-toggle-btn { background: transparent; border: none; color: rgba(255,255,255,0.8); font-size: 14px; cursor: pointer; transition: transform 0.25s; display: flex; align-items: center; justify-content: center; padding: 4px; pointer-events: none;}
+        .block-toggle-btn.collapsed { transform: rotate(-90deg); }
 
         .form-row { margin-bottom: 8px; }
         .form-row label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -168,48 +176,25 @@
         .modal-body { padding: 20px; }
 
         /* =====================================================================
-           INFOWINDOW — botão fechar limpo e elegante
+           INFOWINDOW — botão fechar limpo e elegante (ATUALIZADO)
            ===================================================================== */
         .gm-style-iw { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
         .gm-style-iw-d { overflow: hidden !important; padding: 0 !important; }
         .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
         .gm-style-iw-t::after { display: none !important; }
 
-        /* Esconde o botão padrão feio do Google — vamos usar o .gm-style-iw-chr button estilizado */
         .gm-ui-hover-effect { display: none !important; }
 
-        /* Posiciona o container do botão fechar como overlay no canto superior direito */
         .gm-style-iw-chr {
             position: absolute !important;
             top: 0 !important;
             right: 0 !important;
             height: 0 !important;
             overflow: visible !important;
-            z-index: 20 !important;
+            z-index: 9999 !important;
         }
-        /* O botão em si: círculo escuro navy com X branco */
-        .gm-style-iw-chr button {
-            margin: 6px 6px 0 0 !important;
-            background: #07074E !important;
-            border-radius: 50% !important;
-            width: 26px !important;
-            height: 26px !important;
-            border: none !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
-            opacity: 1 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            overflow: hidden !important;
-            cursor: pointer !important;
-        }
-        /* Força ícone interno branco */
-        .gm-style-iw-chr button img,
-        .gm-style-iw-chr button span {
-            filter: brightness(0) invert(1) !important;
-            width: 14px !important;
-            height: 14px !important;
-        }
+        
+        .gm-style-iw-chr button:hover { background: #FF4633 !important; }
 
         .iw-card { width: 270px; font-family: 'Inter','Segoe UI',sans-serif; }
         .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -622,14 +607,18 @@
             #map-search-bar { top: 6px !important; }
         }
 
-        /* Label do marcador destino */
+        /* Label do marcador destino (ATUALIZADO) */
         .dest-marker-label {
             background: #07074E !important;
-            padding: 3px 8px !important;
-            border-radius: 4px !important;
-            margin-top: 4px !important;
+            color: #00AE97 !important;
+            padding: 4px 10px !important;
+            border-radius: 6px !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            margin-top: -65px !important; /* Move para cima do PIN */
             white-space: nowrap !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+            border: 1px solid rgba(0, 174, 151, 0.4) !important;
         }
 
         /* RANGE PILLS (sobre mapa) */
@@ -693,7 +682,6 @@
     </div>
 </div>
 
-<!-- MOBILE TOPBAR: always visible on mobile, hidden on desktop -->
 <div id="mobile-topbar" style="display:none;">
     <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleSidebar()" title="Menu">
         <span></span><span></span><span></span>
@@ -705,7 +693,6 @@
         <span style="color:#fff;font-size:13px;font-weight:700;letter-spacing:-0.2px;">Rede de Prestadores</span>
     </div>
     <div style="display:flex;gap:6px;">
-        <!-- CORREÇÃO: onclick adicionado diretamente no botão mobile de resumo -->
         <button class="btn-ghost" id="btn-summary-mobile" onclick="openSummaryModal()" title="Resumo" style="padding:6px 8px;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         </button>
@@ -720,8 +707,7 @@
 
 <div id="sidebar">
     <div class="topbar">
-        <!-- Mobile: hamburger -->
-        <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleSidebar()" title="Menu">
+        <button class="mobile-menu-btn" id="mobile-menu-btn-desktop" onclick="toggleSidebar()" title="Menu">
             <span></span><span></span><span></span>
         </button>
         <div class="topbar-brand">
@@ -751,11 +737,13 @@
     <div class="scroll-panel">
 
         <div id="bloco-1" class="section-card">
-            <div class="section-header">
+            <div class="section-header" style="cursor: default;">
                 <div class="section-header-left">
                     <span class="section-icon">📋</span><span class="section-title">Lista de Prestadores</span>
                 </div>
-                <button class="btn btn-secondary admin-only" style="padding: 5px 10px; font-size: 11px;" onclick="openModal('register-modal')">+ Novo</button>
+                <div class="section-header-right">
+                    <button class="btn btn-secondary admin-only" style="padding: 5px 10px; font-size: 11px;" onclick="openModal('register-modal')">+ Novo</button>
+                </div>
             </div>
             <div class="section-body">
                 <div class="search-row">
@@ -769,12 +757,15 @@
         </div>
 
         <div id="bloco-3" class="section-card">
-            <div class="section-header">
+            <div class="section-header" onclick="toggleBlock('bloco-3')">
                 <div class="section-header-left">
                     <span class="section-icon">🎯</span><span class="section-title">Filtros dinâmicos</span>
                 </div>
+                <div class="section-header-right">
+                    <button class="block-toggle-btn collapsed" id="btn-toggle-bloco-3">▼</button>
+                </div>
             </div>
-            <div class="section-body">
+            <div class="section-body collapsed" id="body-bloco-3">
                 <div class="form-row" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
                     <input type="checkbox" id="filter-piloto" onchange="applyFilters()" style="margin: 0; width: auto; transform: scale(1.2); cursor: pointer;">
                     <label for="filter-piloto" style="margin: 0; cursor: pointer; text-transform: none; color: var(--cobli-navy); font-size: 12px;">Mostrar <strong>apenas</strong> Prestadores Piloto ⭐</label>
@@ -806,13 +797,19 @@
         </div>
 
         <div id="bloco-4" class="section-card admin-only">
-            <div class="section-header">
+            <div class="section-header" onclick="toggleBlock('bloco-4')">
                 <div class="section-header-left">
-                    <span class="section-icon">🔐</span><span class="section-title">Gerenciar Acessos</span>
+                    <span class="section-icon">🔐</span>
+                    <span class="section-title">Gerenciar Acessos 
+                        <span id="new-users-badge" style="display:none; background:var(--cobli-red); color:#fff; border-radius:10px; padding:2px 6px; font-size:10px; margin-left:6px; font-weight: 700;">+0 novos</span>
+                    </span>
                 </div>
-                <button class="btn-ghost" style="font-size: 11px;" onclick="loadUsersTable()">↻ Atualizar</button>
+                <div class="section-header-right">
+                    <button class="btn-ghost" style="font-size: 11px;" onclick="event.stopPropagation(); loadUsersTable()">↻ Atualizar</button>
+                    <button class="block-toggle-btn collapsed" id="btn-toggle-bloco-4">▼</button>
+                </div>
             </div>
-            <div class="section-body" style="padding: 12px;">
+            <div class="section-body collapsed" id="body-bloco-4" style="padding: 12px;">
                 <div class="search-row" style="margin-bottom:10px;">
                     <input type="text" id="user-search-input" placeholder="Pesquisar por e-mail…" oninput="filterUsersCards()" style="flex:1;padding:8px 10px;border:1px solid var(--border-mid);border-radius:6px;font-size:12px;font-family:inherit;">
                     <button class="btn-icon" onclick="document.getElementById('user-search-input').value='';filterUsersCards()" title="Limpar">✕</button>
@@ -829,12 +826,15 @@
         </div>
 
         <div id="bloco-5" class="section-card admin-only">
-            <div class="section-header">
+            <div class="section-header" onclick="toggleBlock('bloco-5')">
                 <div class="section-header-left">
                     <span class="section-icon">🔄</span><span class="section-title">Transferência por UF</span>
                 </div>
+                <div class="section-header-right">
+                    <button class="block-toggle-btn collapsed" id="btn-toggle-bloco-5">▼</button>
+                </div>
             </div>
-            <div class="section-body">
+            <div class="section-body collapsed" id="body-bloco-5">
                 <div class="form-row">
                     <label>UF da Carteira (Estado) *</label>
                     <select id="bulk-uf">
@@ -864,12 +864,15 @@
         </div>
 
         <div id="bloco-6" class="section-card admin-only">
-            <div class="section-header">
+            <div class="section-header" onclick="toggleBlock('bloco-6')">
                 <div class="section-header-left">
                     <span class="section-icon">👤</span><span class="section-title">Substituição de Consultor</span>
                 </div>
+                <div class="section-header-right">
+                    <button class="block-toggle-btn collapsed" id="btn-toggle-bloco-6">▼</button>
+                </div>
             </div>
-            <div class="section-body">
+            <div class="section-body collapsed" id="body-bloco-6">
                 <div class="form-row">
                     <label>Consultor a ser substituído (Atual) *</label>
                     <select id="replace-old-consultant"><option value="">-- Aguardando base --</option></select>
@@ -888,12 +891,15 @@
         </div>
 
         <div id="bloco-7" class="section-card admin-only">
-            <div class="section-header">
+            <div class="section-header" onclick="toggleBlock('bloco-7')">
                 <div class="section-header-left">
                     <span class="section-icon">📂</span><span class="section-title">Importar Base</span>
                 </div>
+                <div class="section-header-right">
+                    <button class="block-toggle-btn collapsed" id="btn-toggle-bloco-7">▼</button>
+                </div>
             </div>
-            <div class="section-body">
+            <div class="section-body collapsed" id="body-bloco-7">
                 <div class="form-row">
                     <label>Subir Carga Inicial via Planilha (CSV)</label>
                     <div class="file-input-wrapper">
@@ -911,13 +917,11 @@
     </div>
 </div>
 
-<!-- Mobile overlay to close sidebar -->
 <div id="mobile-overlay" class="mobile-overlay" onclick="closeSidebar()"></div>
 
 <div id="map-container">
     <div id="map"></div>
 
-    <!-- BARRA DE PESQUISA FLUTUANTE SOBRE O MAPA (estilo Google Maps) -->
     <div id="map-search-bar" style="
         position: absolute;
         top: 12px;
@@ -931,7 +935,6 @@
         gap: 8px;
         pointer-events: none;
     ">
-        <!-- Linha 1: campo + botão limpar -->
         <div style="display:flex;gap:8px;pointer-events:all;">
             <div style="position:relative;flex:1;filter:drop-shadow(0 3px 12px rgba(0,0,0,0.28));">
                 <input type="text" id="client-address"
@@ -952,7 +955,6 @@
                 onmouseout="this.style.background='#fff';this.style.color='#FF4633'">✕</button>
         </div>
 
-        <!-- Linha 2: pills de raio -->
         <div style="display:flex;gap:6px;pointer-events:all;">
             <button class="rpill active" data-val="50"     onclick="setRange(50,this)">≤ 50 km</button>
             <button class="rpill"        data-val="100"    onclick="setRange(100,this)">≤ 100 km</button>
@@ -961,7 +963,6 @@
             <button class="rpill"        data-val="999999" onclick="setRange(999999,this)">Todos</button>
         </div>
 
-        <!-- Linha 3: resultado compacto -->
         <div id="routing-result" style="pointer-events:all;"></div>
     </div>
     <div class="map-legend" id="map-legend-box" style="display:none;">
@@ -970,7 +971,6 @@
     </div>
 </div>
 
-<!-- MODAIS -->
 <div id="summary-modal" class="modal-backdrop">
     <div class="modal-box wide">
         <div class="modal-head">
@@ -1067,7 +1067,6 @@
     </div>
 </div>
 
-<!-- MODAL: MOTIVO DE ALTERAÇÃO DE STATUS -->
 <div id="status-reason-modal" class="modal-backdrop">
     <div class="modal-box" style="width:420px;">
         <div class="modal-head">
@@ -1098,7 +1097,6 @@
     </div>
 </div>
 
-<!-- MODAL: HISTÓRICO DE ALTERAÇÕES -->
 <div id="status-log-modal" class="modal-backdrop">
     <div class="modal-box" style="width:500px;">
         <div class="modal-head">
@@ -1126,6 +1124,31 @@
 
     const PALETTE = ['#001BB8', '#00AE97', '#FF4633', '#7F8DDB', '#F01A1A', '#07074E', '#E455C6', '#228B22', '#D2691E'];
     let consultantColors = {};
+
+    /* =====================================================================
+       FUNÇÃO DE ACORDEÃO PARA OS BLOCOS
+       ===================================================================== */
+    function toggleBlock(blockId) {
+        const body = document.getElementById('body-' + blockId);
+        const btn = document.getElementById('btn-toggle-' + blockId);
+        if (!body || !btn) return;
+        
+        const isCollapsed = body.classList.contains('collapsed');
+        if (isCollapsed) {
+            body.classList.remove('collapsed');
+            btn.classList.remove('collapsed');
+            
+            // Se for o bloco 4, marca que vimos as novidades
+            if (blockId === 'bloco-4') {
+                localStorage.setItem('knownUsersCount', allUsersData.length.toString());
+                const newBadge = document.getElementById('new-users-badge');
+                if (newBadge) newBadge.style.display = 'none';
+            }
+        } else {
+            body.classList.add('collapsed');
+            btn.classList.add('collapsed');
+        }
+    }
 
     /* =====================================================================
        BLOCO 7 — GESTÃO DE ACESSOS
@@ -1168,6 +1191,19 @@
         if (!allUsersData.length) {
             container.innerHTML = '<div class="users-empty">Nenhum usuário cadastrado ainda.</div>';
             return;
+        }
+
+        // Verifica novos usuários baseados no histórico local
+        const knownUsersCount = parseInt(localStorage.getItem('knownUsersCount') || '0');
+        const newBadge = document.getElementById('new-users-badge');
+        if (allUsersData.length > knownUsersCount && currentUser && currentUser.perfil === 'admin') {
+            const diff = allUsersData.length - knownUsersCount;
+            if (newBadge) {
+                newBadge.textContent = `+${diff} novo${diff > 1 ? 's' : ''}`;
+                newBadge.style.display = 'inline-block';
+            }
+        } else if (newBadge) {
+            newBadge.style.display = 'none';
         }
 
         renderUsersCards();
@@ -1324,10 +1360,17 @@
 
     function toggleUserCard(emailId) {
         const body = document.getElementById(`body-${emailId}`);
-        const chevron = document.getElementById(`chevron-${emailId}`);
-        const isOpen = body.classList.contains('open');
-        body.classList.toggle('open', !isOpen);
-        if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+        const isOpening = !body.classList.contains('open');
+
+        // Fecha todos os outros antes de abrir este
+        document.querySelectorAll('.uac-body').forEach(b => b.classList.remove('open'));
+        document.querySelectorAll('.uac-chevron').forEach(c => c.style.transform = 'rotate(180deg)');
+
+        if (isOpening) {
+            body.classList.add('open');
+            const chevron = document.getElementById(`chevron-${emailId}`);
+            if (chevron) chevron.style.transform = '';
+        }
     }
 
     function toggleBlocoItem(el) {
@@ -1475,34 +1518,68 @@
         infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false });
         clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
 
-        // ── CORREÇÃO: botão fechar infowindow ────────────────────────────
-        // Aplica via setTimeout para garantir que o DOM do IW esteja pronto
-        function fixInfoWindowChrome() {
-            setTimeout(function() {
-                // Remove qualquer ícone/imagem do botão e coloca um X branco limpo
-                var btn = document.querySelector('.gm-style-iw-chr button');
-                if (btn) {
-                    btn.style.cssText = [
-                        'position:relative',
-                        'z-index:20',
-                        'margin:6px 6px 0 0',
-                        'background:#07074E',
-                        'border-radius:50%',
-                        'width:26px',
-                        'height:26px',
-                        'border:none',
-                        'cursor:pointer',
-                        'box-shadow:0 2px 8px rgba(0,0,0,0.4)',
-                        'display:flex',
-                        'align-items:center',
-                        'justify-content:center',
-                        'flex-shrink:0'
-                    ].join(';');
-                    btn.innerHTML = '<span style="color:#fff;font-size:16px;font-weight:700;line-height:1;pointer-events:none;display:block;margin-top:-1px;">×</span>';
-                }
-                var d = document.querySelector('.gm-style-iw-d');
-                if (d) d.style.cssText = 'overflow:hidden!important;padding:0!important;';
-            }, 50);
+        // ── CORREÇÃO: botão fechar infowindow FIXO e Vermelho ────────────────────────────
+function fixInfoWindowChrome() {
+            // Cria a regra CSS blindada uma única vez no documento
+            // Isso impede que o Google Maps tente sobrescrever nosso "X"
+            if (!document.getElementById('cobli-iw-close-fix')) {
+                var style = document.createElement('style');
+                style.id = 'cobli-iw-close-fix';
+                style.innerHTML = `
+                    /* 1. Força o visual do botão (círculo vermelho) */
+                    .gm-style-iw-chr button, 
+                    button.gm-ui-hover-effect {
+                        position: relative !important;
+                        z-index: 9999 !important;
+                        margin: 6px 6px 0 0 !important;
+                        background: #F01A1A !important;
+                        border-radius: 50% !important;
+                        width: 26px !important;
+                        height: 26px !important;
+                        border: none !important;
+                        cursor: pointer !important;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+                        display: block !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        transition: background 0.15s !important;
+                    }
+                    
+                    /* Efeito hover mantendo a cor que você definiu */
+                    .gm-style-iw-chr button:hover, 
+                    button.gm-ui-hover-effect:hover {
+                        background: #FF4633 !important;
+                    }
+
+                    /* 2. Oculta QUALQUER elemento interno que o Google tentar injetar (adeus quadrado preto!) */
+                    .gm-style-iw-chr button > *, 
+                    button.gm-ui-hover-effect > * {
+                        display: none !important;
+                    }
+
+                    /* 3. Desenha o nosso 'X' perfeito de forma nativa e imune a atualizações do Google */
+                    .gm-style-iw-chr button::after, 
+                    button.gm-ui-hover-effect::after {
+                        content: "×" !important;
+                        color: #ffffff !important;
+                        font-size: 22px !important;
+                        font-weight: bold !important;
+                        line-height: 1 !important;
+                        position: absolute !important;
+                        top: 50% !important;
+                        left: 50% !important;
+                        transform: translate(-50%, -55%) !important;
+                        pointer-events: none !important;
+                    }
+
+                    /* Ajuste fino do container do Google Maps para evitar bordas brancas */
+                    .gm-style-iw-d {
+                        overflow: hidden !important;
+                        padding: 0 !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
         }
         google.maps.event.addListener(infoWindowGlobal, 'domready', fixInfoWindowChrome);
         google.maps.event.addListener(clientInfoWindow, 'domready', fixInfoWindowChrome);
@@ -1581,6 +1658,7 @@
             if (btnNovo) btnNovo.style.display = currentUser.pode_adicionar ? 'inline-flex' : 'none';
         } else {
             document.body.classList.remove('is-common');
+            loadUsersTable(); // Se for admin, já carrega a lista para checar "novos"
         }
 
         for (let i = 1; i <= 7; i++) {
@@ -1885,7 +1963,6 @@
         return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     }
 
-    // ── CORREÇÃO: marcador destino — emoji 📍 minimalista ────────────────
     function makeDestinationPin() {
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44">
             <text x="18" y="34" text-anchor="middle" font-size="32"
@@ -2118,13 +2195,20 @@
             const formattedAddr = results[0].formatted_address;
 
             if (clientMarker) clientMarker.setMap(null);
-            // ── CORREÇÃO: marcador destino com emoji 📍 (tamanho e anchor corretos)
+            
+            // ── CORREÇÃO: Badge de destino anexada ao Marker via LABEL API ────────────────
             clientMarker = new google.maps.Marker({
                 position: loc, map,
                 title: "Destino da rota",
                 icon: { url: makeDestinationPin(), scaledSize: new google.maps.Size(36, 44), anchor: new google.maps.Point(18, 40) },
+                label: {
+                    text: "Destino da Rota",
+                    color: "#00AE97",
+                    className: "dest-marker-label"
+                },
                 zIndex: 999
             });
+            
             clientMarker.addListener("click", () => {
                 clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`);
                 clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false });
@@ -2287,11 +2371,9 @@
        CRUD PRESTADORES — LOG COMPLETO DE ALTERAÇÕES
        ===================================================================== */
 
-    // Pending state para mudança de status
     let _pendingStatusChange = null;
-    let _pendingFieldSnapshot = null;  // snapshot dos campos ANTES de editar
+    let _pendingFieldSnapshot = null;  
 
-    // Monta diff legível entre dois objetos de prestador
     function buildChangeDiff(before, after) {
         const labels = {
             nome:      'Nome',
@@ -2339,12 +2421,10 @@
             piloto:    document.getElementById('e-piloto').checked
         };
 
-        // Monta diff completo para o log
         const before = _pendingFieldSnapshot || { status: oldStatus };
         const diff = buildChangeDiff(before, afterSnap);
         const logAlteracoes = diff || `Status: "${oldStatus}" → "${newStatus}"`;
 
-        // Salva entrada no log
         await _supabase.from('status_log').insert([{
             prestador_id: id,
             status_anterior: oldStatus,
@@ -2355,7 +2435,6 @@
         }]);
         _pendingFieldSnapshot = null;
 
-        // Aplica no objeto local
         p.nome = afterSnap.nome;
         p.consultor = afterSnap.consultor;
         p.consultorNorm = normalizeStr(p.consultor);
@@ -2431,14 +2510,12 @@
             const isStatusChange = log.status_anterior !== log.status_novo;
             const hasAlteracoes = log.alteracoes && log.alteracoes.trim();
 
-            // Header: pill de/para se status mudou, ou badge "Alteração cadastral"
             const headerHtml = isStatusChange
                 ? `<span style="background:${colOld}22;color:${colOld};padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">${log.status_anterior}</span>
                    <span style="color:var(--text-muted);font-size:12px;">→</span>
                    <span style="background:${colNew}22;color:${colNew};padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;">${log.status_novo}</span>`
                 : `<span style="background:var(--cobli-lavender);color:var(--cobli-navy);padding:2px 10px;border-radius:8px;font-size:10px;font-weight:700;">✏️ Alteração cadastral</span>`;
 
-            // Linhas do diff, uma por campo alterado
             let detailHtml = '';
             if (hasAlteracoes) {
                 const linhas = log.alteracoes.split(' | ').map(l =>
@@ -2497,7 +2574,6 @@
         const newStatus = formatStatus(document.getElementById('e-status').value);
         const statusChanged = p.status !== newStatus;
 
-        // Captura snapshot ANTES das alterações para diff no log
         _pendingFieldSnapshot = {
             nome:      p.nome || '',
             consultor: p.consultor || '',
@@ -2509,7 +2585,6 @@
             piloto:    p.piloto || false
         };
 
-        // Se status mudou, abre modal de motivo antes de salvar
         if (statusChanged) {
             _pendingStatusChange = { id, newStatus, oldStatus: p.status };
             document.getElementById('srm-provider-name').textContent = formatNome(p.nome);
@@ -2522,10 +2597,9 @@
             newEl.style.cssText = `background:${colNew}22;color:${colNew};padding:3px 10px;border-radius:10px;font-weight:700;font-size:11px;`;
             document.getElementById('srm-motivo').value = '';
             openModal('status-reason-modal');
-            return; // Aguarda confirmação
+            return; 
         }
 
-        // Sem mudança de status: aplica diretamente
         const oldEnd = p.endereco;
         p.nome = document.getElementById('e-nome').value;
         p.consultor = document.getElementById('e-consultor').value;
@@ -2550,7 +2624,6 @@
 
         if (error) { alert("Erro ao atualizar."); console.error(error); }
         else {
-            // Grava log de campos alterados mesmo sem mudança de status
             if (_pendingFieldSnapshot) {
                 const afterSnap = {
                     nome: p.nome, consultor: p.consultor, email: p.email,
@@ -2741,10 +2814,8 @@
 
     document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }); });
 
-    // Botão Resumo — desktop
     const btnSummary = document.getElementById('btn-summary');
     if (btnSummary) btnSummary.addEventListener('click', openSummaryModal);
-    // Botão Resumo — mobile (já tem onclick inline, mas garantir via JS também)
     const btnSummaryMobile = document.getElementById('btn-summary-mobile');
     if (btnSummaryMobile) btnSummaryMobile.addEventListener('click', openSummaryModal);
 </script>
