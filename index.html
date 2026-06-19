@@ -1923,7 +1923,7 @@
             let colConsultant = getConsultantColor(p.consultorNorm);
             let li = document.createElement('li');
 li.className = 'provider-item';
-li.onclick = function(e) { if (!e.target.closest('.btn-edit')) centerMapOnProvider(${p.id}); };
+li.onclick = function(e) { if (!e.target.closest('.btn-edit')) centerMapOnProvider(p.id); };
 li.style.cursor = 'pointer';
 let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar)
     ? `<button class="btn-edit" onclick="event.stopPropagation(); openEditModal(${p.id})">Editar</button>` : '';
