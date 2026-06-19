@@ -1563,8 +1563,8 @@
         directionsRenderer = new google.maps.DirectionsRenderer({ preserveViewport: true, suppressMarkers: true });
         directionsRenderer.setMap(map);
         geocoder = new google.maps.Geocoder();
-        infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false, pixelOffset: new google.maps.Size(-170, 0) });
-        clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false, pixelOffset: new google.maps.Size(170, 0) });
+        infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false });
+        clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
 
         function fixInfoWindowChrome() {
             if (!document.getElementById('cobli-iw-close-fix')) {
