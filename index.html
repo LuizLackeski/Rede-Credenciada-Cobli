@@ -966,7 +966,7 @@
     <div class="modal-box wide">
         <div class="modal-head">
             <h3>Resumo geral da rede</h3>
-            <button class="modal-close" onclick="confirmDiscardEdit()">×</button>
+            <button class="modal-close" onclick="closeModal('summary-modal')">×</button>
         </div>
         <div class="modal-body" id="summary-content"></div>
     </div>
@@ -1150,7 +1150,6 @@
     }
 
     function confirmDiscardEdit() {
-    const fields = ['e-nome','e-consultor','e-email','e-contato','e-cnpj','e-endereco'];
     const id = parseInt(document.getElementById('e-id').value);
     const p = providersData.find(x => x.id === id);
     if (!p) { closeModal('edit-modal'); return; }
