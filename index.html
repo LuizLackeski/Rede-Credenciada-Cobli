@@ -2046,7 +2046,7 @@ const marker = new google.maps.Marker({
         if (!markerRef) markerRef = markers.find(m => m.customId === pId);
         let statusColor = getStatusColor(p.status);
         const nomeDisplay = formatNome(p.nome);
-        const initials = getInitials(nomeDisplay);
+        <div class="iw-avatar" style="font-size:18px;">🪛</div>
         const pilotoBadge = p.piloto ? `<span class="badge-piloto" style="margin-left:5px;">⭐ PILOTO</span>` : '';
         const iconPerson = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>`;
         const iconPhone = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M3 2h3l1.5 3.5-1.75 1.25a8 8 0 004.5 4.5L11.5 9.5 15 11v3a1 1 0 01-1 1C5.16 15 1 10.84 1 3a1 1 0 011-1z"/></svg>`;
@@ -2068,7 +2068,7 @@ const marker = new google.maps.Marker({
                 </div>
                 <div class="iw-body">
                     ${p.consultor ? `<div class="iw-row">${iconPerson}<div class="iw-field"><div class="iw-field-label">Consultor</div><div class="iw-field-val" style="font-weight:700;">${p.consultor}</div></div></div>` : ''}
-                    ${p.contato ? `<div class="iw-row">${iconPhone}<div class="iw-field"><div class="iw-field-label">Contato</div>${phoneHtml}</div></div>` : ''}
+                    ${p.contato ? `<div class="iw-row">${iconPhone}<div class="iw-field"><div class="iw-field-label">Contato</div><div style="display:flex;align-items:center;gap:6px;">${phoneHtml}<button onclick="navigator.clipboard.writeText('${p.contato}');this.textContent='✅';setTimeout(()=>this.textContent='📋',1500)" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0;flex-shrink:0;" title="Copiar">📋</button></div></div></div>` : ''}
                     ${p.email ? `<div class="iw-row">${iconMail}<div class="iw-field"><div class="iw-field-label">E-mail</div><div class="iw-field-val" style="word-break:break-all;">${p.email}</div></div></div>` : ''}
                     <div class="iw-row">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div></div></div>
                     <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light);">
