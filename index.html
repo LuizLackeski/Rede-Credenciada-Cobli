@@ -195,7 +195,7 @@
         }
         .gm-style-iw-chr button:hover { background: #FF4633 !important; }
 
-        .iw-card { width: 270px; font-family: 'Inter','Segoe UI',sans-serif; }
+        .iw-card { width: 230px; font-family: 'Inter','Segoe UI',sans-serif; }
         .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
         .iw-head.destination { background: linear-gradient(135deg, #B01010 0%, #FF4633 100%); flex-direction: row;}
         .iw-head-top { display: flex; gap: 10px; align-items: flex-start; }
@@ -498,7 +498,7 @@
         .section-title { font-size: 12px !important; }
 
         .mobile-menu-btn {
-            display: flex;
+            display: none;
             flex-direction: column;
             gap: 4px;
             background: rgba(255,255,255,0.1);
@@ -516,9 +516,6 @@
         .mobile-menu-btn.active span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .mobile-menu-btn.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
         .mobile-menu-btn.active span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-        /* FIX: o botão hamburguer (#mobile-menu-btn-desktop) é só para mobile.
-           Antes ele não tinha display:none no desktop, então aparecia também em telas grandes. */
-        #mobile-menu-btn-desktop { display: none; }
         .mobile-overlay {
             display: none;
             position: fixed; inset: 0;
@@ -531,6 +528,8 @@
 
         @media (max-width: 768px) {
             body { flex-direction: column; overflow: hidden; }
+
+            .mobile-menu-btn { display: flex; }
 
             #mobile-topbar {
                 display: flex !important;
@@ -1109,6 +1108,7 @@
         </div>
     </div>
 </div>
+
 <script>
     const supabaseUrl = 'https://tmjmjrhgmyqamuphgdvi.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtam1qcmhnbXlxYW11cGhnZHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY4NzMsImV4cCI6MjA5MjcwMjg3M30.gjClWn46TOgfa-y4PAUMBg4ZxS4xhFjep1mk_DcU2QY';
@@ -1196,20 +1196,26 @@
         const body = document.getElementById('body-' + blockId);
         const btn = document.getElementById('btn-toggle-' + blockId);
         if (!body || !btn) return;
-        
+
         const isCollapsed = body.classList.contains('collapsed');
+
+        // Fecha todos os blocos abertos primeiro
+        ['bloco-3','bloco-4','bloco-5','bloco-6','bloco-7'].forEach(id => {
+            const b = document.getElementById('body-' + id);
+            const t = document.getElementById('btn-toggle-' + id);
+            if (b && t) { b.classList.add('collapsed'); t.classList.add('collapsed'); }
+        });
+
+        // Se estava fechado, abre ele
         if (isCollapsed) {
             body.classList.remove('collapsed');
             btn.classList.remove('collapsed');
-            
+
             if (blockId === 'bloco-4') {
                 localStorage.setItem('knownUsersCount', allUsersData.length.toString());
                 const newBadge = document.getElementById('new-users-badge');
                 if (newBadge) newBadge.style.display = 'none';
             }
-        } else {
-            body.classList.add('collapsed');
-            btn.classList.add('collapsed');
         }
     }
 
@@ -1559,6 +1565,7 @@
         sidebar.classList.remove('mobile-open');
         if (overlay) overlay.classList.remove('open');
     }
+
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: -15.793889, lng: -47.882778 }, zoom: 4,
@@ -1953,6 +1960,7 @@ li.innerHTML = `
             list.appendChild(li);
         });
     }
+
     function getGeocode(address) {
         return new Promise(resolve => {
             geocoder.geocode({ address }, (results, status) => {
@@ -2046,7 +2054,6 @@ const marker = new google.maps.Marker({
         if (!markerRef) markerRef = markers.find(m => m.customId === pId);
         let statusColor = getStatusColor(p.status);
         const nomeDisplay = formatNome(p.nome);
-        const initials = getInitials(nomeDisplay)
         const pilotoBadge = p.piloto ? `<span class="badge-piloto" style="margin-left:5px;">⭐ PILOTO</span>` : '';
         const iconPerson = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>`;
         const iconPhone = `<svg class="iw-icon" viewBox="0 0 16 16" fill="none" stroke="#07074E" stroke-width="1.5"><path d="M3 2h3l1.5 3.5-1.75 1.25a8 8 0 004.5 4.5L11.5 9.5 15 11v3a1 1 0 01-1 1C5.16 15 1 10.84 1 3a1 1 0 011-1z"/></svg>`;
@@ -2055,28 +2062,27 @@ const marker = new google.maps.Marker({
         const wappUrl = getWhatsappLink(p.contato);
         let phoneHtml = `<div class="iw-field-val">${p.contato}</div>`;
         if (wappUrl) phoneHtml = `<a href="${wappUrl}" target="_blank" class="iw-whatsapp-link">${p.contato} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>`;
+        const cSafe = (p.contato||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        const adSafe = (p.endereco||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        const cpyBtn = (val) => `<button onclick="navigator.clipboard.writeText('${val}');this.textContent='✅';setTimeout(()=>this.textContent='📋',1500)" style="background:none;border:none;cursor:pointer;font-size:11px;padding:0;flex-shrink:0;opacity:0.5;" title="Copiar">📋</button>`;
+        const enderecoFormatado = (p.endereco||'').toLowerCase().replace(/\b\w/g, c => c);
         const content = `
             <div class="iw-card">
-                <div class="iw-head">
+                <div class="iw-head" style="padding:12px 14px 10px;gap:7px;">
                     <div class="iw-head-top">
-                        <div class="iw-avatar" style="font-size:18px;">🪛</div>
-                        <div class="iw-head-text"><h4 title="${nomeDisplay}">${nomeDisplay}</h4>${pilotoBadge}</div>
+                        <div class="iw-avatar" style="font-size:16px;width:30px;height:30px;">🪛</div>
+                        <div class="iw-head-text"><h4 title="${nomeDisplay}" style="font-size:13px;margin-bottom:3px;">${nomeDisplay}</h4>${pilotoBadge}</div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span class="iw-status-pill"><span class="iw-status-dot" style="background:${statusColor};"></span>${p.status}</span>ROUTE_BTN_HERE
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--cobli-navy);background:#fff;border-radius:4px;padding:3px 8px;box-shadow:0 1px 4px rgba(0,0,0,0.15);text-transform:uppercase;letter-spacing:0.3px;"><span style="width:6px;height:6px;border-radius:50%;background:${statusColor};flex-shrink:0;display:inline-block;"></span>${p.status}</span>ROUTE_BTN_HERE
                     </div>
                 </div>
-                <div class="iw-body">
-                    ${p.consultor ? `<div class="iw-row">${iconPerson}<div class="iw-field"><div class="iw-field-label">Consultor</div><div class="iw-field-val" style="font-weight:700;">${p.consultor}</div></div></div>` : ''}
-                    ${p.contato ? `<div class="iw-row">${iconPhone}<div class="iw-field"><div class="iw-field-label">Contato</div><div style="display:flex;align-items:center;gap:6px;">${phoneHtml}<button onclick="navigator.clipboard.writeText('${p.contato}');this.textContent='✅';setTimeout(()=>this.textContent='📋',1500)" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0;flex-shrink:0;" title="Copiar">📋</button></div></div></div>` : ''}
-                    ${p.email ? `<div class="iw-row">${iconMail}<div class="iw-field"><div class="iw-field-label">E-mail</div><div class="iw-field-val" style="word-break:break-all;">${p.email}</div></div></div>` : ''}
-                    <div class="iw-row">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${p.endereco}</div></div></div>
-                    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light);">
-${prestadoresComLog.has(p.id) ? `<button onclick="openStatusLog(${p.id})" style="width:100%;padding:6px 10px;background:var(--surface-muted);border:1px solid var(--border-mid);border-radius:6px;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;"
-    onmouseover="this.style.background='var(--cobli-lavender)'" onmouseout="this.style.background='var(--surface-muted)'">
-    📋 Ver histórico de alterações
-</button>` : ''}
-                    </div>
+                <div class="iw-body" style="padding:10px 14px 12px;">
+                    ${p.contato ? `<div class="iw-row" style="margin-bottom:7px;">${iconPhone}<div class="iw-field"><div class="iw-field-label">Contato</div><div style="display:flex;align-items:center;gap:5px;">${phoneHtml}${cpyBtn(cSafe)}</div></div></div>` : ''}
+                    <div class="iw-row" style="margin-bottom:7px;">${iconLocation}<div class="iw-field"><div class="iw-field-label">Endereço</div><div style="display:flex;align-items:flex-start;gap:5px;"><div class="iw-field-val" style="font-size:11px;color:#4B4F7A;">${enderecoFormatado}</div>${cpyBtn(adSafe)}</div></div></div>
+                    ${p.consultor ? `<div style="padding-top:7px;border-top:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;"><span style="font-size:10px;color:var(--text-muted);">👤 ${p.consultor}</span>
+                    ${prestadoresComLog.has(p.id) ? `<button onclick="openStatusLog(${p.id})" style="background:none;border:none;font-size:10px;font-weight:600;color:var(--cobli-indigo);cursor:pointer;padding:0;font-family:inherit;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">📋 Histórico</button>` : ''}</div>` :
+                    prestadoresComLog.has(p.id) ? `<div style="padding-top:7px;border-top:1px solid var(--border-light);"><button onclick="openStatusLog(${p.id})" style="background:none;border:none;font-size:10px;font-weight:600;color:var(--cobli-indigo);cursor:pointer;padding:0;font-family:inherit;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">📋 Histórico</button></div>` : ''}
                 </div>
             </div>`;
         const hasAddr = document.getElementById('client-address')?.value.trim();
@@ -2213,6 +2219,7 @@ ${prestadoresComLog.has(p.id) ? `<button onclick="openStatusLog(${p.id})" style=
 
         resultDiv.innerHTML = header + cards + footer;
     }
+
     function findClosestProviders() {
         const clientAddress = document.getElementById('client-address').value.trim();
         const resultDiv = document.getElementById('routing-result');
@@ -2574,6 +2581,7 @@ for (const key of Object.keys(labels)) {
             </div>`;
         }).join('');
     }
+
     async function saveManualProvider(event) {
         event.preventDefault();
         let cNome = document.getElementById('m-consultor').value;
