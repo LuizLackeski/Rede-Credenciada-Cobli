@@ -945,11 +945,17 @@
                     >
                 <div id="autocomplete-dropdown"
                     style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.22);z-index:9999;overflow:hidden;max-height:260px;overflow-y:auto;"></div>
-            </div>
-            <button onclick="clearRoutingAndSearch()" title="Limpar busca"
+            </div> <button onclick="clearRoutingAndSearch()" title="Limpar busca"
                 style="background:#fff;border:none;border-radius:10px;width:42px;height:42px;cursor:pointer;font-size:16px;font-weight:700;color:#FF4633;box-shadow:0 2px 8px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;pointer-events:all;"
                 onmouseover="this.style.background='#FF4633';this.style.color='#fff'"
                 onmouseout="this.style.background='#fff';this.style.color='#FF4633'">✕</button>
+
+            <button id="btn-ruler" onclick="toggleRulerMode()" title="Medir distância em linha reta"
+                style="background:#fff;border:none;border-radius:10px;width:42px;height:42px;cursor:pointer;font-size:18px;color:var(--cobli-navy);box-shadow:0 2px 8px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;pointer-events:all;transition:background 0.2s;"
+                onmouseover="if(!this.classList.contains('active')) this.style.background='#F5F6FF'"
+                onmouseout="if(!this.classList.contains('active')) this.style.background='#fff'">
+                📏
+            </button>
         </div>
 
         <div style="display:flex;gap:6px;pointer-events:all;">
@@ -1118,6 +1124,8 @@
     let directionsService, directionsRenderer, geocoder;
     let clientMarker = null, infoWindowGlobal = null, clientInfoWindow = null;
     let currentSearchRange = 50, currentUser = null;
+// Variáveis da Régua
+    let rulerMode = false, rulerPolyline = null, rulerMarkers = [], rulerPath = [], rulerListener = null, rulerLabel = null;
 
     const PALETTE = ['#001BB8', '#00AE97', '#FF4633', '#7F8DDB', '#F01A1A', '#07074E', '#E455C6', '#228B22', '#D2691E'];
     let consultantColors = {};
@@ -2343,6 +2351,8 @@ const marker = new google.maps.Marker({
         if (clientMarker) { clientMarker.setMap(null); clientMarker = null; }
         if (infoWindowGlobal) infoWindowGlobal.close();
         if (clientInfoWindow) clientInfoWindow.close();
+// ADICIONE ESTA LINHA AQUI
+        if (typeof clearRuler === 'function') clearRuler();
         applyFilters();
         if (markers.length && map) { map.setZoom(4); map.setCenter({ lat: -15.793889, lng: -47.882778 }); }
     }
@@ -2846,6 +2856,94 @@ for (const key of Object.keys(labels)) {
     function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
     function closeModal(id) { const el = document.getElementById(id); if (el) { el.style.display = 'none'; el.classList.remove('open'); } }
     function clearAllMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
+
+/* =====================================================================
+       MÓDULO DA RÉGUA (MEDIR DISTÂNCIA RETA)
+       ===================================================================== */
+    function toggleRulerMode() {
+        rulerMode = !rulerMode;
+        const btn = document.getElementById('btn-ruler');
+        if (rulerMode) {
+            btn.classList.add('active');
+            btn.style.background = 'var(--cobli-indigo)';
+            btn.style.color = '#fff';
+            map.setOptions({ draggableCursor: 'crosshair' });
+            rulerListener = map.addListener('click', addRulerPoint);
+            showToast('Modo Régua ativado. Clique no mapa para medir.');
+        } else {
+            btn.classList.remove('active');
+            btn.style.background = '#fff';
+            btn.style.color = 'var(--cobli-navy)';
+            map.setOptions({ draggableCursor: '' });
+            if (rulerListener) google.maps.event.removeListener(rulerListener);
+            clearRuler();
+            showToast('Modo Régua desativada.');
+        }
+    }
+
+    function addRulerPoint(event) {
+        const latLng = event.latLng;
+        rulerPath.push(latLng);
+
+        const marker = new google.maps.Marker({
+            position: latLng,
+            map: map,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 5,
+                fillColor: '#00AE97',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+            },
+            zIndex: 1000,
+            clickable: false
+        });
+        rulerMarkers.push(marker);
+
+        if (!rulerPolyline) {
+            rulerPolyline = new google.maps.Polyline({
+                path: rulerPath,
+                geodesic: true,
+                strokeColor: '#00AE97',
+                strokeOpacity: 0.8,
+                strokeWeight: 4,
+                map: map
+            });
+        } else {
+            rulerPolyline.setPath(rulerPath);
+        }
+
+        calculateAndDisplayRulerDistance();
+    }
+
+function calculateAndDisplayRulerDistance() {
+        if (rulerPath.length < 2) return;
+        let totalDistance = 0;
+        for (let i = 0; i < rulerPath.length - 1; i++) {
+            totalDistance += google.maps.geometry.spherical.computeDistanceBetween(rulerPath[i], rulerPath[i + 1]);
+        }
+        
+        const distText = totalDistance > 1000 ? (totalDistance / 1000).toFixed(2) + ' km' : Math.round(totalDistance) + ' m';
+
+        if (!rulerLabel) {
+            rulerLabel = new google.maps.InfoWindow({ disableAutoPan: true });
+        }
+        
+        // AQUI ESTÁ A CORREÇÃO: Aumentamos o padding (especialmente na direita) e a altura mínima
+        rulerLabel.setContent(`<div style="padding:10px 38px 10px 14px;font-size:13px;font-weight:700;color:var(--cobli-navy);font-family:inherit;min-height:28px;display:flex;align-items:center;">Total: ${distText}</div>`);
+        
+        rulerLabel.setPosition(rulerPath[rulerPath.length - 1]);
+        rulerLabel.open(map);
+    }
+
+    function clearRuler() {
+        if (rulerPolyline) { rulerPolyline.setMap(null); rulerPolyline = null; }
+        rulerMarkers.forEach(m => m.setMap(null));
+        rulerMarkers = [];
+        rulerPath = [];
+        if (rulerLabel) { rulerLabel.close(); }
+    }
 
     document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m && m.id !== 'custom-dialog-backdrop') { if (m.id === 'edit-modal') { confirmDiscardEdit(); } else { closeModal(m.id); } } }); });
 
