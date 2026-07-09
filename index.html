@@ -2984,39 +2984,186 @@ async function loadProductsFromDB() {
         container.insertAdjacentHTML('beforeend', rowHtml);
     }
 
-    function calculateRouteAndBudget() {
+ async function calculateRouteAndBudget() {
         const addressesText = document.getElementById('route-addresses').value.trim();
-        if (!addressesText) {
-            showToast("Por favor, cole os endereços de destino.", "error");
-            return;
-        }
+        if (!addressesText) { showToast("Por favor, cole os endereços de destino.", "error"); return; }
         
         const addressList = addressesText.split('\n').filter(a => a.trim() !== '');
+        if (addressList.length < 1) { showToast("Insira pelo menos um endereço.", "error"); return; }
 
         const productSelects = document.querySelectorAll('.route-product-select');
         const productQtys = document.querySelectorAll('.route-product-qty');
         let selectedItems = [];
-        
         for(let i = 0; i < productSelects.length; i++) {
             if(productSelects[i].value) {
-                selectedItems.push({
-                    produto: productSelects[i].value,
-                    qtd: parseInt(productQtys[i].value) || 1
-                });
+                selectedItems.push({ produto: productSelects[i].value, qtd: parseInt(productQtys[i].value) || 1 });
             }
         }
 
-        if(selectedItems.length === 0) {
-            showToast("Selecione pelo menos um produto para o cálculo.", "error");
-            return;
+        if(selectedItems.length === 0) { showToast("Selecione pelo menos um produto para o cálculo.", "error"); return; }
+
+        const btn = document.querySelector('#bloco-2 .btn-primary');
+        const originalBtnText = btn.innerHTML;
+        btn.innerHTML = '⏳ Calculando Rota e Custos...';
+        btn.disabled = true;
+
+        try {
+            // 1. Busca os preços dos produtos selecionados no banco de dados
+            const productNames = selectedItems.map(item => item.produto);
+            const { data: pricesData, error: pricesError } = await _supabase
+                .from('tabela_precos')
+                .select('id_tabela, produto, valor_mao_de_obra')
+                .in('produto', productNames);
+
+            if (pricesError) throw pricesError;
+
+            // Monta um dicionário rápido de preços: precos[tabela][produto] = valor
+            const priceMap = {};
+            if (pricesData) {
+                pricesData.forEach(row => {
+                    if (!priceMap[row.id_tabela]) priceMap[row.id_tabela] = {};
+                    priceMap[row.id_tabela][row.produto] = row.valor_mao_de_obra;
+                });
+            }
+
+            // 2. Prepara os dados para o Google Maps
+            const origin = addressList[0];
+            const destination = addressList[addressList.length - 1];
+            let waypoints = [];
+            if (addressList.length > 2) {
+                waypoints = addressList.slice(1, -1).map(addr => ({ location: addr, stopover: true }));
+            }
+
+            const request = {
+                origin: origin,
+                destination: destination,
+                waypoints: waypoints,
+                optimizeWaypoints: true,
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            // 3. Chama o Google para traçar a rota
+            directionsService.route(request, (response, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+                    
+                    // Soma a distância de todos os trechos da rota otimizada
+                    let routeDistanceMeters = 0;
+                    response.routes[0].legs.forEach(leg => { routeDistanceMeters += leg.distance.value; });
+                    const routeKm = routeDistanceMeters / 1000;
+                    const startLocation = response.routes[0].legs[0].start_location; // Onde a rota começa
+
+                    // 4. Calcula os custos para os prestadores visíveis na tela
+                    let candidates = [];
+                    markers.forEach(m => {
+                        if (!m.getMap()) return; // Só calcula para quem tá filtrado na tela
+                        const p = providersData.find(x => x.id === m.customId);
+                        if (!p || !p.lat || !p.lng) return;
+
+                        // Distância do prestador até o primeiro ponto da rota
+                        const distToStartMeters = google.maps.geometry.spherical.computeDistanceBetween(
+                            new google.maps.LatLng(p.lat, p.lng),
+                            startLocation
+                        );
+
+                        if (currentSearchRange === 999999 || distToStartMeters <= currentSearchRange * 1000) {
+                            const distToStartKm = distToStartMeters / 1000;
+                            const totalKm = routeKm + distToStartKm; // Deslocamento + Rota
+                            
+                            // Calcula Custo dos Serviços
+                            let servicesCost = 0;
+                            let hasMissingPrices = false;
+                            const pTable = p.id_tabela || 'N/A';
+
+                            selectedItems.forEach(item => {
+                                if (priceMap[pTable] && priceMap[pTable][item.produto]) {
+                                    servicesCost += (priceMap[pTable][item.produto] * item.qtd);
+                                } else {
+                                    hasMissingPrices = true; // Prestador não tem preço cadastrado para esse produto
+                                }
+                            });
+
+                            // Calcula Custo de Deslocamento
+                            let travelCost = 0;
+                            const franquia = parseFloat(p.franquia_km) || 0;
+                            const valorKm = parseFloat(p.valor_km) || 0;
+                            if (totalKm > franquia) {
+                                travelCost = (totalKm - franquia) * valorKm;
+                            }
+
+                            candidates.push({
+                                prestador: p,
+                                totalKm: totalKm,
+                                servicesCost: servicesCost,
+                                travelCost: travelCost,
+                                totalCost: servicesCost + travelCost,
+                                hasMissingPrices: hasMissingPrices
+                            });
+                        }
+                    });
+
+                    // 5. Ordena do mais barato pro mais caro e exibe
+                    candidates.sort((a, b) => a.totalCost - b.totalCost);
+                    renderBudgetResults(candidates, routeKm, addressList.length);
+
+                } else {
+                    showToast("Erro ao calcular a rota com o Google: " + status, "error");
+                }
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+            });
+
+        } catch (err) {
+            showToast("Erro no cálculo: " + err.message, "error");
+            btn.innerHTML = originalBtnText;
+            btn.disabled = false;
+        }
+    }
+
+    // Função auxiliar para exibir os resultados na tela
+    function renderBudgetResults(candidates, routeKm, pointsCount) {
+        let resultDiv = document.getElementById('routing-result'); // Reaproveita a div da pesquisa comum
+        if (!resultDiv) return;
+
+        let html = `
+            <div style="background:#fff;border-radius:8px 8px 0 0;padding:9px 14px;box-shadow:0 2px 6px rgba(0,0,0,0.12);margin-bottom:6px;">
+                <span style="font-size:11px;font-weight:800;color:var(--cobli-navy);letter-spacing:0.3px;">ORÇAMENTOS GERADOS (${candidates.length})</span>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Rota com ${pointsCount} paradas (${routeKm.toFixed(1)} km)</div>
+            </div>
+        `;
+
+        if (candidates.length === 0) {
+            html += `<div class="result-card" style="text-align:center;padding:15px;"><span style="font-size:11px;color:var(--cobli-red);font-weight:600;">Nenhum prestador encontrado no raio de busca ou filtros atuais.</span></div>`;
+        } else {
+            // Pega os 5 mais baratos
+            const top5 = candidates.slice(0, 5);
+            html += top5.map((c, i) => {
+                const p = c.prestador;
+                const nome = formatNome(p.nome);
+                const col = getStatusColor(p.status);
+                const avisoTabela = c.hasMissingPrices ? `<div style="color:#F01A1A;font-size:9px;font-weight:700;margin-top:2px;">⚠️ Preços incompletos na tabela ${p.id_tabela||'vazia'}</div>` : '';
+                
+                return `
+                <div class="result-card" style="${i === 0 ? 'border: 2px solid var(--cobli-teal); background: #F0FFF9;' : ''}" onclick="centerMapOnProvider(${p.id})">
+                    ${i === 0 ? '<div style="font-size:9px;font-weight:800;color:var(--cobli-teal);text-transform:uppercase;margin-bottom:4px;">🏆 Melhor Opção</div>' : ''}
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:11px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${nome} ${p.piloto ? '⭐' : ''}</span>
+                        <span style="background:${col}22;color:${col};font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;">${p.status}</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;margin-bottom:6px;">
+                        <div style="background:var(--surface-muted);padding:4px;border-radius:4px;"><span style="color:var(--text-secondary);">Serviços:</span> <b>R$ ${c.servicesCost.toFixed(2)}</b></div>
+                        <div style="background:var(--surface-muted);padding:4px;border-radius:4px;"><span style="color:var(--text-secondary);">Desloc.:</span> <b>R$ ${c.travelCost.toFixed(2)}</b></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:9px;color:var(--cobli-indigo);font-weight:600;">Dist. Total: ${c.totalKm.toFixed(1)} km</span>
+                        <span style="font-size:13px;font-weight:800;color:var(--cobli-navy);">Total: R$ ${c.totalCost.toFixed(2)}</span>
+                    </div>
+                    ${avisoTabela}
+                </div>`;
+            }).join('');
         }
 
-        console.log("Destinos Mapeados:", addressList);
-        console.log("Produtos:", selectedItems);
-       
-        showToast(`Recebidos ${addressList.length} endereços e ${selectedItems.length} produtos. Pronto para traçar rota!`);
-        
-        // Aqui vai entrar o código do Google Maps Waypoints (Fase 3)
+        resultDiv.innerHTML = html;
     }
     
     /* =====================================================================
