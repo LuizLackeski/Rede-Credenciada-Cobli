@@ -1005,7 +1005,9 @@
                     <div class="form-row"><label>CEP</label><select id="map-cep" class="map-dropdown"></select></div>
                     <div class="form-row"><label>Status *</label><select id="map-status" class="map-dropdown" required></select></div>
                     <div class="form-row"><label>Piloto (Sim/Não)</label><select id="map-piloto" class="map-dropdown"></select></div>
-                    <div class="form-row"><label>CNPJ (vínculo)</label><select id="map-cnpj" class="map-dropdown"></select></div>
+                    <div class="form-row"><label>ID Tabela</label><select id="map-idtabela" class="map-dropdown"></select></div>
+                    <div class="form-row"><label>Franquia KM</label><select id="map-franquia" class="map-dropdown"></select></div>
+                    <div class="form-row"><label>Valor KM</label><select id="map-valorkm" class="map-dropdown"></select></div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-full" style="margin-top: 12px;">Processar e Inserir no Banco</button>
             </form>
@@ -2781,6 +2783,10 @@ for (const key of Object.keys(labels)) {
                 if (select.id === 'map-status' && cl === 'status') opt.selected = true;
                 if (select.id === 'map-piloto' && cl.includes('piloto')) opt.selected = true;
                 if (select.id === 'map-cnpj' && cl.includes('cnpj')) opt.selected = true;
+                // NOVAS REGRAS DE AUTO-SELEÇÃO
+                if (select.id === 'map-idtabela' && (cl.includes('tabela') || cl.includes('id_tabela'))) opt.selected = true;
+                if (select.id === 'map-franquia' && cl.includes('franquia')) opt.selected = true;
+                if (select.id === 'map-valorkm' && (cl.includes('valor km') || cl.includes('valor_km') || cl === 'valor')) opt.selected = true;
                 select.appendChild(opt);
             });
         });
@@ -2789,7 +2795,7 @@ for (const key of Object.keys(labels)) {
     async function confirmMapping(event) {
         event.preventDefault();
         const gv = id => document.getElementById(id).value;
-        const [cN,cC,cE,cT,cL,cNum,cB,cCid,cEst,cCep,cS,cP,cCNPJ] = ['map-nome','map-consultor','map-email','map-telefone','map-logradouro','map-numero','map-bairro','map-cidade','map-estado','map-cep','map-status','map-piloto','map-cnpj'].map(gv);
+        const [cN,cC,cE,cT,cL,cNum,cB,cCid,cEst,cCep,cS,cP,cCNPJ,cIdTab,cFranq,cValKm] = ['map-nome','map-consultor','map-email','map-telefone','map-logradouro','map-numero','map-bairro','map-cidade','map-estado','map-cep','map-status','map-piloto','map-cnpj','map-idtabela','map-franquia','map-valorkm'].map(gv);
         const indicator = document.getElementById('loading-indicator');
         if (indicator) { indicator.style.display = 'block'; indicator.innerText = 'Iniciando processamento...'; }
         closeModal('mapping-modal');
@@ -2813,7 +2819,10 @@ for (const key of Object.keys(labels)) {
                 consultor: consultRaw, consultorNorm: normalizeStr(consultRaw),
                 email: cE ? fixStr(row[cE]) : "", contato: cT ? fixStr(row[cT]) : "",
                 endereco: end, status: formatStatus(cS ? fixStr(row[cS]) : "Ativo"),
-                piloto: isPiloto, cnpj: cnpjRaw || null
+                piloto: isPiloto, cnpj: cnpjRaw || null,
+                id_tabela: cIdTab ? fixStr(row[cIdTab]) : "",
+                franquia_km: cFranq ? parseFloat(row[cFranq]) || 0 : 0,
+                valor_km: cValKm ? parseFloat(row[cValKm]) || 0 : 0
             };
 
             if (hasCnpj && cnpjRaw) {
