@@ -709,8 +709,8 @@
             <h3>📄 Visualização do Orçamento</h3>
             <button class="modal-close" onclick="closeModal('pdf-preview-modal')">×</button>
         </div>
-        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; align-items: center; max-height: 80vh; overflow-y: auto;">
-            <div id="pdf-paper" style="background: #fff; width: 100%; max-width: 210mm; min-height: 200mm; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); font-family: Helvetica, Arial, sans-serif; color: #07074E;">
+        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; align-items: center; max-height: 80vh; overflow-y: auto; background: #E6E6ED;">
+            <div id="pdf-paper" style="background: #fff; width: 100%; max-width: 210mm; min-height: 200mm; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); font-family: Helvetica, Arial, sans-serif; color: #07074E;">
                 </div>
         </div>
         <div style="padding: 14px 20px; background: #fff; border-top: 1px solid var(--border-light); display: flex; justify-content: flex-end; gap: 10px;">
@@ -3254,19 +3254,62 @@ for (const key of Object.keys(labels)) {
         btn.disabled = false;
     }
 
-    // Como já calculamos as rotas de todos, essa função agora é instantânea e só atualiza a tela
-    function selectPlannerProvider(pId) {
+// Executado ao clicar no Prestador no Modal
+    async function selectPlannerProvider(pId) {
         plannerSelectedId = pId;
         const candidateIndex = plannerCandidates.findIndex(c => c.prestador.id === pId);
         if (candidateIndex === -1) return;
         
         const c = plannerCandidates[candidateIndex];
+        const p = c.prestador;
 
-        if (c.route) {
-            plannerDirectionsResponse = c.directionsResponse;
-            renderPlannerModalUI(c.route);
-        } else {
-            showToast("Rota exata não disponível para este prestador.", "error");
+        document.getElementById('planner-route-stats').textContent = `Otimizando paradas...`;
+
+        const originLatLng = new google.maps.LatLng(p.lat, p.lng);
+
+        try {
+            const bestResult = await getBestRouteFromOrigin(originLatLng, plannerDestinations);
+            plannerDirectionsResponse = bestResult.response;
+            const route = bestResult.route;
+
+            const exactKm = route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
+
+            c.totalKm = exactKm;
+            if (exactKm > c.franquia) {
+                c.excedenteKm = exactKm - c.franquia;
+                c.travelCost = c.excedenteKm * c.valorKm;
+            } else {
+                c.excedenteKm = 0;
+                c.travelCost = 0;
+            }
+            c.totalCost = c.servicesCost + c.travelCost;
+
+            plannerCandidates.sort((a, b) => {
+                // TRAVA O SELECIONADO NO TOPO: Se for o selecionado, ele ganha de qualquer um!
+                if (a.prestador.id === plannerSelectedId) return -1;
+                if (b.prestador.id === plannerSelectedId) return 1;
+
+                // Restante da ordenação por preço
+                if (a.hasMissingPrices && !b.hasMissingPrices) return 1;
+                if (!a.hasMissingPrices && b.hasMissingPrices) return -1;
+                const costA = a.totalCost > 0 ? a.totalCost : a.totalCostHeuristic;
+                const costB = b.totalCost > 0 ? b.totalCost : b.totalCostHeuristic;
+                return costA - costB;
+            });
+
+            // Atualiza a tela com o prestador selecionado no topo
+            renderPlannerModalUI(route);
+
+            // Rola suavemente o modal para o topo logo após a tela atualizar
+            setTimeout(() => {
+                const modalBody = document.querySelector('#planner-result-modal .modal-body');
+                if (modalBody) {
+                    modalBody.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 50);
+
+        } catch (err) {
+            showToast("Erro ao calcular a rota do prestador: " + err.message, "error");
         }
     }
 
@@ -3503,7 +3546,7 @@ for (const key of Object.keys(labels)) {
             <h3 style="margin: 0 0 15px; font-size: 14px; color: #07074E; text-transform: uppercase;">Comparativo de Prestadores Selecionados</h3>
         `;
 
-        selectedIds.forEach((id, index) => {
+selectedIds.forEach((id, index) => {
             const candidate = plannerCandidates.find(c => c.prestador.id === id);
             if (!candidate) return;
             const p = candidate.prestador;
@@ -3518,41 +3561,59 @@ for (const key of Object.keys(labels)) {
             extraCosts.forEach(ec => {
                 extraHtmlRows += `
                 <tr>
-                    <td style="padding: 5px 0; color: #4B4F7A;">[Extra] ${ec.desc}:</td>
-                    <td style="padding: 5px 0; text-align: right; color: #FF4633;">+ R$ ${ec.val.toFixed(2)}</td>
+                    <td style="padding: 3px 0; color: #4B4F7A;">[Extra] ${ec.desc}:</td>
+                    <td style="padding: 3px 0; text-align: right; color: #FF4633;">+ R$ ${ec.val.toFixed(2)}</td>
                 </tr>`;
             });
 
+            // Monta os destinos (Ponto 0 e Atendimentos)
+            let routeHtml = ``;
+            if (isExact && candidate.route) {
+                routeHtml += `
+                    <div style="margin-top: 8px; font-size: 10px; color: #4B4F7A; border-top: 1px dashed #E2E5F0; padding-top: 6px;">
+                        <div style="margin-bottom: 3px;"><b>Ponto 0 (Prestador):</b> ${candidate.route.legs[0].start_address}</div>`;
+                candidate.route.legs.forEach((leg, i) => {
+                    routeHtml += `<div style="margin-bottom: 2px;"><b>Atendimento ${i+1} <span style="font-weight:normal; color:#9296B8">(+${(leg.distance.value/1000).toFixed(1)} km)</span>:</b> ${leg.end_address}</div>`;
+                });
+                routeHtml += `</div>`;
+            } else {
+                routeHtml = `
+                    <div style="margin-top: 8px; font-size: 10px; color: #4B4F7A; border-top: 1px dashed #E2E5F0; padding-top: 6px;">
+                        <div style="margin-bottom: 3px;"><b>Ponto 0 (Prestador):</b> ${p.endereco}</div>`;
+                plannerDestinations.forEach((dest, i) => {
+                     routeHtml += `<div style="margin-bottom: 2px;"><b>Atendimento ${i+1}:</b> ${dest.address}</div>`;
+                });
+                routeHtml += `</div>`;
+            }
+
             html += `
-                <div style="border: 1px solid #C4C9E0; border-radius: 8px; padding: 15px; margin-bottom: 15px; page-break-inside: avoid;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E5F0; padding-bottom: 10px; margin-bottom: 10px;">
-                        <h4 style="margin: 0; color: #3248C6; font-size: 16px;">${index + 1}. ${formatNome(p.nome)}</h4>
-                        <span style="font-size: 10px; background: #E6E6ED; padding: 3px 8px; border-radius: 12px; font-weight: bold;">${p.status}</span>
+                <div style="border: 1px solid #C4C9E0; border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; page-break-inside: avoid;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E5F0; padding-bottom: 6px; margin-bottom: 6px;">
+                        <h4 style="margin: 0; color: #3248C6; font-size: 14px;">${index + 1}. ${formatNome(p.nome)}</h4>
+                        <span style="font-size: 9px; background: #E6E6ED; padding: 2px 6px; border-radius: 12px; font-weight: bold;">${p.status}</span>
                     </div>
                     
-                    <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                    <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
                         <tr>
-                            <td style="padding: 5px 0; color: #4B4F7A; width: 60%;">Tabela de Preço Vinculada:</td>
-                            <td style="padding: 5px 0; text-align: right; font-weight: 600;">${p.id_tabela || 'Não definida'}</td>
+                            <td style="padding: 3px 0; color: #4B4F7A;">Distância Estimada (Deslocamento + Rota):</td>
+                            <td style="padding: 3px 0; text-align: right; font-weight: 600;">${dispKm > 0 ? dispKm.toFixed(1) + ' km' : 'Calculo Base'} ${isExact ? '(Exata)' : ''}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 5px 0; color: #4B4F7A;">Distância de Deslocamento + Rota:</td>
-                            <td style="padding: 5px 0; text-align: right; font-weight: 600;">${dispKm > 0 ? dispKm.toFixed(1) + ' km' : 'Cálculo Estimado Base'} ${isExact ? '(Exata)' : ''}</td>
+                            <td style="padding: 3px 0; color: #4B4F7A;">Custo de Serviço (Mão de Obra):</td>
+                            <td style="padding: 3px 0; text-align: right;">R$ ${candidate.servicesCost.toFixed(2)}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 5px 0; color: #4B4F7A;">Custo de Serviço (Mão de Obra):</td>
-                            <td style="padding: 5px 0; text-align: right;">R$ ${candidate.servicesCost.toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px 0; color: #4B4F7A;">Custo de Deslocamento Estimado:</td>
-                            <td style="padding: 5px 0; text-align: right;">R$ ${dispTravel > 0 ? dispTravel.toFixed(2) : '0.00'}</td>
+                            <td style="padding: 3px 0; color: #4B4F7A;">Custo de Deslocamento:</td>
+                            <td style="padding: 3px 0; text-align: right;">R$ ${dispTravel > 0 ? dispTravel.toFixed(2) : '0.00'}</td>
                         </tr>
                         ${extraHtmlRows}
                         <tr>
-                            <td style="padding: 10px 0 0; color: #07074E; font-weight: 800; border-top: 1px dashed #C4C9E0; font-size: 14px;">Total Previsto:</td>
-                            <td style="padding: 10px 0 0; text-align: right; font-weight: 800; font-size: 16px; border-top: 1px dashed #C4C9E0; color: #00AE97;">R$ ${finalTotal.toFixed(2)}</td>
+                            <td style="padding: 6px 0 0; color: #07074E; font-weight: 800; border-top: 1px dashed #C4C9E0; font-size: 13px;">Total Previsto:</td>
+                            <td style="padding: 6px 0 0; text-align: right; font-weight: 800; font-size: 14px; border-top: 1px dashed #C4C9E0; color: #00AE97;">R$ ${finalTotal.toFixed(2)}</td>
                         </tr>
                     </table>
+                    
+                    ${routeHtml}
                 </div>
             `;
         });
