@@ -2961,7 +2961,7 @@ for (const key of Object.keys(labels)) {
 // Variáveis Globais do Roteirizador
     let availableProducts = [];
     let plannerCandidates = [];
-    let plannerDestinations = [];
+    let plannerDestinations = []; 
     let plannerSelectedId = null;
     let plannerDirectionsResponse = null;
     let plannerProducts = [];
@@ -3020,29 +3020,31 @@ for (const key of Object.keys(labels)) {
         const rowHtml = `
             <div id="${rowId}" style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
                 <span style="font-size: 14px;">📍</span>
-                <input type="text" class="route-address-input" placeholder="Endereço do cliente (Rua, Número, Cidade...)" style="flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; font-family: inherit;">
+                <input type="text" class="route-address-input" placeholder="Rua, Cidade, Estado..." style="flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; font-family: inherit;">
                 <button class="btn-icon" style="width: 28px; height: 28px; font-size: 12px; color: var(--cobli-red); flex-shrink: 0;" onclick="document.getElementById('${rowId}').remove()" title="Remover">✕</button>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', rowHtml);
     }
 
+    // Inicializa com um campo de endereço
     setTimeout(() => {
         const c = document.getElementById('route-addresses-container');
         if (c && c.innerHTML.trim() === '') addRouteAddressRow();
     }, 1000);
 
     async function calculateRouteAndBudget() {
+        // Limpa o mapa para a nova requisição
         clearPlannerMarkers();
 
         const addrInputs = document.querySelectorAll('.route-address-input');
-        plannerDestinations = [];
+        let rawAddrs = [];
         addrInputs.forEach(inp => {
             const val = inp.value.trim();
-            if (val.length > 5) plannerDestinations.push(val);
+            if (val.length > 5) rawAddrs.push(val);
         });
 
-        if (plannerDestinations.length < 1) { showToast("Insira pelo menos um endereço de destino válido.", "error"); return; }
+        if (rawAddrs.length < 1) { showToast("Insira pelo menos um endereço de destino válido.", "error"); return; }
 
         const productSelects = document.querySelectorAll('.route-product-select');
         const productQtys = document.querySelectorAll('.route-product-qty');
@@ -3057,10 +3059,21 @@ for (const key of Object.keys(labels)) {
 
         const btn = document.querySelector('#bloco-2 .btn-primary');
         const originalBtnText = btn.innerHTML;
-        btn.innerHTML = '⏳ Pesquisando Prestadores...';
+        btn.innerHTML = '⏳ Mapeando Endereços...';
         btn.disabled = true;
 
         try {
+            // Geocodifica todos os destinos informados para evitar erros e permitir o cálculo de distância real
+            plannerDestinations = [];
+            for (let addr of rawAddrs) {
+                const geo = await getGeocode(addr);
+                if (geo.lat) {
+                    plannerDestinations.push({ address: addr, lat: geo.lat, lng: geo.lng });
+                }
+            }
+
+            if (plannerDestinations.length === 0) throw new Error("Não foi possível localizar os endereços fornecidos.");
+
             const productNames = plannerProducts.map(item => item.produto);
             const { data: pricesData, error: pricesError } = await _supabase
                 .from('tabela_precos')
@@ -3077,8 +3090,7 @@ for (const key of Object.keys(labels)) {
                 });
             }
 
-            const baseGeocode = await getGeocode(plannerDestinations[0]);
-            const baseLatLng = new google.maps.LatLng(baseGeocode.lat, baseGeocode.lng);
+            btn.innerHTML = '⏳ Cruzando Prestadores...';
 
             plannerCandidates = [];
             let allowedStatuses = currentUser.perfil === 'admin' ? getCheckedValues('status-items') : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
@@ -3094,9 +3106,15 @@ for (const key of Object.keys(labels)) {
                 if (showOnlyPiloto && !p.piloto) return;
 
                 const pLatLng = new google.maps.LatLng(p.lat, p.lng);
-                const distToStartMeters = google.maps.geometry.spherical.computeDistanceBetween(pLatLng, baseLatLng);
 
-                if (currentSearchRange === 999999 || distToStartMeters <= currentSearchRange * 1000) {
+                // Acha a distância para o cliente MAIS PRÓXIMO deste prestador
+                let minDistToAnyClient = Infinity;
+                plannerDestinations.forEach(dest => {
+                    const d = google.maps.geometry.spherical.computeDistanceBetween(pLatLng, new google.maps.LatLng(dest.lat, dest.lng));
+                    if (d < minDistToAnyClient) minDistToAnyClient = d;
+                });
+
+                if (currentSearchRange === 999999 || minDistToStartMeters <= currentSearchRange * 1000) {
                     let servicesCost = 0;
                     let hasMissingPrices = false;
                     const pTable = p.id_tabela || 'N/A';
@@ -3109,7 +3127,8 @@ for (const key of Object.keys(labels)) {
                         }
                     });
 
-                    const heuristicKm = (distToStartMeters / 1000) * 1.5 + (plannerDestinations.length * 10);
+                    // Cálculo base de priorização preliminar (1.2 fator margem + 5km por parada)
+                    const heuristicKm = (minDistToAnyClient / 1000) * 1.2 + (plannerDestinations.length * 5);
                     let heuristicTravelCost = 0;
                     const franquia = parseFloat(p.franquia_km) || 0;
                     const valorKm = parseFloat(p.valor_km) || 0;
@@ -3147,9 +3166,10 @@ for (const key of Object.keys(labels)) {
             }
 
             openModal('planner-result-modal');
-            document.getElementById('planner-route-order').innerHTML = `<div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Calculando rota exata...</div>`;
+            document.getElementById('planner-route-order').innerHTML = `<div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Calculando rota do melhor prestador...</div>`;
             document.getElementById('planner-candidates-list').innerHTML = ''; 
             
+            // Seleciona automaticamente o melhor prestador (o #1 da lista) para exibir a rota ideal inicial
             await selectPlannerProvider(plannerCandidates[0].prestador.id);
 
         } catch (err) {
@@ -3159,6 +3179,7 @@ for (const key of Object.keys(labels)) {
         btn.disabled = false;
     }
 
+    // Executado ao clicar no Prestador no Modal
     async function selectPlannerProvider(pId) {
         plannerSelectedId = pId;
         const candidateIndex = plannerCandidates.findIndex(c => c.prestador.id === pId);
@@ -3169,17 +3190,24 @@ for (const key of Object.keys(labels)) {
 
         document.getElementById('planner-route-stats').textContent = `Otimizando paradas...`;
 
-        const origin = new google.maps.LatLng(p.lat, p.lng);
+        const originLatLng = new google.maps.LatLng(p.lat, p.lng);
         
-        const destinationAddr = plannerDestinations[plannerDestinations.length - 1];
-        let waypoints = [];
-        if (plannerDestinations.length > 1) {
-            waypoints = plannerDestinations.slice(0, -1).map(addr => ({ location: addr, stopover: true }));
-        }
+        // Pulo do Gato: Acha o cliente MAIS LONGE deste prestador específico e define como Destino Final
+        let maxDist = -1;
+        let farthestDest = plannerDestinations[0];
+        plannerDestinations.forEach(dest => {
+            const d = google.maps.geometry.spherical.computeDistanceBetween(originLatLng, new google.maps.LatLng(dest.lat, dest.lng));
+            if (d > maxDist) { maxDist = d; farthestDest = dest; }
+        });
+
+        // Todos os outros clientes viram paradas que o Google vai reorganizar para a melhor ordem!
+        let waypoints = plannerDestinations
+            .filter(d => d !== farthestDest)
+            .map(d => ({ location: new google.maps.LatLng(d.lat, d.lng), stopover: true }));
 
         directionsService.route({
-            origin: origin,
-            destination: destinationAddr,
+            origin: originLatLng,
+            destination: new google.maps.LatLng(farthestDest.lat, farthestDest.lng),
             waypoints: waypoints,
             optimizeWaypoints: true,
             travelMode: google.maps.TravelMode.DRIVING
@@ -3212,7 +3240,7 @@ for (const key of Object.keys(labels)) {
 
                 renderPlannerModalUI(route);
             } else {
-                showToast("Erro ao calcular a rota do prestador: " + status, "error");
+                showToast("Erro ao calcular a rota do prestador selecionado.", "error");
             }
         });
     }
@@ -3224,11 +3252,12 @@ for (const key of Object.keys(labels)) {
         
         document.getElementById('planner-route-stats').textContent = `Total: ${exactKm.toFixed(1)} km | ${route.legs.length} trechos`;
         
+        // Renderiza o Topo (A Rota Exata partindo do Prestador)
         let routeHtml = `
             <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--surface-muted);">
                 <span style="font-size: 16px; margin-top: -2px;">🏠</span>
                 <div>
-                    <div style="font-weight: 700; color: var(--cobli-navy); margin-bottom: 2px;">Ponto 0 (Prestador)</div>
+                    <div style="font-weight: 700; color: var(--cobli-navy); margin-bottom: 2px;">Ponto 0 (Casa do Prestador)</div>
                     <div style="color: var(--text-secondary);">${route.legs[0].start_address}</div>
                 </div>
             </div>
@@ -3247,6 +3276,7 @@ for (const key of Object.keys(labels)) {
         }
         document.getElementById('planner-route-order').innerHTML = routeHtml;
 
+        // Renderiza os Cards dos Prestadores
         let listHtml = plannerCandidates.slice(0, 10).map((c, i) => {
             const p = c.prestador;
             const isSelected = p.id === plannerSelectedId;
@@ -3266,7 +3296,7 @@ for (const key of Object.keys(labels)) {
                 ? 'border: 2px solid var(--cobli-indigo); background: #F5F6FF; transform: scale(1.01); box-shadow: 0 4px 12px rgba(50,72,198,0.15);' 
                 : 'border: 1px solid var(--border-light); background: #fff; cursor: pointer;';
 
-            const kmText = isSelected ? `<b>${displayedTotalKm.toFixed(1)} km</b>` : `<span style="color:var(--text-muted);">Clique p/ calcular</span>`;
+            const kmText = isSelected ? `<b>${displayedTotalKm.toFixed(1)} km</b>` : `<span style="color:var(--text-muted);">Clique p/ calcular rota</span>`;
             const excText = isSelected ? `<b style="color:var(--cobli-red);">${displayedExcedente.toFixed(1)} km</b>` : `<span style="color:var(--text-muted);">--</span>`;
 
             return `
@@ -3296,7 +3326,7 @@ for (const key of Object.keys(labels)) {
                         <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Mão de Obra:</span> <b>R$ ${c.servicesCost.toFixed(2)}</b></div>
                         <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Desloc.:</span> <b>R$ ${isSelected ? displayedTravelCost.toFixed(2) : '--'}</b></div>
                         ${isSelected ? `
-                            <button onclick="drawRouteOnMap()" style="margin-top:auto; background:var(--cobli-indigo); color:#fff; border:none; border-radius:4px; padding:6px; font-size:10px; font-weight:700; cursor:pointer;">🗺️ Ver Rota no Mapa</button>
+                            <button onclick="drawRouteOnMap()" style="margin-top:auto; background:var(--cobli-indigo); color:#fff; border:none; border-radius:4px; padding:6px; font-size:10px; font-weight:700; cursor:pointer; font-family: inherit;">🗺️ Ver Rota no Mapa</button>
                         ` : `
                             <div style="margin-top:auto; font-size:9px; color:var(--text-muted); text-align:center;">*Custo base estimado</div>
                         `}
