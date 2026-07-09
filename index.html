@@ -775,12 +775,7 @@
                     <button class="btn btn-outline btn-full" style="margin-top: 6px; font-size: 11px; padding: 6px; border-style: dashed;" onclick="addRouteProductRow()">+ Adicionar outro produto</button>
                 </div>
 
-                <div class="form-row" style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
-                    <input type="checkbox" id="route-include-noshow" style="margin: 0; width: auto; transform: scale(1.2); cursor: pointer;">
-                    <label for="route-include-noshow" style="margin: 0; cursor: pointer; text-transform: none; color: var(--text-primary); font-size: 11px;">Incluir previsão de No-Show na cotação?</label>
-                </div>
-
-                <button class="btn btn-primary btn-full" style="margin-top: 14px;" onclick="calculateRouteAndBudget()">🎯 Encontrar Melhor Rota e Orçamento</button>
+               <button class="btn btn-primary btn-full" style="margin-top: 14px;" onclick="calculateRouteAndBudget()">🎯 Encontrar Melhor Rota e Orçamento</button>
             </div>
         </div>
         <div id="bloco-3" class="section-card">
@@ -2932,22 +2927,37 @@ for (const key of Object.keys(labels)) {
        ===================================================================== */
     let availableProducts = [];
 
-    async function loadProductsFromDB() {
+async function loadProductsFromDB() {
+        // Busca flexível ignorando acentos ou maiúsculas/minúsculas
         const { data, error } = await _supabase
             .from('tabela_precos')
             .select('produto')
-            .eq('tipo_de_servico', 'INSTALAÇÃO');
+            .ilike('tipo_de_servico', '%INSTALA%'); 
         
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
             // Remove duplicatas e organiza em ordem alfabética
             availableProducts = [...new Set(data.map(item => item.produto))].sort();
             
-            // Garante que tenha pelo menos a primeira linha vazia ao carregar a página
+            // Se já tiver campos na tela, atualiza a lista deles
+            const selects = document.querySelectorAll('.route-product-select');
+            selects.forEach(select => {
+                let options = '<option value="">-- Selecione o produto --</option>';
+                availableProducts.forEach(p => options += `<option value="${p}">${p}</option>`);
+                // Mantém o valor que já estava selecionado (se houver)
+                const currentVal = select.value;
+                select.innerHTML = options;
+                if (availableProducts.includes(currentVal)) select.value = currentVal;
+            });
+
+            // Se não tiver nenhuma linha, cria a primeira
             const container = document.getElementById('route-products-container');
             if (container && container.innerHTML.trim() === '') {
                 addRouteProductRow();
             }
+        } else {
+            console.error("Nenhum produto carregado ou erro de banco:", error);
         }
+      }
     }
 
     // Chama o carregamento dos produtos logo após carregar a lista de prestadores
@@ -3002,12 +3012,9 @@ for (const key of Object.keys(labels)) {
             return;
         }
 
-        const checkNoShow = document.getElementById('route-include-noshow').checked;
-
         console.log("Destinos Mapeados:", addressList);
         console.log("Produtos:", selectedItems);
-        console.log("Incluir No-Show:", checkNoShow);
-
+       
         showToast(`Recebidos ${addressList.length} endereços e ${selectedItems.length} produtos. Pronto para traçar rota!`);
         
         // Aqui vai entrar o código do Google Maps Waypoints (Fase 3)
