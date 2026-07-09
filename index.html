@@ -1000,6 +1000,15 @@
 <div id="map-container">
     <div id="map"></div>
 
+    <!-- NOVO: Botão de Voltar (Fica escondido até traçar a rota) -->
+    <button id="btn-back-planner" onclick="backToPlannerResults()" style="display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 60; background: var(--cobli-navy); color: #fff; border: 2px solid var(--cobli-violet); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-family: inherit; transition: all 0.2s;">
+        🔙 Voltar para os Orçamentos
+    </button>
+
+    <div id="map-search-bar" style="
+        position: absolute;
+        top: 12px;
+    
     <div id="map-search-bar" style="
         position: absolute;
         top: 12px;
@@ -3031,10 +3040,19 @@ for (const key of Object.keys(labels)) {
         container.insertAdjacentHTML('beforeend', rowHtml);
     }
 
-    function clearPlannerMarkers() {
+  function clearPlannerMarkers() {
         plannerCustomMarkers.forEach(m => m.setMap(null));
         plannerCustomMarkers = [];
         directionsRenderer.setDirections({ routes: [] });
+        const backBtn = document.getElementById('btn-back-planner');
+        if (backBtn) backBtn.style.display = 'none';
+    }
+
+    // NOVA FUNÇÃO: Reabre a tela de orçamentos sem calcular tudo de novo
+    function backToPlannerResults() {
+        const backBtn = document.getElementById('btn-back-planner');
+        if (backBtn) backBtn.style.display = 'none';
+        openModal('planner-result-modal');
     }
 
     function addRouteAddressRow() {
@@ -3358,13 +3376,22 @@ for (const key of Object.keys(labels)) {
         document.getElementById('planner-candidates-list').innerHTML = listHtml;
     }
 
-    function drawRouteOnMap() {
+  function drawRouteOnMap() {
         if (!plannerDirectionsResponse || !plannerSelectedId) return;
         
         closeModal('planner-result-modal');
         directionsRenderer.setDirections(plannerDirectionsResponse);
         
         const route = plannerDirectionsResponse.routes[0];
+
+        // 1. DA ZOOM AUTOMÁTICO NA ROTA
+        if (route.bounds) {
+            map.fitBounds(route.bounds);
+        }
+
+        // 2. MOSTRA O BOTÃO DE VOLTAR
+        const backBtn = document.getElementById('btn-back-planner');
+        if (backBtn) backBtn.style.display = 'block';
         
         const p = providersData.find(x => x.id === plannerSelectedId);
         const mk = markers.find(m => m.customId === plannerSelectedId);
