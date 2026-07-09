@@ -753,6 +753,36 @@
             </div>
         </div>
 
+        <div id="bloco-2" class="section-card">
+            <div class="section-header" onclick="toggleBlock('bloco-2')">
+                <div class="section-header-left">
+                    <span class="section-icon">🛣️</span><span class="section-title">Planejador de Rotas e Custos</span>
+                </div>
+                <div class="section-header-right">
+                    <button class="block-toggle-btn collapsed" id="btn-toggle-bloco-2">▼</button>
+                </div>
+            </div>
+            <div class="section-body collapsed" id="body-bloco-2">
+                <div class="form-row">
+                    <label>Endereços de Destino (um por linha) *</label>
+                    <textarea id="route-addresses" rows="4" placeholder="Ex:&#10;Rua Augusta 1000, São Paulo, SP&#10;Av. Paulista 1500, São Paulo, SP" style="width:100%;padding:8px 10px;border:1px solid var(--border-mid);border-radius:6px;font-size:12px;font-family:inherit;resize:vertical;outline:none;" onfocus="this.style.borderColor='var(--cobli-violet)'" onblur="this.style.borderColor=''"></textarea>
+                </div>
+                
+                <div class="form-row" style="margin-top: 10px;">
+                    <label>Produtos / Serviços por Parada *</label>
+                    <div id="route-products-container">
+                        </div>
+                    <button class="btn btn-outline btn-full" style="margin-top: 6px; font-size: 11px; padding: 6px; border-style: dashed;" onclick="addRouteProductRow()">+ Adicionar outro produto</button>
+                </div>
+
+                <div class="form-row" style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="route-include-noshow" style="margin: 0; width: auto; transform: scale(1.2); cursor: pointer;">
+                    <label for="route-include-noshow" style="margin: 0; cursor: pointer; text-transform: none; color: var(--text-primary); font-size: 11px;">Incluir previsão de No-Show na cotação?</label>
+                </div>
+
+                <button class="btn btn-primary btn-full" style="margin-top: 14px;" onclick="calculateRouteAndBudget()">🎯 Encontrar Melhor Rota e Orçamento</button>
+            </div>
+        </div>
         <div id="bloco-3" class="section-card">
             <div class="section-header" onclick="toggleBlock('bloco-3')">
                 <div class="section-header-left">
@@ -1242,7 +1272,7 @@
 
     const BLOCK_LABELS = {
         1: { icon: '📋', name: 'Lista de Prestadores' },
-        2: { icon: '🗺️', name: 'Buscar Técnicos Próximos' },
+        2: { icon: '🛣️', name: 'Planejador de Rotas e Custos' },
         3: { icon: '🔍', name: 'Filtros Dinâmicos' },
         4: { icon: '🔐', name: 'Gerenciar Acessos' },
         5: { icon: '🔄', name: 'Transferência por UF' },
@@ -2898,6 +2928,92 @@ for (const key of Object.keys(labels)) {
     function clearAllMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
 
 /* =====================================================================
+       MÓDULO DE PLANEJAMENTO DE ROTAS E CUSTOS (FASE 2)
+       ===================================================================== */
+    let availableProducts = [];
+
+    async function loadProductsFromDB() {
+        const { data, error } = await _supabase
+            .from('tabela_precos')
+            .select('produto')
+            .eq('tipo_de_servico', 'INSTALAÇÃO');
+        
+        if (!error && data) {
+            // Remove duplicatas e organiza em ordem alfabética
+            availableProducts = [...new Set(data.map(item => item.produto))].sort();
+            
+            // Garante que tenha pelo menos a primeira linha vazia ao carregar a página
+            const container = document.getElementById('route-products-container');
+            if (container && container.innerHTML.trim() === '') {
+                addRouteProductRow();
+            }
+        }
+    }
+
+    // Chama o carregamento dos produtos logo após carregar a lista de prestadores
+    // (Aproveitando um gatilho nativo do sistema)
+    setTimeout(loadProductsFromDB, 2000);
+
+    function addRouteProductRow() {
+        const container = document.getElementById('route-products-container');
+        const rowId = 'prod-row-' + Date.now() + Math.floor(Math.random() * 100);
+        
+        let options = '<option value="">-- Selecione o produto --</option>';
+        availableProducts.forEach(p => {
+            options += `<option value="${p}">${p}</option>`;
+        });
+
+        const rowHtml = `
+            <div id="${rowId}" style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
+                <select class="route-product-select" style="flex: 1; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px;">
+                    ${options}
+                </select>
+                <input type="number" class="route-product-qty" value="1" min="1" style="width: 50px; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; text-align: center;" title="Quantidade">
+                <button class="btn-icon" style="width: 26px; height: 26px; font-size: 12px; color: var(--cobli-red); flex-shrink: 0;" onclick="document.getElementById('${rowId}').remove()" title="Remover">✕</button>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', rowHtml);
+    }
+
+    function calculateRouteAndBudget() {
+        const addressesText = document.getElementById('route-addresses').value.trim();
+        if (!addressesText) {
+            showToast("Por favor, cole os endereços de destino.", "error");
+            return;
+        }
+        
+        const addressList = addressesText.split('\n').filter(a => a.trim() !== '');
+
+        const productSelects = document.querySelectorAll('.route-product-select');
+        const productQtys = document.querySelectorAll('.route-product-qty');
+        let selectedItems = [];
+        
+        for(let i = 0; i < productSelects.length; i++) {
+            if(productSelects[i].value) {
+                selectedItems.push({
+                    produto: productSelects[i].value,
+                    qtd: parseInt(productQtys[i].value) || 1
+                });
+            }
+        }
+
+        if(selectedItems.length === 0) {
+            showToast("Selecione pelo menos um produto para o cálculo.", "error");
+            return;
+        }
+
+        const checkNoShow = document.getElementById('route-include-noshow').checked;
+
+        console.log("Destinos Mapeados:", addressList);
+        console.log("Produtos:", selectedItems);
+        console.log("Incluir No-Show:", checkNoShow);
+
+        showToast(`Recebidos ${addressList.length} endereços e ${selectedItems.length} produtos. Pronto para traçar rota!`);
+        
+        // Aqui vai entrar o código do Google Maps Waypoints (Fase 3)
+    }
+    
+    /* =====================================================================
        MÓDULO DA RÉGUA (MEDIR DISTÂNCIA RETA)
        ===================================================================== */
     function toggleRulerMode() {
