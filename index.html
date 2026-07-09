@@ -668,6 +668,36 @@
     </div>
 </div>
 
+<div id="planner-result-modal" class="modal-backdrop">
+    <div class="modal-box wide" style="width: 650px; max-width: 95vw;">
+        <div class="modal-head">
+            <h3>📊 Orçamento e Rota Otimizada</h3>
+            <button class="modal-close" onclick="closeModal('planner-result-modal')">×</button>
+        </div>
+        <div class="modal-body" style="padding: 0; background: var(--surface-page); display: flex; flex-direction: column; max-height: 80vh;">
+            
+            <div style="padding: 16px; background: #fff; border-bottom: 1px solid var(--border-light);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">Ordem de Atendimento (Otimizada)</h4>
+                    <span id="planner-route-stats" style="font-size: 11px; font-weight: 700; color: var(--cobli-indigo); background: var(--cobli-lavender); padding: 4px 8px; border-radius: 6px;">--</span>
+                </div>
+                <div id="planner-route-order" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+
+            <div style="padding: 16px; flex: 1; overflow-y: auto;">
+                <h4 style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px;">Melhores Prestadores (Custo x Benefício)</h4>
+                <div id="planner-candidates-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+
+            <div style="padding: 14px 16px; background: #fff; border-top: 1px solid var(--border-light); text-align: right;">
+                <button class="btn btn-outline" onclick="closeModal('planner-result-modal')" style="margin-right: 8px;">Voltar e Editar</button>
+                <button class="btn btn-primary" onclick="alert('Geração de PDF na Fase 5!')">📄 Gerar PDF do Orçamento</button>
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
 <div id="login-overlay">
     <div class="login-box">
         <h2>Cobli Logística</h2>
@@ -2984,7 +3014,7 @@ async function loadProductsFromDB() {
         container.insertAdjacentHTML('beforeend', rowHtml);
     }
 
- async function calculateRouteAndBudget() {
+async function calculateRouteAndBudget() {
         const addressesText = document.getElementById('route-addresses').value.trim();
         if (!addressesText) { showToast("Por favor, cole os endereços de destino.", "error"); return; }
         
@@ -3004,11 +3034,11 @@ async function loadProductsFromDB() {
 
         const btn = document.querySelector('#bloco-2 .btn-primary');
         const originalBtnText = btn.innerHTML;
-        btn.innerHTML = '⏳ Calculando Rota e Custos...';
+        btn.innerHTML = '⏳ Otimizando Rota e Calculando Custos...';
         btn.disabled = true;
 
         try {
-            // 1. Busca os preços dos produtos selecionados no banco de dados
+            // 1. Busca os preços no banco
             const productNames = selectedItems.map(item => item.produto);
             const { data: pricesData, error: pricesError } = await _supabase
                 .from('tabela_precos')
@@ -3017,7 +3047,6 @@ async function loadProductsFromDB() {
 
             if (pricesError) throw pricesError;
 
-            // Monta um dicionário rápido de preços: precos[tabela][produto] = valor
             const priceMap = {};
             if (pricesData) {
                 pricesData.forEach(row => {
@@ -3026,7 +3055,7 @@ async function loadProductsFromDB() {
                 });
             }
 
-            // 2. Prepara os dados para o Google Maps
+            // 2. Prepara o Google Maps
             const origin = addressList[0];
             const destination = addressList[addressList.length - 1];
             let waypoints = [];
@@ -3042,35 +3071,53 @@ async function loadProductsFromDB() {
                 travelMode: google.maps.TravelMode.DRIVING
             };
 
-            // 3. Chama o Google para traçar a rota
+            // 3. Chama o Google
             directionsService.route(request, (response, status) => {
                 if (status === 'OK') {
                     directionsRenderer.setDirections(response);
                     
-                    // Soma a distância de todos os trechos da rota otimizada
+                    const route = response.routes[0];
                     let routeDistanceMeters = 0;
-                    response.routes[0].legs.forEach(leg => { routeDistanceMeters += leg.distance.value; });
+                    route.legs.forEach(leg => { routeDistanceMeters += leg.distance.value; });
                     const routeKm = routeDistanceMeters / 1000;
-                    const startLocation = response.routes[0].legs[0].start_location; // Onde a rota começa
+                    const startLocation = route.legs[0].start_location;
 
-                    // 4. Calcula os custos para os prestadores visíveis na tela
+                    // Extrai a ordem otimizada dos endereços para mostrar na tela
+                    let optimizedOrder = [];
+                    optimizedOrder.push(route.legs[0].start_address); // Ponto de partida
+                    for (let i = 0; i < route.legs.length; i++) {
+                        optimizedOrder.push(route.legs[i].end_address); // Próximas paradas
+                    }
+
+                  // 4. Calcula os custos (Olhando direto na base de dados, não no mapa visual)
                     let candidates = [];
-                    markers.forEach(m => {
-                        if (!m.getMap()) return; // Só calcula para quem tá filtrado na tela
-                        const p = providersData.find(x => x.id === m.customId);
-                        if (!p || !p.lat || !p.lng) return;
+                    
+                    // Resgata os filtros que estão marcados na barra lateral
+                    let allowedStatuses = currentUser.perfil === 'admin' 
+                        ? getCheckedValues('status-items') 
+                        : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
+                    const selConsultors = getCheckedValues('consultor-items');
+                    const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
 
-                        // Distância do prestador até o primeiro ponto da rota
+                    providersData.forEach(p => {
+                        // Aplica os filtros de segurança e de tela
+                        if (!p.lat || !p.lng) return;
+                        if (!allowedStatuses.includes(p.status)) return;
+                        
+                        const pCN = p.consultorNorm || "SEM CONSULTOR";
+                        if (!selConsultors.includes(pCN)) return;
+                        if (showOnlyPiloto && !p.piloto) return;
+
                         const distToStartMeters = google.maps.geometry.spherical.computeDistanceBetween(
                             new google.maps.LatLng(p.lat, p.lng),
                             startLocation
                         );
 
+                        // Aplica o raio de KM selecionado nas "pílulas" do mapa (50km, 100km, etc)
                         if (currentSearchRange === 999999 || distToStartMeters <= currentSearchRange * 1000) {
                             const distToStartKm = distToStartMeters / 1000;
-                            const totalKm = routeKm + distToStartKm; // Deslocamento + Rota
+                            const totalKm = routeKm + distToStartKm;
                             
-                            // Calcula Custo dos Serviços
                             let servicesCost = 0;
                             let hasMissingPrices = false;
                             const pTable = p.id_tabela || 'N/A';
@@ -3079,11 +3126,10 @@ async function loadProductsFromDB() {
                                 if (priceMap[pTable] && priceMap[pTable][item.produto]) {
                                     servicesCost += (priceMap[pTable][item.produto] * item.qtd);
                                 } else {
-                                    hasMissingPrices = true; // Prestador não tem preço cadastrado para esse produto
+                                    hasMissingPrices = true;
                                 }
                             });
 
-                            // Calcula Custo de Deslocamento
                             let travelCost = 0;
                             const franquia = parseFloat(p.franquia_km) || 0;
                             const valorKm = parseFloat(p.valor_km) || 0;
@@ -3093,6 +3139,7 @@ async function loadProductsFromDB() {
 
                             candidates.push({
                                 prestador: p,
+                                distToStartKm: distToStartKm,
                                 totalKm: totalKm,
                                 servicesCost: servicesCost,
                                 travelCost: travelCost,
@@ -3102,12 +3149,17 @@ async function loadProductsFromDB() {
                         }
                     });
 
-                    // 5. Ordena do mais barato pro mais caro e exibe
-                    candidates.sort((a, b) => a.totalCost - b.totalCost);
-                    renderBudgetResults(candidates, routeKm, addressList.length);
+                    // 5. Ordena: Prestadores com preço incompleto vão pro final! Se tiverem preços, ordena pelo mais barato.
+                    candidates.sort((a, b) => {
+                        if (a.hasMissingPrices && !b.hasMissingPrices) return 1;
+                        if (!a.hasMissingPrices && b.hasMissingPrices) return -1;
+                        return a.totalCost - b.totalCost;
+                    });
+
+                    renderPlannerModal(candidates, routeKm, optimizedOrder);
 
                 } else {
-                    showToast("Erro ao calcular a rota com o Google: " + status, "error");
+                    showToast("Erro ao calcular a rota: " + status, "error");
                 }
                 btn.innerHTML = originalBtnText;
                 btn.disabled = false;
@@ -3120,50 +3172,69 @@ async function loadProductsFromDB() {
         }
     }
 
-    // Função auxiliar para exibir os resultados na tela
-    function renderBudgetResults(candidates, routeKm, pointsCount) {
-        let resultDiv = document.getElementById('routing-result'); // Reaproveita a div da pesquisa comum
-        if (!resultDiv) return;
+    function renderPlannerModal(candidates, routeKm, optimizedOrder) {
+        // Preenche a ordem da rota
+        document.getElementById('planner-route-stats').textContent = `Total: ${routeKm.toFixed(1)} km | ${optimizedOrder.length} locais`;
+        
+        const routeHtml = optimizedOrder.map((addr, index) => {
+            const icon = index === 0 ? '🟢' : (index === optimizedOrder.length - 1 ? '🔴' : '🟡');
+            const label = index === 0 ? 'Ponto de Partida' : `Atendimento ${index}`;
+            return `
+                <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px;">
+                    <span style="font-size: 16px; margin-top: -2px;">${icon}</span>
+                    <div>
+                        <div style="font-weight: 700; color: var(--cobli-navy); margin-bottom: 2px;">${label}</div>
+                        <div style="color: var(--text-secondary);">${addr}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        document.getElementById('planner-route-order').innerHTML = routeHtml;
 
-        let html = `
-            <div style="background:#fff;border-radius:8px 8px 0 0;padding:9px 14px;box-shadow:0 2px 6px rgba(0,0,0,0.12);margin-bottom:6px;">
-                <span style="font-size:11px;font-weight:800;color:var(--cobli-navy);letter-spacing:0.3px;">ORÇAMENTOS GERADOS (${candidates.length})</span>
-                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Rota com ${pointsCount} paradas (${routeKm.toFixed(1)} km)</div>
-            </div>
-        `;
-
+        // Preenche os prestadores
+        let listHtml = '';
         if (candidates.length === 0) {
-            html += `<div class="result-card" style="text-align:center;padding:15px;"><span style="font-size:11px;color:var(--cobli-red);font-weight:600;">Nenhum prestador encontrado no raio de busca ou filtros atuais.</span></div>`;
+            listHtml = `<div style="text-align:center; padding: 20px; color: var(--cobli-red); font-size: 12px; border: 1px dashed var(--border-mid); border-radius: 8px;">Nenhum prestador encontrado nos filtros atuais.</div>`;
         } else {
-            // Pega os 5 mais baratos
-            const top5 = candidates.slice(0, 5);
-            html += top5.map((c, i) => {
+            // Exibe até 10 opções no modal
+            listHtml = candidates.slice(0, 10).map((c, i) => {
                 const p = c.prestador;
                 const nome = formatNome(p.nome);
                 const col = getStatusColor(p.status);
-                const avisoTabela = c.hasMissingPrices ? `<div style="color:#F01A1A;font-size:9px;font-weight:700;margin-top:2px;">⚠️ Preços incompletos na tabela ${p.id_tabela||'vazia'}</div>` : '';
                 
+                // Se faltou preço, fica vermelho. Se não, mostra o preço normal.
+                const priceDisplay = c.hasMissingPrices 
+                    ? `<span style="color:#F01A1A; font-size: 10px; font-weight: 700;">⚠️ Falta preço na tab. ${p.id_tabela||'Vazia'}</span>` 
+                    : `<span style="font-size:16px; font-weight:800; color:var(--cobli-navy);">R$ ${c.totalCost.toFixed(2)}</span>`;
+
                 return `
-                <div class="result-card" style="${i === 0 ? 'border: 2px solid var(--cobli-teal); background: #F0FFF9;' : ''}" onclick="centerMapOnProvider(${p.id})">
-                    ${i === 0 ? '<div style="font-size:9px;font-weight:800;color:var(--cobli-teal);text-transform:uppercase;margin-bottom:4px;">🏆 Melhor Opção</div>' : ''}
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                        <span style="font-size:11px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${nome} ${p.piloto ? '⭐' : ''}</span>
-                        <span style="background:${col}22;color:${col};font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;">${p.status}</span>
+                <div class="result-card" style="cursor: default; display: flex; flex-direction: column; gap: 8px; ${i === 0 && !c.hasMissingPrices ? 'border: 2px solid var(--cobli-teal); background: #F0FFF9;' : ''}">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap: 6px;">
+                            ${i === 0 && !c.hasMissingPrices ? '🏆' : `<b>#${i+1}</b>`}
+                            <span style="font-size:12px; font-weight:700; color:var(--text-primary);">${nome}</span>
+                            ${p.piloto ? '⭐' : ''}
+                            <span style="background:${col}22; color:${col}; font-size:9px; font-weight:700; padding:2px 6px; border-radius:8px;">${p.status}</span>
+                        </div>
+                        ${priceDisplay}
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;margin-bottom:6px;">
-                        <div style="background:var(--surface-muted);padding:4px;border-radius:4px;"><span style="color:var(--text-secondary);">Serviços:</span> <b>R$ ${c.servicesCost.toFixed(2)}</b></div>
-                        <div style="background:var(--surface-muted);padding:4px;border-radius:4px;"><span style="color:var(--text-secondary);">Desloc.:</span> <b>R$ ${c.travelCost.toFixed(2)}</b></div>
+                    
+                    <div style="display:flex; gap: 6px; font-size: 10px;">
+                        <div style="flex:1; background:var(--surface-muted); padding:6px; border-radius:4px;">
+                            <div style="color:var(--text-secondary); margin-bottom:2px;">Deslocamento (Km prestador + rota)</div>
+                            <b>${c.distToStartKm.toFixed(1)} km + ${routeKm.toFixed(1)} km = ${c.totalKm.toFixed(1)} km</b>
+                        </div>
+                        <div style="flex:1; background:var(--surface-muted); padding:6px; border-radius:4px;">
+                            <div style="color:var(--text-secondary); margin-bottom:2px;">Custos</div>
+                            <b>Serviço: R$ ${c.servicesCost.toFixed(2)} | KM: R$ ${c.travelCost.toFixed(2)}</b>
+                        </div>
                     </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-size:9px;color:var(--cobli-indigo);font-weight:600;">Dist. Total: ${c.totalKm.toFixed(1)} km</span>
-                        <span style="font-size:13px;font-weight:800;color:var(--cobli-navy);">Total: R$ ${c.totalCost.toFixed(2)}</span>
-                    </div>
-                    ${avisoTabela}
                 </div>`;
             }).join('');
         }
+        document.getElementById('planner-candidates-list').innerHTML = listHtml;
 
-        resultDiv.innerHTML = html;
+        openModal('planner-result-modal');
     }
     
     /* =====================================================================
