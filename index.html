@@ -3114,7 +3114,7 @@ for (const key of Object.keys(labels)) {
                     if (d < minDistToAnyClient) minDistToAnyClient = d;
                 });
 
-                if (currentSearchRange === 999999 || minDistToStartMeters <= currentSearchRange * 1000) {
+                if (currentSearchRange === 999999 || minDistToAnyClient <= currentSearchRange * 1000) {
                     let servicesCost = 0;
                     let hasMissingPrices = false;
                     const pTable = p.id_tabela || 'N/A';
