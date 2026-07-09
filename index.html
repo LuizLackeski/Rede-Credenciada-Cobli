@@ -3036,8 +3036,7 @@ for (const key of Object.keys(labels)) {
         if (c && c.innerHTML.trim() === '') addRouteAddressRow();
     }, 1000);
 
-    async function calculateRouteAndBudget() {
-        // Limpa o mapa para a nova requisição
+   async function calculateRouteAndBudget() {
         clearPlannerMarkers();
 
         const addrInputs = document.querySelectorAll('.route-address-input');
@@ -3066,7 +3065,6 @@ for (const key of Object.keys(labels)) {
         btn.disabled = true;
 
         try {
-            // Geocodifica todos os destinos informados para evitar erros e permitir o cálculo de distância real
             plannerDestinations = [];
             for (let addr of rawAddrs) {
                 const geo = await getGeocode(addr);
@@ -3110,7 +3108,6 @@ for (const key of Object.keys(labels)) {
 
                 const pLatLng = new google.maps.LatLng(p.lat, p.lng);
 
-                // Acha a distância para o cliente MAIS PRÓXIMO deste prestador
                 let minDistToAnyClient = Infinity;
                 plannerDestinations.forEach(dest => {
                     const d = google.maps.geometry.spherical.computeDistanceBetween(pLatLng, new google.maps.LatLng(dest.lat, dest.lng));
@@ -3130,7 +3127,6 @@ for (const key of Object.keys(labels)) {
                         }
                     });
 
-                    // Cálculo base de priorização preliminar (1.2 fator margem + 5km por parada)
                     const heuristicKm = (minDistToAnyClient / 1000) * 1.2 + (plannerDestinations.length * 5);
                     let heuristicTravelCost = 0;
                     const franquia = parseFloat(p.franquia_km) || 0;
@@ -3172,7 +3168,6 @@ for (const key of Object.keys(labels)) {
             document.getElementById('planner-route-order').innerHTML = `<div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Calculando rota do melhor prestador...</div>`;
             document.getElementById('planner-candidates-list').innerHTML = ''; 
             
-            // Seleciona automaticamente o melhor prestador (o #1 da lista) para exibir a rota ideal inicial
             await selectPlannerProvider(plannerCandidates[0].prestador.id);
 
         } catch (err) {
@@ -3182,7 +3177,6 @@ for (const key of Object.keys(labels)) {
         btn.disabled = false;
     }
 
-    // Executado ao clicar no Prestador no Modal
     async function selectPlannerProvider(pId) {
         plannerSelectedId = pId;
         const candidateIndex = plannerCandidates.findIndex(c => c.prestador.id === pId);
@@ -3195,7 +3189,6 @@ for (const key of Object.keys(labels)) {
 
         const originLatLng = new google.maps.LatLng(p.lat, p.lng);
         
-        // Pulo do Gato: Acha o cliente MAIS LONGE deste prestador específico e define como Destino Final
         let maxDist = -1;
         let farthestDest = plannerDestinations[0];
         plannerDestinations.forEach(dest => {
@@ -3203,7 +3196,6 @@ for (const key of Object.keys(labels)) {
             if (d > maxDist) { maxDist = d; farthestDest = dest; }
         });
 
-        // Todos os outros clientes viram paradas que o Google vai reorganizar para a melhor ordem!
         let waypoints = plannerDestinations
             .filter(d => d !== farthestDest)
             .map(d => ({ location: new google.maps.LatLng(d.lat, d.lng), stopover: true }));
@@ -3255,7 +3247,6 @@ for (const key of Object.keys(labels)) {
         
         document.getElementById('planner-route-stats').textContent = `Total: ${exactKm.toFixed(1)} km | ${route.legs.length} trechos`;
         
-        // Renderiza o Topo (A Rota Exata partindo do Prestador)
         let routeHtml = `
             <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--surface-muted);">
                 <span style="font-size: 16px; margin-top: -2px;">🏠</span>
@@ -3279,7 +3270,6 @@ for (const key of Object.keys(labels)) {
         }
         document.getElementById('planner-route-order').innerHTML = routeHtml;
 
-        // Renderiza os Cards dos Prestadores
         let listHtml = plannerCandidates.slice(0, 10).map((c, i) => {
             const p = c.prestador;
             const isSelected = p.id === plannerSelectedId;
@@ -3302,7 +3292,7 @@ for (const key of Object.keys(labels)) {
             const kmText = isSelected ? `<b>${displayedTotalKm.toFixed(1)} km</b>` : `<span style="color:var(--text-muted);">Clique p/ calcular rota</span>`;
             const excText = isSelected ? `<b style="color:var(--cobli-red);">${displayedExcedente.toFixed(1)} km</b>` : `<span style="color:var(--text-muted);">--</span>`;
 
-          return `
+            return `
             <div class="result-card" onclick="${!isSelected ? `selectPlannerProvider(${p.id})` : ''}" style="transition: all 0.2s; display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; ${cardStyle}">
                 <div style="display:flex; align-items:center; justify-content:space-between;">
                     <div style="display:flex; align-items:center; gap: 6px;">
@@ -3371,7 +3361,7 @@ for (const key of Object.keys(labels)) {
         });
     }
 
-function generatePDF() {
+    function generatePDF() {
         const extraCost = parseFloat(document.getElementById('pdf-extra-cost').value) || 0;
         const selectedCbs = document.querySelectorAll('.pdf-cb:checked');
         
@@ -3383,14 +3373,12 @@ function generatePDF() {
         const selectedIds = Array.from(selectedCbs).map(cb => parseInt(cb.value));
         const routeStats = document.getElementById('planner-route-stats').textContent;
 
-        // Cria a "página" A4 invisível
         const pdfContainer = document.createElement('div');
         pdfContainer.style.padding = '40px';
         pdfContainer.style.fontFamily = 'Helvetica, Arial, sans-serif';
         pdfContainer.style.color = '#07074E';
         pdfContainer.style.background = '#fff';
 
-        // Cabeçalho da Cobli
         let html = `
             <div style="border-bottom: 3px solid #3248C6; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
@@ -3413,7 +3401,6 @@ function generatePDF() {
             <h3 style="margin: 0 0 15px; font-size: 14px; color: #07074E; text-transform: uppercase;">Comparativo de Prestadores Selecionados</h3>
         `;
 
-        // Insere as tabelas dos prestadores selecionados
         selectedIds.forEach((id, index) => {
             const candidate = plannerCandidates.find(c => c.prestador.id === id);
             if (!candidate) return;
@@ -3465,7 +3452,6 @@ function generatePDF() {
 
         pdfContainer.innerHTML = html;
 
-        // Configurações do PDF (Alta resolução e A4)
         const opt = {
             margin:       10,
             filename:     'Orcamento_Rotas_Cobli.pdf',
@@ -3479,7 +3465,6 @@ function generatePDF() {
         btn.innerHTML = '⏳ Gerando...';
         btn.disabled = true;
         
-        // Gera e faz o download
         html2pdf().set(opt).from(pdfContainer).save().then(() => {
             btn.innerHTML = oldText;
             btn.disabled = false;
