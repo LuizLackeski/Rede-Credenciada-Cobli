@@ -1026,6 +1026,11 @@
                 <div class="form-row"><label>E-mail</label><input type="email" id="m-email"></div>
                 <div class="form-row"><label>Contato / Telefone</label><input type="text" id="m-contato"></div>
                 <div class="form-row"><label>CNPJ</label><input type="text" id="m-cnpj" placeholder="00.000.000/0001-00"></div>
+                <div style="display: flex; gap: 8px;">
+                    <div class="form-row" style="flex:1;"><label>ID Tabela</label><input type="text" id="m-idtabela" placeholder="Ex: CC120"></div>
+                    <div class="form-row" style="flex:1;"><label>Franquia KM</label><input type="number" id="m-franquia" value="0" min="0"></div>
+                    <div class="form-row" style="flex:1;"><label>Valor KM (R$)</label><input type="number" id="m-valorkm" value="0" step="0.01" min="0"></div>
+                </div>
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="m-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="m-status" required></select></div>
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
@@ -1055,6 +1060,11 @@
                 <div class="form-row"><label>E-mail</label><input type="email" id="e-email"></div>
                 <div class="form-row"><label>Contato / Telefone</label><input type="text" id="e-contato"></div>
                 <div class="form-row"><label>CNPJ</label><input type="text" id="e-cnpj" placeholder="00.000.000/0001-00"></div>
+                <div style="display: flex; gap: 8px;">
+                    <div class="form-row" style="flex:1;"><label>ID Tabela</label><input type="text" id="e-idtabela"></div>
+                    <div class="form-row" style="flex:1;"><label>Franquia KM</label><input type="number" id="e-franquia" value="0" min="0"></div>
+                    <div class="form-row" style="flex:1;"><label>Valor KM (R$)</label><input type="number" id="e-valorkm" value="0" step="0.01" min="0"></div>
+                </div>
                 <div class="form-row"><label>Endereço completo *</label><input type="text" id="e-endereco" required></div>
                 <div class="form-row"><label>Status *</label><select id="e-status" required></select></div>
                 <div class="form-row" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; background: #FFF9D6; padding: 10px; border-radius: 6px; border: 1px solid var(--cobli-gold);">
@@ -2595,7 +2605,20 @@ for (const key of Object.keys(labels)) {
     async function saveManualProvider(event) {
         event.preventDefault();
         let cNome = document.getElementById('m-consultor').value;
-        let p = { nome: document.getElementById('m-nome').value, consultor: cNome, consultorNorm: normalizeStr(cNome), email: document.getElementById('m-email').value, contato: document.getElementById('m-contato').value, endereco: document.getElementById('m-endereco').value, status: formatStatus(document.getElementById('m-status').value), piloto: document.getElementById('m-piloto').checked };
+        let p = { 
+            nome: document.getElementById('m-nome').value, 
+            consultor: cNome, 
+            consultorNorm: normalizeStr(cNome), 
+            email: document.getElementById('m-email').value, 
+            contato: document.getElementById('m-contato').value, 
+            endereco: document.getElementById('m-endereco').value, 
+            status: formatStatus(document.getElementById('m-status').value), 
+            piloto: document.getElementById('m-piloto').checked, 
+            cnpj: document.getElementById('m-cnpj') ? document.getElementById('m-cnpj').value.replace(/\D/g,'') : null,
+            id_tabela: document.getElementById('m-idtabela').value, 
+            franquia_km: parseFloat(document.getElementById('m-franquia').value) || 0, 
+            valor_km: parseFloat(document.getElementById('m-valorkm').value) || 0 
+        };
         let coords = await getGeocode(p.endereco);
         p.lat = coords.lat; p.lng = coords.lng;
         const { data, error } = await _supabase.from('prestadores').insert([p]).select();
@@ -2615,6 +2638,9 @@ for (const key of Object.keys(labels)) {
         document.getElementById('e-status').value = p.status || 'Ativo';
         document.getElementById('e-piloto').checked = p.piloto || false;
         if (document.getElementById('e-cnpj')) document.getElementById('e-cnpj').value = p.cnpj || '';
+        document.getElementById('e-idtabela').value = p.id_tabela || '';
+        document.getElementById('e-franquia').value = p.franquia_km || 0;
+        document.getElementById('e-valorkm').value = p.valor_km || 0;
         openModal('edit-modal');
     }
 
@@ -2664,6 +2690,9 @@ for (const key of Object.keys(labels)) {
         p.status = newStatus;
         p.piloto = document.getElementById('e-piloto').checked;
         if (document.getElementById('e-cnpj')) p.cnpj = document.getElementById('e-cnpj').value.replace(/\D/g,'') || null;
+        p.id_tabela = document.getElementById('e-idtabela').value;
+        p.franquia_km = parseFloat(document.getElementById('e-franquia').value) || 0;
+        p.valor_km = parseFloat(document.getElementById('e-valorkm').value) || 0;
 
         let coordsChanged = false;
         if (oldEnd !== p.endereco) {
@@ -2673,7 +2702,8 @@ for (const key of Object.keys(labels)) {
         const { error } = await _supabase.from('prestadores').update({
             nome: p.nome, consultor: p.consultor, consultorNorm: p.consultorNorm,
             email: p.email, contato: p.contato, endereco: p.endereco,
-            status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng, cnpj: p.cnpj || null
+            status: p.status, piloto: p.piloto, lat: p.lat, lng: p.lng, cnpj: p.cnpj || null,
+            id_tabela: p.id_tabela, franquia_km: p.franquia_km, valor_km: p.valor_km
         }).eq('id', id);
 
         if (error) { await showCustomDialog("Erro ao atualizar.", "Erro"); console.error(error); }
