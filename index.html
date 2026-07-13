@@ -7,7 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -165,7 +165,6 @@
 
         .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(7,7,78,0.55); backdrop-filter: blur(3px); z-index: 200; justify-content: center; align-items: center; }
         .modal-backdrop.open { display: flex; }
-        .modal-backdrop[style*="flex"] { display: flex !important; }
         .modal-box { background: #fff; border-radius: 12px; width: 460px; max-width: calc(100vw - 32px); max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(7,7,78,0.22); animation: modal-in 0.18s ease; }
         @keyframes modal-in { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-box.wide { width: 560px; }
@@ -670,59 +669,85 @@
     </div>
 </div>
 
+<!-- Template oculto usado só para "desenhar" o orçamento antes de virar imagem/PDF -->
+<div style="position: absolute; left: -99999px; top: 0; z-index: -1;">
+    <div id="pdf-template" style="width: 1122px; background: #fff; font-family: 'Inter', 'Segoe UI', sans-serif; color: #07074E;"></div>
+</div>
+
+<!-- Modal de Preview do Orçamento -->
+<div id="pdf-preview-modal" class="modal-backdrop">
+    <div class="modal-box wide" style="width: 1200px; max-width: 96vw;">
+        <div class="modal-head">
+            <h3>👀 Pré-visualização do Orçamento</h3>
+            <button class="modal-close" onclick="closePdfPreview()">×</button>
+        </div>
+        <div class="modal-body" style="padding: 20px; background: var(--surface-page); max-height: 92vh; overflow-y: auto;">
+            <div style="background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                <img id="pdf-preview-image" style="width: 100%; display: block; border-radius: 4px;" alt="Pré-visualização do orçamento">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                <button class="btn btn-outline" style="background: #fff;" onclick="copyGeneratedPdfImage()">🖼️ Copiar como Imagem</button>
+                <button class="btn btn-primary" onclick="downloadGeneratedPdf()">⬇️ Baixar PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="planner-result-modal" class="modal-backdrop">
-    <div class="modal-box wide" style="width: 680px; max-width: 95vw;">
+    <div class="modal-box wide" style="width: 760px; max-width: 95vw;">
         <div class="modal-head">
             <h3>📊 Orçamento e Roteirização</h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="btn btn-outline" onclick="closeModal('planner-result-modal')" style="background: #fff; padding: 7px 12px; font-size: 12px;">Voltar e Editar</button>
+                <button class="btn btn-primary" onclick="generatePlannerPDF()" style="padding: 7px 12px; font-size: 12px;">📄 Gerar PDF do Orçamento</button>
+            </div>
             <button class="modal-close" onclick="closeModal('planner-result-modal')">×</button>
         </div>
         <div class="modal-body" style="padding: 16px; background: var(--surface-page); display: flex; flex-direction: column; max-height: 85vh; overflow-y: auto;">
-            
-            <div style="background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">
-                    <h4 style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Ordem Otimizada de Atendimento</h4>
-                    <span id="planner-route-stats" style="font-size: 11px; font-weight: 700; color: var(--cobli-indigo); background: var(--cobli-lavender); padding: 4px 8px; border-radius: 6px;">--</span>
+
+            <!-- Prestador manual + Custos adicionais lado a lado, compactos -->
+            <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 230px; background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 12px;">
+                    <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">Incluir Prestador Manualmente</h4>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="manual-provider-input" list="manual-provider-datalist" placeholder="Digite o nome do prestador..." style="flex: 1; min-width: 0; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
+                        <datalist id="manual-provider-datalist"></datalist>
+                        <button type="button" class="btn btn-outline" style="font-size: 11px; padding: 6px 10px; white-space: nowrap;" onclick="addManualPlannerCandidate()">+ Adicionar</button>
+                    </div>
                 </div>
-                <div id="planner-route-order" style="display: flex; flex-direction: column; gap: 8px;"></div>
-            </div>
 
-            <h4 style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; margin-left: 4px;">Opções de Prestadores</h4>
-            <div id="planner-candidates-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;"></div>
-
-            <div style="padding: 14px; background: #fff; border: 1px solid var(--border-light); border-radius: 8px; margin-bottom: 16px;">
-                <h4 style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">Custos Extras (Hospedagem, Pedágio, etc)</h4>
-                <div id="pdf-extra-costs-container" style="display: flex; flex-direction: column; gap: 6px;"></div>
-                <button class="btn btn-outline" style="margin-top: 8px; font-size: 11px; padding: 4px 8px; border-style: dashed;" onclick="addExtraCostRow()">+ Adicionar Custo Extra</button>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                <button class="btn btn-outline" onclick="closeModal('planner-result-modal')" style="background: #fff;">Voltar e Editar</button>
-                <button class="btn btn-primary" onclick="previewPDF()">📄 Visualizar Orçamento</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="pdf-preview-modal" class="modal-backdrop" style="z-index: 9999;">
-    <div class="modal-box wide" style="width: 800px; max-width: 95vw; background: #E6E6ED;">
-        <div class="modal-head" style="background: #fff;">
-            <h3>📄 Visualização do Orçamento</h3>
-            <button class="modal-close" onclick="closeModal('pdf-preview-modal')">×</button>
-        </div>
-        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; align-items: center; max-height: 80vh; overflow-y: auto;">
-            <div id="pdf-paper" style="background: #fff; width: 100%; max-width: 210mm; min-height: 297mm; height: fit-content; flex-shrink: 0; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); font-family: Helvetica, Arial, sans-serif; color: #07074E;">
+                <div style="flex: 1; min-width: 230px; background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleExtraCostsPanel()">
+                        <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Custos Adicionais (opcional)</h4>
+                        <button type="button" class="block-toggle-btn collapsed" id="btn-toggle-extra-costs" style="pointer-events: none; color: var(--text-secondary);">▼</button>
+                    </div>
+                    <div id="pdf-extra-costs-panel" style="display: none; margin-top: 8px;">
+                        <div id="pdf-extra-costs-container"></div>
+                        <button type="button" class="btn btn-outline" style="font-size: 11px; padding: 6px 10px;" onclick="addPdfExtraCostRow()">+ Adicionar custo (hospedagem, pedágio, etc.)</button>
+                    </div>
                 </div>
-        </div>
-        <div style="padding: 14px 20px; background: #fff; border-top: 1px solid var(--border-light); display: flex; justify-content: flex-end; gap: 10px;">
-            <button class="btn btn-outline" onclick="closeModal('pdf-preview-modal')">Voltar</button>
-            <button class="btn btn-secondary" onclick="copyPdfAsImage()" id="btn-copy-img">📸 Copiar como Imagem</button>
-            <button class="btn btn-primary" onclick="downloadPdfFinal()" id="btn-download-pdf">⬇️ Baixar PDF</button>
+            </div>
+
+            <!-- Rota Selecionada (compacta, com scroll interno) -->
+            <div style="background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px;">
+                    <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Ordem Otimizada de Atendimento</h4>
+                    <span id="planner-route-stats" style="font-size: 11px; font-weight: 700; color: var(--cobli-indigo); background: var(--cobli-lavender); padding: 3px 8px; border-radius: 6px;">--</span>
+                </div>
+                <div id="planner-route-order-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 9.5px; color: var(--text-muted);"></div>
+                <div id="planner-route-order" style="display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; padding-right: 4px;">
+                    <div style="font-size: 12px; color: var(--text-muted); text-align: center;">Calculando melhor rota...</div>
+                </div>
+            </div>
+
+            <!-- Lista de Prestadores -->
+            <h4 style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; margin-left: 4px;">Opções de Prestadores (Selecione para recalcular a rota · marque a caixa ✔️ para incluir no PDF)</h4>
+            <div id="planner-candidates-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
     </div>
 </div>
-    </div>
-</div>
-            
+    
+    
 <div id="login-overlay">
     <div class="login-box">
         <h2>Cobli Logística</h2>
@@ -831,7 +856,8 @@
                     <button class="btn btn-outline btn-full" style="margin-top: 6px; font-size: 11px; padding: 6px; border-style: dashed;" onclick="addRouteProductRow()">+ Adicionar outro produto</button>
                 </div>
 
-               <button class="btn btn-primary btn-full" style="margin-top: 14px;" onclick="calculateRouteAndBudget()">🎯 Encontrar Melhor Rota e Orçamento</button>
+               <button id="btn-search-nearest" class="btn btn-primary btn-full" style="margin-top: 14px;" onclick="calculateRouteAndBudget('nearest')">🎯 Buscar 10 Prestadores Mais Próximos</button>
+               <button id="btn-search-manual" class="btn btn-outline btn-full" style="margin-top: 8px; background: #fff;" onclick="calculateRouteAndBudget('manual')">✍️ Montar Manualmente (sem busca automática)</button>
             </div>
         </div>
         <div id="bloco-3" class="section-card">
@@ -1000,9 +1026,26 @@
 <div id="map-container">
     <div id="map"></div>
 
-    <button id="btn-back-planner" onclick="backToPlannerResults()" style="display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 60; background: var(--cobli-navy); color: #fff; border: 2px solid var(--cobli-violet); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-family: inherit; transition: all 0.2s;">
-        🔙 Voltar para os Orçamentos
-    </button>
+    <div id="planner-back-btn" style="
+        display: none;
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 60;
+        background: var(--cobli-indigo);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        align-items: center;
+        gap: 6px;
+    " onclick="backToPlannerResults()">← Voltar aos Resultados</div>
 
     <div id="map-search-bar" style="
         position: absolute;
@@ -1053,7 +1096,6 @@
 
         <div id="routing-result" style="pointer-events:all;"></div>
     </div>
-    
     <div class="map-legend" id="map-legend-box" style="display:none;">
         <div class="map-legend-title">Cores por Consultor</div>
         <div id="legend-content"></div>
@@ -1299,15 +1341,15 @@
         }, 4000);
     }
 
-function toggleBlock(blockId) {
+    function toggleBlock(blockId) {
         const body = document.getElementById('body-' + blockId);
         const btn = document.getElementById('btn-toggle-' + blockId);
         if (!body || !btn) return;
 
         const isCollapsed = body.classList.contains('collapsed');
 
-        // Fecha todos os blocos abertos primeiro (Agora incluindo o 2)
-        ['bloco-2', 'bloco-3', 'bloco-4', 'bloco-5', 'bloco-6', 'bloco-7'].forEach(id => {
+        // Fecha todos os blocos abertos primeiro
+        ['bloco-2','bloco-3','bloco-4','bloco-5','bloco-6','bloco-7'].forEach(id => {
             const b = document.getElementById('body-' + id);
             const t = document.getElementById('btn-toggle-' + id);
             if (b && t) { b.classList.add('collapsed'); t.classList.add('collapsed'); }
@@ -2068,11 +2110,62 @@ li.innerHTML = `
         });
     }
 
+    // ===================== CACHE DE GEOCODIFICAÇÃO =====================
+    // Evita chamar a API do Google de novo para um endereço já geocodificado antes
+    // (nesta sessão ou em sessões anteriores, via localStorage). Prestadores já
+    // cadastrados não passam por aqui — o lat/lng deles já vem pronto do Supabase;
+    // isso beneficia principalmente os endereços de destino digitados no planejador
+    // de rotas e a importação de planilhas com endereços repetidos.
+    const GEOCODE_CACHE_KEY = 'geocodeCache_v1';
+    const GEOCODE_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 dias — endereço raramente muda de coordenada
+    let geocodeMemoryCache = {};
+
+    (function loadGeocodeCacheFromStorage() {
+        try {
+            const raw = localStorage.getItem(GEOCODE_CACHE_KEY);
+            if (raw) geocodeMemoryCache = JSON.parse(raw);
+        } catch (e) {
+            geocodeMemoryCache = {};
+        }
+    })();
+
+    function saveGeocodeCacheToStorage() {
+        try {
+            localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify(geocodeMemoryCache));
+        } catch (e) {
+            // localStorage cheio/indisponível — cache segue funcionando só em memória nesta sessão
+        }
+    }
+
+    function normalizeAddressKey(address) {
+        return (address || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    }
+
+    function getCachedGeocode(address) {
+        const entry = geocodeMemoryCache[normalizeAddressKey(address)];
+        if (!entry) return null;
+        if (Date.now() - entry.t > GEOCODE_CACHE_TTL_MS) return null;
+        return { lat: entry.lat, lng: entry.lng };
+    }
+
+    function setCachedGeocode(address, lat, lng) {
+        geocodeMemoryCache[normalizeAddressKey(address)] = { lat, lng, t: Date.now() };
+        saveGeocodeCacheToStorage();
+    }
+
     function getGeocode(address) {
+        const cached = getCachedGeocode(address);
+        if (cached) return Promise.resolve(cached);
+
         return new Promise(resolve => {
             geocoder.geocode({ address }, (results, status) => {
-                if (status === 'OK') resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
-                else resolve({ lat: null, lng: null });
+                if (status === 'OK') {
+                    const coords = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
+                    setCachedGeocode(address, coords.lat, coords.lng);
+                    resolve(coords);
+                } else {
+                    resolve({ lat: null, lng: null });
+                }
             });
         });
     }
@@ -2979,8 +3072,24 @@ for (const key of Object.keys(labels)) {
         openModal('summary-modal');
     }
 
-    function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
-    function closeModal(id) { const el = document.getElementById(id); if (el) { el.style.display = 'none'; el.classList.remove('open'); } }
+    function openModal(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        // Mesma lógica para todos os modais: ao abrir um, fecha os demais
+        // (menos o diálogo de alerta/confirmação, que pode aparecer por cima).
+        document.querySelectorAll('.modal-backdrop').forEach(m => {
+            if (m.id !== id && m.id !== 'custom-dialog-backdrop') {
+                m.classList.remove('open');
+                m.style.display = '';
+            }
+        });
+        el.style.display = '';
+        el.classList.add('open');
+    }
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        if (el) { el.classList.remove('open'); el.style.display = ''; }
+    }
     function clearAllMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
 
 /* =====================================================================
@@ -2989,11 +3098,14 @@ for (const key of Object.keys(labels)) {
 // Variáveis Globais do Roteirizador
     let availableProducts = [];
     let plannerCandidates = [];
-    let plannerDestinations = []; 
+    let plannerDestinations = [];
+    let plannerDestinationCoords = []; // lat/lng de cada destino, usado pra achar os + próximos e pro aviso de distância por endereço
     let plannerSelectedId = null;
     let plannerDirectionsResponse = null;
     let plannerProducts = [];
     let plannerCustomMarkers = [];
+    let plannerExportSelection = new Set(); // ids marcados para entrar no PDF (só em memória)
+    let plannerPriceMap = {}; // cache da tabela de preços da última busca, reaproveitado ao adicionar prestador manualmente
 
     async function loadProductsFromDB() {
         const { data, error } = await _supabase
@@ -3036,19 +3148,18 @@ for (const key of Object.keys(labels)) {
         container.insertAdjacentHTML('beforeend', rowHtml);
     }
 
-  function clearPlannerMarkers() {
+    function clearPlannerMarkers() {
         plannerCustomMarkers.forEach(m => m.setMap(null));
         plannerCustomMarkers = [];
         directionsRenderer.setDirections({ routes: [] });
-        const backBtn = document.getElementById('btn-back-planner');
+        const backBtn = document.getElementById('planner-back-btn');
         if (backBtn) backBtn.style.display = 'none';
-    }
-
-    // NOVA FUNÇÃO: Reabre a tela de orçamentos sem calcular tudo de novo
-    function backToPlannerResults() {
-        const backBtn = document.getElementById('btn-back-planner');
-        if (backBtn) backBtn.style.display = 'none';
-        openModal('planner-result-modal');
+        plannerExportSelection.clear();
+        const costsContainer = document.getElementById('pdf-extra-costs-container');
+        if (costsContainer) costsContainer.innerHTML = '';
+        const manualInput = document.getElementById('manual-provider-input');
+        if (manualInput) manualInput.value = '';
+        plannerDestinationCoords = [];
     }
 
     function addRouteAddressRow() {
@@ -3057,30 +3168,29 @@ for (const key of Object.keys(labels)) {
         const rowHtml = `
             <div id="${rowId}" style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
                 <span style="font-size: 14px;">📍</span>
-                <input type="text" class="route-address-input" placeholder="Rua, Cidade, Estado..." style="flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; font-family: inherit;">
+                <input type="text" class="route-address-input" placeholder="Endereço do cliente (Rua, Número, Cidade...)" style="flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; font-family: inherit;">
                 <button class="btn-icon" style="width: 28px; height: 28px; font-size: 12px; color: var(--cobli-red); flex-shrink: 0;" onclick="document.getElementById('${rowId}').remove()" title="Remover">✕</button>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', rowHtml);
     }
 
-    // Inicializa com um campo de endereço
     setTimeout(() => {
         const c = document.getElementById('route-addresses-container');
         if (c && c.innerHTML.trim() === '') addRouteAddressRow();
     }, 1000);
 
-   async function calculateRouteAndBudget() {
+    async function calculateRouteAndBudget(mode) {
         clearPlannerMarkers();
 
         const addrInputs = document.querySelectorAll('.route-address-input');
-        let rawAddrs = [];
+        plannerDestinations = [];
         addrInputs.forEach(inp => {
             const val = inp.value.trim();
-            if (val.length > 5) rawAddrs.push(val);
+            if (val.length > 5) plannerDestinations.push(val);
         });
 
-        if (rawAddrs.length < 1) { showToast("Insira pelo menos um endereço de destino válido.", "error"); return; }
+        if (plannerDestinations.length < 1) { showToast("Insira pelo menos um endereço de destino válido.", "error"); return; }
 
         const productSelects = document.querySelectorAll('.route-product-select');
         const productQtys = document.querySelectorAll('.route-product-qty');
@@ -3093,22 +3203,14 @@ for (const key of Object.keys(labels)) {
 
         if(plannerProducts.length === 0) { showToast("Selecione pelo menos um produto.", "error"); return; }
 
-        const btn = document.querySelector('#bloco-2 .btn-primary');
+        const btn = mode === 'manual'
+            ? document.getElementById('btn-search-manual')
+            : document.getElementById('btn-search-nearest');
         const originalBtnText = btn.innerHTML;
-        btn.innerHTML = '⏳ Mapeando Endereços...';
+        btn.innerHTML = mode === 'manual' ? '⏳ Preparando...' : '⏳ Pesquisando Prestadores...';
         btn.disabled = true;
 
         try {
-            plannerDestinations = [];
-            for (let addr of rawAddrs) {
-                const geo = await getGeocode(addr);
-                if (geo.lat) {
-                    plannerDestinations.push({ address: addr, lat: geo.lat, lng: geo.lng });
-                }
-            }
-
-            if (plannerDestinations.length === 0) throw new Error("Não foi possível localizar os endereços fornecidos.");
-
             const productNames = plannerProducts.map(item => item.produto);
             const { data: pricesData, error: pricesError } = await _supabase
                 .from('tabela_precos')
@@ -3117,135 +3219,93 @@ for (const key of Object.keys(labels)) {
 
             if (pricesError) throw pricesError;
 
-            const priceMap = {};
+            plannerPriceMap = {};
             if (pricesData) {
                 pricesData.forEach(row => {
-                    if (!priceMap[row.id_tabela]) priceMap[row.id_tabela] = {};
-                    priceMap[row.id_tabela][row.produto] = row.valor_mao_de_obra;
+                    if (!plannerPriceMap[row.id_tabela]) plannerPriceMap[row.id_tabela] = {};
+                    plannerPriceMap[row.id_tabela][row.produto] = row.valor_mao_de_obra;
                 });
             }
 
-            btn.innerHTML = '⏳ Cruzando Prestadores...';
+            // Geocodifica todos os destinos (não só o primeiro) — usado tanto pra achar os
+            // mais próximos quanto pra avisar quando um prestador está longe de um endereço
+            // específico, mesmo estando perto do outro. Já sai do cache se repetido.
+            plannerDestinationCoords = [];
+            for (const addr of plannerDestinations) {
+                const g = await getGeocode(addr);
+                if (g.lat != null) plannerDestinationCoords.push(new google.maps.LatLng(g.lat, g.lng));
+            }
+            const baseLatLng = plannerDestinationCoords[0];
 
             plannerCandidates = [];
             let allowedStatuses = currentUser.perfil === 'admin' ? getCheckedValues('status-items') : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
             const selConsultors = getCheckedValues('consultor-items');
             const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
 
-            // Filtro e cálculo de estimativa inicial
-            markers.forEach(m => {
-                const p = providersData.find(x => x.id === m.customId);
-                if (!p || !p.lat || !p.lng) return;
-                if (!allowedStatuses.includes(p.status)) return;
-                const pCN = p.consultorNorm || "SEM CONSULTOR";
-                if (!selConsultors.includes(pCN)) return;
-                if (showOnlyPiloto && !p.piloto) return;
+            if (mode === 'nearest') {
+                // Sempre os 10 prestadores fisicamente mais próximos do primeiro endereço,
+                // não importa a distância — não depende mais do range da barra flutuante.
+                // Assim, regiões com poucos prestadores (ex: só 1 num raio de 200km) não
+                // ficam de fora só porque estão "longe".
+                const eligible = [];
+                markers.forEach(m => {
+                    const p = providersData.find(x => x.id === m.customId);
+                    if (!p || !p.lat || !p.lng) return;
+                    if (!allowedStatuses.includes(p.status)) return;
+                    const pCN = p.consultorNorm || "SEM CONSULTOR";
+                    if (!selConsultors.includes(pCN)) return;
+                    if (showOnlyPiloto && !p.piloto) return;
 
-                const pLatLng = new google.maps.LatLng(p.lat, p.lng);
-
-                let minDistToAnyClient = Infinity;
-                plannerDestinations.forEach(dest => {
-                    const d = google.maps.geometry.spherical.computeDistanceBetween(pLatLng, new google.maps.LatLng(dest.lat, dest.lng));
-                    if (d < minDistToAnyClient) minDistToAnyClient = d;
+                    const pLatLng = new google.maps.LatLng(p.lat, p.lng);
+                    const distToStartMeters = baseLatLng ? google.maps.geometry.spherical.computeDistanceBetween(pLatLng, baseLatLng) : 0;
+                    eligible.push({ p, pLatLng, distToStartMeters });
                 });
 
-                if (currentSearchRange === 999999 || minDistToAnyClient <= currentSearchRange * 1000) {
-                    let servicesCost = 0;
-                    let hasMissingPrices = false;
-                    const pTable = p.id_tabela || 'N/A';
+                eligible.sort((a, b) => a.distToStartMeters - b.distToStartMeters);
 
-                    plannerProducts.forEach(item => {
-                        if (priceMap[pTable] && priceMap[pTable][item.produto]) {
-                            servicesCost += (priceMap[pTable][item.produto] * item.qtd);
-                        } else {
-                            hasMissingPrices = true;
-                        }
-                    });
-
-                    // Cálculo base de priorização preliminar
-                    const heuristicKm = (minDistToAnyClient / 1000) * 1.2 + (plannerDestinations.length * 5);
-                    let heuristicTravelCost = 0;
-                    const franquia = parseFloat(p.franquia_km) || 0;
-                    const valorKm = parseFloat(p.valor_km) || 0;
-                    
-                    if (heuristicKm > franquia) {
-                        heuristicTravelCost = (heuristicKm - franquia) * valorKm;
+                eligible.slice(0, 10).forEach(({ p, pLatLng, distToStartMeters }) => {
+                    const candidate = buildPlannerCandidate(p, distToStartMeters);
+                    if (candidate) {
+                        candidate.distanceWarning = computeDestinationWarning(pLatLng);
+                        plannerCandidates.push(candidate);
                     }
+                });
 
-                    plannerCandidates.push({
-                        prestador: p,
-                        franquia: franquia,
-                        valorKm: valorKm,
-                        servicesCost: servicesCost,
-                        totalCostHeuristic: servicesCost + heuristicTravelCost,
-                        hasMissingPrices: hasMissingPrices,
-                        totalKm: 0,
-                        travelCost: 0,
-                        totalCost: 0,
-                        excedenteKm: 0
-                    });
+                plannerCandidates.sort((a, b) => {
+                    if (a.hasMissingPrices && !b.hasMissingPrices) return 1;
+                    if (!a.hasMissingPrices && b.hasMissingPrices) return -1;
+                    return a.totalCostHeuristic - b.totalCostHeuristic;
+                });
+
+                if (plannerCandidates.length === 0) {
+                    showToast("Nenhum prestador encontrado nos filtros ativos.", "error");
+                    btn.innerHTML = originalBtnText;
+                    btn.disabled = false;
+                    return;
                 }
-            });
-
-            plannerCandidates.sort((a, b) => {
-                if (a.hasMissingPrices && !b.hasMissingPrices) return 1;
-                if (!a.hasMissingPrices && b.hasMissingPrices) return -1;
-                return a.totalCostHeuristic - b.totalCostHeuristic;
-            });
-
-            if (plannerCandidates.length === 0) {
-                showToast("Nenhum prestador encontrado nos filtros ativos.", "error");
-                btn.innerHTML = originalBtnText;
-                btn.disabled = false;
-                return;
             }
-
-            btn.innerHTML = '⏳ Calculando Rotas Exatas...';
-
-            // Pega os 10 melhores da estimativa para calcular a rota exata de todos!
-            let topCandidates = plannerCandidates.slice(0, 10);
-            
-            // Otimiza as rotas simultaneamente para todos os top 10
-            const routePromises = topCandidates.map(async (c) => {
-                const originLatLng = new google.maps.LatLng(c.prestador.lat, c.prestador.lng);
-                try {
-                    const bestResult = await getBestRouteFromOrigin(originLatLng, plannerDestinations);
-                    c.directionsResponse = bestResult.response;
-                    c.route = bestResult.route;
-                    
-                    const exactKm = bestResult.route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
-                    
-                    c.totalKm = exactKm;
-                    if (exactKm > c.franquia) {
-                        c.excedenteKm = exactKm - c.franquia;
-                        c.travelCost = c.excedenteKm * c.valorKm;
-                    } else {
-                        c.excedenteKm = 0;
-                        c.travelCost = 0;
-                    }
-                    c.totalCost = c.servicesCost + c.travelCost;
-                } catch (err) {
-                    console.error("Erro na rota do prestador", c.prestador.nome, err);
-                    c.totalCost = c.totalCostHeuristic; // fallback
-                }
-                return c;
-            });
-
-            await Promise.all(routePromises);
-
-            // Reordena agora com base no custo EXATO
-            topCandidates.sort((a, b) => {
-                if (a.hasMissingPrices && !b.hasMissingPrices) return 1;
-                if (!a.hasMissingPrices && b.hasMissingPrices) return -1;
-                return a.totalCost - b.totalCost;
-            });
-
-            plannerCandidates = topCandidates;
+            // mode === 'manual': plannerCandidates fica vazio de propósito — o usuário
+            // adiciona só quem quiser pelo campo "Incluir Prestador Manualmente".
 
             openModal('planner-result-modal');
-            
-            // Seleciona instantaneamente o primeiro, pois já temos a rota!
-            selectPlannerProvider(plannerCandidates[0].prestador.id);
+            populateManualProviderDatalist();
+
+            if (mode === 'manual') {
+                document.getElementById('planner-route-order').innerHTML = `<div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Nenhum prestador selecionado ainda.</div>`;
+                document.getElementById('planner-route-stats').textContent = '--';
+                document.getElementById('planner-route-order-controls').innerHTML = '';
+                document.getElementById('planner-candidates-list').innerHTML = `<div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">✍️ Use o campo "Incluir Prestador Manualmente" abaixo para adicionar quem você quer comparar neste orçamento.</div>`;
+            } else {
+                document.getElementById('planner-route-order').innerHTML = `<div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Calculando rota exata de todos os prestadores...</div>`;
+                document.getElementById('planner-candidates-list').innerHTML = `<div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">⏳ Calculando KM exato de todos os candidatos, aguarde...</div>`;
+
+                await calculateAllCandidatesRoutes();
+
+                plannerSelectedId = plannerCandidates[0].prestador.id;
+                const bestCandidate = plannerCandidates[0];
+                plannerDirectionsResponse = bestCandidate.calculatedResponse || null;
+                renderPlannerModalUI(bestCandidate.route);
+            }
 
         } catch (err) {
             showToast("Erro: " + err.message, "error");
@@ -3254,26 +3314,145 @@ for (const key of Object.keys(labels)) {
         btn.disabled = false;
     }
 
-// Executado ao clicar no Prestador no Modal
+    // Compara a distância do prestador até CADA endereço de destino (não só a rota
+    // sequencial). Dois tipos de aviso:
+    // 1) "disparity" — ele está bem mais longe de um endereço do que do outro
+    //    (útil pra não escolher um prestador "próximo" que só é próximo de um ponto).
+    // 2) "far" — ele está longe de TODOS os endereços por igual (útil quando o
+    //    prestador simplesmente não atende bem aquela região, mesmo sem desproporção).
+    const PLANNER_FAR_THRESHOLD_KM = 60;
+
+    function computeDestinationWarning(pLatLng) {
+        if (plannerDestinationCoords.length === 0) return null;
+        const dists = plannerDestinationCoords.map(d => google.maps.geometry.spherical.computeDistanceBetween(pLatLng, d) / 1000);
+        const min = Math.min(...dists);
+        const max = Math.max(...dists);
+        const maxIdx = dists.indexOf(max);
+
+        if (plannerDestinationCoords.length >= 2 && (max - min) >= 20 && max > min * 1.6) {
+            return { type: 'disparity', index: maxIdx, distKm: max, diffKm: max - min };
+        }
+        if (min >= PLANNER_FAR_THRESHOLD_KM) {
+            return { type: 'far', minKm: min };
+        }
+        return null;
+    }
+
+    // Monta o objeto de candidato (custo de serviço + estimativa heurística inicial)
+    // reutilizado tanto na busca automática quanto ao adicionar um prestador manualmente.
+    function buildPlannerCandidate(p, distToStartMeters) {
+        let servicesCost = 0;
+        let hasMissingPrices = false;
+        const pTable = p.id_tabela || 'N/A';
+
+        plannerProducts.forEach(item => {
+            if (plannerPriceMap[pTable] && plannerPriceMap[pTable][item.produto]) {
+                servicesCost += (plannerPriceMap[pTable][item.produto] * item.qtd);
+            } else {
+                hasMissingPrices = true;
+            }
+        });
+
+        const heuristicKm = (distToStartMeters / 1000) * 1.5 + (plannerDestinations.length * 10);
+        let heuristicTravelCost = 0;
+        const franquia = parseFloat(p.franquia_km) || 0;
+        const valorKm = parseFloat(p.valor_km) || 0;
+
+        if (heuristicKm > franquia) {
+            heuristicTravelCost = (heuristicKm - franquia) * valorKm;
+        }
+
+        return {
+            prestador: p,
+            franquia: franquia,
+            valorKm: valorKm,
+            servicesCost: servicesCost,
+            totalCostHeuristic: servicesCost + heuristicTravelCost,
+            hasMissingPrices: hasMissingPrices,
+            totalKm: 0,
+            travelCost: 0,
+            totalCost: 0,
+            excedenteKm: 0,
+            route: null,
+            calculatedResponse: null
+        };
+    }
+
+    // Calcula a rota exata (KM real, custo real) para todos os candidatos exibidos na
+    // lista de uma vez só — assim os números já vêm prontos para comparar, sem precisar
+    // clicar em cada prestador individualmente.
+    async function calculateAllCandidatesRoutes() {
+        const toCalc = plannerCandidates.slice(0, 10);
+
+        await Promise.all(toCalc.map(async (c) => {
+            try {
+                const origin = new google.maps.LatLng(c.prestador.lat, c.prestador.lng);
+                const result = await getBestRouteFromOrigin(origin, plannerDestinations);
+                const route = result.route;
+                const exactKm = route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
+
+                c.route = route;
+                c.calculatedResponse = result.response;
+                c.totalKm = exactKm;
+                if (exactKm > c.franquia) {
+                    c.excedenteKm = exactKm - c.franquia;
+                    c.travelCost = c.excedenteKm * c.valorKm;
+                } else {
+                    c.excedenteKm = 0;
+                    c.travelCost = 0;
+                }
+                c.totalCost = c.servicesCost + c.travelCost;
+            } catch (err) {
+                c.calcError = true;
+            }
+        }));
+
+        plannerCandidates.sort((a, b) => {
+            if (a.hasMissingPrices && !b.hasMissingPrices) return 1;
+            if (!a.hasMissingPrices && b.hasMissingPrices) return -1;
+            const costA = a.totalCost > 0 ? a.totalCost : a.totalCostHeuristic;
+            const costB = b.totalCost > 0 ? b.totalCost : b.totalCostHeuristic;
+            return costA - costB;
+        });
+    }
+
     async function selectPlannerProvider(pId) {
         plannerSelectedId = pId;
+        // Selecionar um prestador para analisar os valores NÃO marca ele
+        // automaticamente para o PDF — só a caixinha ✔️ faz isso.
         const candidateIndex = plannerCandidates.findIndex(c => c.prestador.id === pId);
         if (candidateIndex === -1) return;
         
         const c = plannerCandidates[candidateIndex];
         const p = c.prestador;
 
-        document.getElementById('planner-route-stats').textContent = `Otimizando paradas...`;
+        // Rola o modal para o topo imediatamente, assim o usuário já vê a seção
+        // "Ordem Otimizada de Atendimento" sendo atualizada, sem precisar rolar manualmente.
+        const modalBody = document.querySelector('#planner-result-modal .modal-body');
+        if (modalBody) modalBody.scrollTo({ top: 0, behavior: 'smooth' });
 
-        const originLatLng = new google.maps.LatLng(p.lat, p.lng);
+        // Como todos os prestadores já tiveram a rota exata calculada em lote,
+        // normalmente não precisamos chamar a API de novo — só reordenar e re-renderizar.
+        if (c.route) {
+            plannerDirectionsResponse = c.calculatedResponse;
+            moveSelectedToTop();
+            renderPlannerModalUI(c.route);
+            return;
+        }
+
+        // Fallback (ex: falha pontual no cálculo em lote): calcula agora sob demanda.
+        document.getElementById('planner-route-stats').textContent = `Otimizando paradas...`;
+        const origin = new google.maps.LatLng(p.lat, p.lng);
 
         try {
-            const bestResult = await getBestRouteFromOrigin(originLatLng, plannerDestinations);
+            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations);
             plannerDirectionsResponse = bestResult.response;
             const route = bestResult.route;
 
             const exactKm = route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
 
+            c.route = route;
+            c.calculatedResponse = bestResult.response;
             c.totalKm = exactKm;
             if (exactKm > c.franquia) {
                 c.excedenteKm = exactKm - c.franquia;
@@ -3284,35 +3463,32 @@ for (const key of Object.keys(labels)) {
             }
             c.totalCost = c.servicesCost + c.travelCost;
 
-            plannerCandidates.sort((a, b) => {
-                // TRAVA O SELECIONADO NO TOPO: Se for o selecionado, ele ganha de qualquer um!
-                if (a.prestador.id === plannerSelectedId) return -1;
-                if (b.prestador.id === plannerSelectedId) return 1;
-
-                // Restante da ordenação por preço
-                if (a.hasMissingPrices && !b.hasMissingPrices) return 1;
-                if (!a.hasMissingPrices && b.hasMissingPrices) return -1;
-                const costA = a.totalCost > 0 ? a.totalCost : a.totalCostHeuristic;
-                const costB = b.totalCost > 0 ? b.totalCost : b.totalCostHeuristic;
-                return costA - costB;
-            });
-
-            // Atualiza a tela com o prestador selecionado no topo
+            moveSelectedToTop();
             renderPlannerModalUI(route);
-
-            // Rola suavemente o modal para o topo logo após a tela atualizar
-            setTimeout(() => {
-                const modalBody = document.querySelector('#planner-result-modal .modal-body');
-                if (modalBody) {
-                    modalBody.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            }, 50);
-
         } catch (err) {
             showToast("Erro ao calcular a rota do prestador: " + err.message, "error");
         }
     }
 
+    // O prestador que o usuário está analisando sempre vai para o topo da lista,
+    // pra ele ver os dados sem precisar rolar.
+    function moveSelectedToTop() {
+        plannerCandidates.sort((a, b) => {
+            if (a.prestador.id === plannerSelectedId) return -1;
+            if (b.prestador.id === plannerSelectedId) return 1;
+            if (a.hasMissingPrices && !b.hasMissingPrices) return 1;
+            if (!a.hasMissingPrices && b.hasMissingPrices) return -1;
+            const costA = a.totalCost > 0 ? a.totalCost : a.totalCostHeuristic;
+            const costB = b.totalCost > 0 ? b.totalCost : b.totalCostHeuristic;
+            return costA - costB;
+        });
+    }
+
+    // Encontra a rota mais curta partindo de `origin` (o prestador) e passando por
+    // TODOS os endereços em `destinations`, sem fixar o último item da lista como
+    // destino final. Testa cada endereço como possível ponto final (deixando os
+    // demais como waypoints otimizáveis pelo Google) e fica com a combinação de
+    // menor distância total — assim a ordem sempre se adapta ao prestador escolhido.
     function getBestRouteFromOrigin(origin, destinations) {
         if (destinations.length === 1) {
             return new Promise((resolve, reject) => {
@@ -3344,6 +3520,9 @@ for (const key of Object.keys(labels)) {
             });
         });
 
+        // Tenta cada endereço como destino final, otimizando os demais como waypoints,
+        // e mantém a combinação com a menor distância total (rota realmente mais curta
+        // a partir do ponto de partida do prestador).
         const attempts = destinations.map((destAddr, i) => {
             const others = destinations.filter((_, idx) => idx !== i);
             return routeRequest(destAddr, others);
@@ -3357,18 +3536,35 @@ for (const key of Object.keys(labels)) {
         });
     }
 
+    let plannerRouteStops = []; // paradas da rota atualmente exibida (sem o Ponto 0), usadas pra reordenar por arrastar
+    let plannerDragFromIndex = null;
+
     function renderPlannerModalUI(route) {
         let exactKm = 0;
         route.legs.forEach(leg => exactKm += leg.distance.value);
         exactKm = exactKm / 1000;
         
         document.getElementById('planner-route-stats').textContent = `Total: ${exactKm.toFixed(1)} km | ${route.legs.length} trechos`;
-        
+
+        // Guarda as paradas (lat/lng + endereço) desta rota para permitir reordenar arrastando.
+        plannerRouteStops = route.legs.map(leg => ({
+            lat: leg.end_location.lat(),
+            lng: leg.end_location.lng(),
+            address: leg.end_address
+        }));
+
+        const selectedCandidate = plannerCandidates.find(c => c.prestador.id === plannerSelectedId);
+        const isManual = selectedCandidate && selectedCandidate.manualOrder;
+
+        document.getElementById('planner-route-order-controls').innerHTML = isManual
+            ? `<span style="color: var(--cobli-indigo); font-weight: 700;">🔀 Ordem manual aplicada</span><span style="cursor:pointer; color: var(--cobli-indigo); font-weight:700; text-decoration:underline;" onclick="restorePlannerOptimizedOrder()">↺ Restaurar rota otimizada</span>`
+            : `<span>🔀 Arraste os atendimentos abaixo para reordenar manualmente, se precisar</span>`;
+
         let routeHtml = `
-            <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--surface-muted);">
-                <span style="font-size: 16px; margin-top: -2px;">🏠</span>
+            <div style="display: flex; align-items: flex-start; gap: 6px; font-size: 11px; padding: 4px 0; border-bottom: 1px solid var(--surface-muted);">
+                <span style="font-size: 13px; margin-top: -1px; width:14px; flex-shrink:0;">🏠</span>
                 <div>
-                    <div style="font-weight: 700; color: var(--cobli-navy); margin-bottom: 2px;">Ponto 0 (Prestador)</div>
+                    <div style="font-weight: 700; color: var(--cobli-navy); margin-bottom: 1px;">Ponto 0 (Prestador)</div>
                     <div style="color: var(--text-secondary);">${route.legs[0].start_address}</div>
                 </div>
             </div>
@@ -3376,10 +3572,16 @@ for (const key of Object.keys(labels)) {
 
         for (let i = 0; i < route.legs.length; i++) {
             routeHtml += `
-                <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; padding: 6px 0; ${i < route.legs.length - 1 ? 'border-bottom: 1px solid var(--surface-muted);' : ''}">
-                    <span style="font-size: 16px; margin-top: -2px;">📍</span>
+                <div class="planner-stop-row" draggable="true" data-index="${i}"
+                     ondragstart="plannerStopDragStart(event, ${i})"
+                     ondragover="plannerStopDragOver(event)"
+                     ondrop="plannerStopDrop(event, ${i})"
+                     ondragend="plannerStopDragEnd(event)"
+                     style="display: flex; align-items: flex-start; gap: 6px; font-size: 11px; padding: 4px 2px; cursor: grab; border-radius: 4px; ${i < route.legs.length - 1 ? 'border-bottom: 1px solid var(--surface-muted);' : ''}">
+                    <span style="font-size: 12px; margin-top: -1px; width:14px; flex-shrink:0; color: var(--text-muted); user-select:none;">⠿</span>
+                    <span style="font-size: 13px; margin-top: -1px;">📍</span>
                     <div>
-                        <div style="font-weight: 700; color: var(--cobli-indigo); margin-bottom: 2px;">Atendimento ${i + 1} <span style="font-size: 9px; font-weight: 500; color: var(--text-muted); margin-left: 6px;">(+${(route.legs[i].distance.value/1000).toFixed(1)} km)</span></div>
+                        <div style="font-weight: 700; color: var(--cobli-indigo); margin-bottom: 1px;">Atendimento ${i + 1} <span style="font-size: 9px; font-weight: 500; color: var(--text-muted); margin-left: 6px;">(+${(route.legs[i].distance.value/1000).toFixed(1)} km)</span></div>
                         <div style="color: var(--text-secondary);">${route.legs[i].end_address}</div>
                     </div>
                 </div>
@@ -3387,45 +3589,62 @@ for (const key of Object.keys(labels)) {
         }
         document.getElementById('planner-route-order').innerHTML = routeHtml;
 
-        let listHtml = plannerCandidates.map((c, i) => {
+        // Mostra sempre o top 10 por custo, mais qualquer prestador adicionado
+        // manualmente que tenha ficado fora do top 10.
+        const top10 = plannerCandidates.slice(0, 10);
+        const manualExtras = plannerCandidates.filter(c => c.manuallyAdded && !top10.includes(c));
+        const listCandidates = [...top10, ...manualExtras];
+
+        let listHtml = listCandidates.map((c, i) => {
             const p = c.prestador;
             const isSelected = p.id === plannerSelectedId;
             const nome = formatNome(p.nome);
             const col = getStatusColor(p.status);
-            
-            const displayedTotalKm = c.totalKm || 0; 
-            const displayedTotalCost = c.totalCost || 0;
-            const displayedExcedente = c.excedenteKm || 0;
-            const displayedTravelCost = c.travelCost || 0;
+            const hasExact = !!c.route;
+
+            const displayedTotalCost = hasExact ? c.totalCost : c.totalCostHeuristic;
 
             const priceDisplay = c.hasMissingPrices 
                 ? `<span style="color:#F01A1A; font-size: 10px; font-weight: 700;">⚠️ Tabela Incompleta</span>` 
-                : `<span style="font-size:16px; font-weight:800; color:var(--cobli-navy);">R$ ${displayedTotalCost.toFixed(2)}</span>`;
+                : `<span style="font-size:16px; font-weight:800; color:var(--cobli-navy);">R$ ${displayedTotalCost.toFixed(2)}${!hasExact ? '*' : ''}</span>`;
 
             const cardStyle = isSelected 
                 ? 'border: 2px solid var(--cobli-indigo); background: #F5F6FF; transform: scale(1.01); box-shadow: 0 4px 12px rgba(50,72,198,0.15);' 
                 : 'border: 1px solid var(--border-light); background: #fff; cursor: pointer;';
 
+            const kmText = hasExact ? `<b>${c.totalKm.toFixed(1)} km</b>` : (c.calcError ? `<span style="color:var(--cobli-red);">Falha ao calcular</span>` : `<span style="color:var(--text-muted);">Calculando...</span>`);
+            const excText = hasExact ? `<b style="color:var(--cobli-red);">${c.excedenteKm.toFixed(1)} km</b>` : `<span style="color:var(--text-muted);">--</span>`;
+            const travelCostText = hasExact ? `R$ ${c.travelCost.toFixed(2)}` : '--';
+            const isCheckedForExport = plannerExportSelection.has(p.id);
+            const manualBadge = c.manuallyAdded ? `<span style="background:#FFF3D6; color:#8A6300; font-size:9px; font-weight:700; padding:2px 6px; border-radius:8px;">Manual</span>` : '';
+            const distanceWarningHtml = c.distanceWarning ? `
+                <div style="display:flex; align-items:center; gap:5px; font-size:9.5px; color:#8A6300; background:#FFF8E6; border:1px solid #FFE8B0; border-radius:4px; padding:4px 8px;">
+                    ${c.distanceWarning.type === 'far'
+                        ? `⚠️ Prestador distante de todos os endereços (mín. ${c.distanceWarning.minKm.toFixed(1)} km em linha reta)`
+                        : `⚠️ Endereço ${c.distanceWarning.index + 1} fica bem mais longe deste prestador (${c.distanceWarning.distKm.toFixed(1)} km, +${c.distanceWarning.diffKm.toFixed(1)} km a mais que o mais próximo)`}
+                </div>
+            ` : '';
+
             return `
             <div class="result-card" onclick="${!isSelected ? `selectPlannerProvider(${p.id})` : ''}" style="transition: all 0.2s; display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; ${cardStyle}">
-                <div style="display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap: 6px;">
-                        <input type="checkbox" class="pdf-cb" value="${p.id}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation()" style="transform: scale(1.3); cursor: pointer; margin-right: 4px; accent-color: var(--cobli-indigo);" title="Selecionar para exportar no PDF">
-                        
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+                    <div style="display:flex; align-items:center; gap: 6px; flex-wrap:wrap;">
+                        <input type="checkbox" title="Incluir no PDF" ${isCheckedForExport ? 'checked' : ''} onclick="event.stopPropagation(); toggleExportSelection(${p.id}, this.checked)" style="width:15px; height:15px; cursor:pointer; accent-color: var(--cobli-indigo);">
                         ${isSelected ? '🔵' : `<b style="color:var(--text-muted);">#${i+1}</b>`}
                         <span style="font-size:12px; font-weight:700; color:var(--text-primary);">${nome}</span>
                         ${p.piloto ? '⭐' : ''}
                         <span style="background:${col}22; color:${col}; font-size:9px; font-weight:700; padding:2px 6px; border-radius:8px;">${p.status}</span>
+                        ${manualBadge}
                     </div>
                     ${priceDisplay}
                 </div>
                 
                 <div style="display:flex; gap: 6px; font-size: 10px;">
                     <div style="flex:1.2; background:var(--surface-muted); padding:6px; border-radius:4px; border: 1px solid ${isSelected ? 'rgba(50,72,198,0.2)' : 'var(--border-light)'};">
-                        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>KM Total Exato:</span> <b>${displayedTotalKm.toFixed(1)} km</b></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>KM Total Exato:</span> ${kmText}</div>
                         <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Franquia:</span> <b style="color:var(--cobli-teal);">- ${c.franquia.toFixed(1)} km</b></div>
                         <div style="display:flex; justify-content:space-between; border-top:1px dashed var(--border-mid); margin-top:4px; padding-top:4px;">
-                            <span>KM Excedente (Pago):</span> <b style="color:var(--cobli-red);">${displayedExcedente.toFixed(1)} km</b>
+                            <span>KM Excedente (Pago):</span> ${excText}
                         </div>
                         <div style="display:flex; justify-content:space-between; margin-top:2px; font-size:9px; color:var(--text-muted);">
                             <span>Valor por KM:</span> <span>R$ ${c.valorKm.toFixed(2)}</span>
@@ -3433,24 +3652,492 @@ for (const key of Object.keys(labels)) {
                     </div>
                     <div style="flex:1; background:var(--surface-muted); padding:6px; border-radius:4px; border: 1px solid ${isSelected ? 'rgba(50,72,198,0.2)' : 'var(--border-light)'}; display: flex; flex-direction: column;">
                         <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Mão de Obra:</span> <b>R$ ${c.servicesCost.toFixed(2)}</b></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Desloc.:</span> <b>R$ ${displayedTravelCost.toFixed(2)}</b></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Desloc.:</span> <b>${travelCostText}</b></div>
                         ${isSelected ? `
-                            <button onclick="drawRouteOnMap()" style="margin-top:auto; background:var(--cobli-indigo); color:#fff; border:none; border-radius:4px; padding:6px; font-size:10px; font-weight:700; cursor:pointer; font-family: inherit;">🗺️ Ver Rota no Mapa</button>
-                        ` : ''}
+                            <button onclick="drawRouteOnMap()" style="margin-top:auto; background:var(--cobli-indigo); color:#fff; border:none; border-radius:4px; padding:6px; font-size:10px; font-weight:700; cursor:pointer;">🗺️ Ver Rota no Mapa</button>
+                        ` : `
+                            <div style="margin-top:auto; font-size:9px; color:var(--text-muted); text-align:center;">${hasExact ? 'Clique para ver a rota' : '*Custo base estimado'}</div>
+                        `}
                     </div>
                 </div>
+                ${distanceWarningHtml}
             </div>`;
         }).join('');
 
         document.getElementById('planner-candidates-list').innerHTML = listHtml;
     }
 
-    function generatePDF() {
-        // Redireciona para o Preview
-        previewPDF();
+    function populateManualProviderDatalist() {
+        const dl = document.getElementById('manual-provider-datalist');
+        if (!dl) return;
+        const existingIds = new Set(plannerCandidates.map(c => c.prestador.id));
+        dl.innerHTML = providersData
+            .filter(p => p.lat && p.lng && !existingIds.has(p.id))
+            .map(p => `<option value="${formatNome(p.nome).replace(/"/g, '&quot;')}">`)
+            .join('');
     }
 
-  function drawRouteOnMap() {
+    async function addManualPlannerCandidate() {
+        const input = document.getElementById('manual-provider-input');
+        const typedName = input.value.trim();
+        if (!typedName) { showToast('Digite o nome de um prestador.', 'error'); return; }
+
+        if (plannerCandidates.some(c => formatNome(c.prestador.nome).toLowerCase() === typedName.toLowerCase())) {
+            showToast('Esse prestador já está na lista de comparação.', 'error');
+            return;
+        }
+
+        const p = providersData.find(x => formatNome(x.nome).toLowerCase() === typedName.toLowerCase());
+        if (!p) { showToast('Prestador não encontrado. Selecione um nome sugerido na lista.', 'error'); return; }
+        if (!p.lat || !p.lng) { showToast('Esse prestador não tem endereço geolocalizado.', 'error'); return; }
+
+        input.disabled = true;
+
+        try {
+            // Se a tabela de preços ainda não tiver sido carregada (ex: modal aberto sem busca prévia), busca agora.
+            if (Object.keys(plannerPriceMap).length === 0 && plannerProducts.length > 0) {
+                const productNames = plannerProducts.map(item => item.produto);
+                const { data: pricesData, error: pricesError } = await _supabase
+                    .from('tabela_precos')
+                    .select('id_tabela, produto, valor_mao_de_obra')
+                    .in('produto', productNames);
+                if (pricesError) throw pricesError;
+                plannerPriceMap = {};
+                if (pricesData) {
+                    pricesData.forEach(row => {
+                        if (!plannerPriceMap[row.id_tabela]) plannerPriceMap[row.id_tabela] = {};
+                        plannerPriceMap[row.id_tabela][row.produto] = row.valor_mao_de_obra;
+                    });
+                }
+            }
+
+            // Reaproveita as coordenadas dos destinos já geocodificadas na busca (ou geocodifica
+            // agora, se o usuário abriu direto no modo manual e algo deu errado antes).
+            if (plannerDestinationCoords.length === 0) {
+                for (const addr of plannerDestinations) {
+                    const g = await getGeocode(addr);
+                    if (g.lat != null) plannerDestinationCoords.push(new google.maps.LatLng(g.lat, g.lng));
+                }
+            }
+
+            const pLatLng = new google.maps.LatLng(p.lat, p.lng);
+            const baseLatLng = plannerDestinationCoords[0];
+            const distToStartMeters = baseLatLng ? google.maps.geometry.spherical.computeDistanceBetween(pLatLng, baseLatLng) : 0;
+
+            const newCandidate = buildPlannerCandidate(p, distToStartMeters);
+            newCandidate.manuallyAdded = true;
+            newCandidate.distanceWarning = computeDestinationWarning(pLatLng);
+            plannerCandidates.push(newCandidate);
+
+            const origin = new google.maps.LatLng(p.lat, p.lng);
+            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations);
+            const exactKm = bestResult.route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
+
+            newCandidate.route = bestResult.route;
+            newCandidate.calculatedResponse = bestResult.response;
+            newCandidate.totalKm = exactKm;
+            if (exactKm > newCandidate.franquia) {
+                newCandidate.excedenteKm = exactKm - newCandidate.franquia;
+                newCandidate.travelCost = newCandidate.excedenteKm * newCandidate.valorKm;
+            } else {
+                newCandidate.excedenteKm = 0;
+                newCandidate.travelCost = 0;
+            }
+            newCandidate.totalCost = newCandidate.servicesCost + newCandidate.travelCost;
+
+            input.value = '';
+            populateManualProviderDatalist();
+
+            // Se ainda não havia nenhum selecionado (ex: primeiro prestador do modo manual),
+            // este novo já entra selecionado.
+            if (!plannerCandidates.some(c => c.prestador.id === plannerSelectedId)) {
+                plannerSelectedId = newCandidate.prestador.id;
+                plannerDirectionsResponse = newCandidate.calculatedResponse;
+            }
+
+            moveSelectedToTop();
+            const selectedCandidate = plannerCandidates.find(c => c.prestador.id === plannerSelectedId) || newCandidate;
+            renderPlannerModalUI(selectedCandidate.route || newCandidate.route);
+            showToast(`${formatNome(p.nome)} adicionado à comparação.`, 'success');
+        } catch (err) {
+            showToast('Erro ao adicionar prestador: ' + err.message, 'error');
+        } finally {
+            input.disabled = false;
+        }
+    }
+
+    function toggleExtraCostsPanel() {
+        const panel = document.getElementById('pdf-extra-costs-panel');
+        const btn = document.getElementById('btn-toggle-extra-costs');
+        if (!panel || !btn) return;
+        const isOpen = panel.style.display !== 'none';
+        panel.style.display = isOpen ? 'none' : 'block';
+        btn.classList.toggle('collapsed', isOpen);
+    }
+
+    // Reordena os atendimentos: continua otimizando por distância por padrão,
+    // mas o usuário pode arrastar um atendimento pra frente/trás quando precisar
+    // (ex: já tem hora marcada em algum endereço).
+    function plannerStopDragStart(e, index) {
+        plannerDragFromIndex = index;
+        e.dataTransfer.effectAllowed = 'move';
+        e.currentTarget.style.opacity = '0.4';
+    }
+
+    function plannerStopDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        e.currentTarget.style.background = 'var(--cobli-lavender)';
+    }
+
+    function plannerStopDragEnd(e) {
+        e.currentTarget.style.opacity = '1';
+        document.querySelectorAll('.planner-stop-row').forEach(el => el.style.background = '');
+    }
+
+    async function plannerStopDrop(e, targetIndex) {
+        e.preventDefault();
+        document.querySelectorAll('.planner-stop-row').forEach(el => el.style.background = '');
+        if (plannerDragFromIndex === null || plannerDragFromIndex === targetIndex) return;
+
+        const reordered = [...plannerRouteStops];
+        const [moved] = reordered.splice(plannerDragFromIndex, 1);
+        reordered.splice(targetIndex, 0, moved);
+        plannerDragFromIndex = null;
+
+        await applyPlannerManualOrder(reordered);
+    }
+
+    // Recalcula a rota do prestador selecionado respeitando a ordem manual dada
+    // (sem deixar o Google reotimizar), usando as coordenadas exatas de cada parada.
+    async function applyPlannerManualOrder(orderedStops) {
+        const c = plannerCandidates.find(x => x.prestador.id === plannerSelectedId);
+        if (!c) return;
+
+        document.getElementById('planner-route-stats').textContent = `Recalculando ordem manual...`;
+
+        const origin = new google.maps.LatLng(c.prestador.lat, c.prestador.lng);
+        const destination = new google.maps.LatLng(orderedStops[orderedStops.length - 1].lat, orderedStops[orderedStops.length - 1].lng);
+        const waypoints = orderedStops.slice(0, -1).map(s => ({ location: new google.maps.LatLng(s.lat, s.lng), stopover: true }));
+
+        try {
+            const response = await new Promise((resolve, reject) => {
+                directionsService.route({
+                    origin, destination, waypoints,
+                    optimizeWaypoints: false, // ordem fixa, definida pelo usuário
+                    travelMode: google.maps.TravelMode.DRIVING
+                }, (resp, status) => status === 'OK' ? resolve(resp) : reject(new Error(status)));
+            });
+
+            const route = response.routes[0];
+            const exactKm = route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
+
+            c.route = route;
+            c.calculatedResponse = response;
+            c.manualOrder = true;
+            c.totalKm = exactKm;
+            if (exactKm > c.franquia) {
+                c.excedenteKm = exactKm - c.franquia;
+                c.travelCost = c.excedenteKm * c.valorKm;
+            } else {
+                c.excedenteKm = 0;
+                c.travelCost = 0;
+            }
+            c.totalCost = c.servicesCost + c.travelCost;
+            plannerDirectionsResponse = response;
+
+            renderPlannerModalUI(route);
+        } catch (err) {
+            showToast('Erro ao recalcular ordem manual: ' + err.message, 'error');
+            renderPlannerModalUI(c.route);
+        }
+    }
+
+    // Descarta a ordem manual e recalcula a rota otimizada por distância de novo.
+    async function restorePlannerOptimizedOrder() {
+        const c = plannerCandidates.find(x => x.prestador.id === plannerSelectedId);
+        if (!c) return;
+
+        document.getElementById('planner-route-stats').textContent = `Recalculando rota otimizada...`;
+        c.manualOrder = false;
+
+        try {
+            const origin = new google.maps.LatLng(c.prestador.lat, c.prestador.lng);
+            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations);
+            c.route = bestResult.route;
+            c.calculatedResponse = bestResult.response;
+            const exactKm = c.route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
+            c.totalKm = exactKm;
+            if (exactKm > c.franquia) {
+                c.excedenteKm = exactKm - c.franquia;
+                c.travelCost = c.excedenteKm * c.valorKm;
+            } else {
+                c.excedenteKm = 0;
+                c.travelCost = 0;
+            }
+            c.totalCost = c.servicesCost + c.travelCost;
+            plannerDirectionsResponse = bestResult.response;
+
+            renderPlannerModalUI(c.route);
+        } catch (err) {
+            showToast('Erro ao restaurar rota otimizada: ' + err.message, 'error');
+        }
+    }
+
+    function toggleExportSelection(pId, checked) {
+        if (checked) plannerExportSelection.add(pId);
+        else plannerExportSelection.delete(pId);
+    }
+
+    // Linhas de custo adicional (hospedagem, pedágio, etc.) — vivem só na tela,
+    // nunca são salvas no banco nem em nenhuma outra parte do sistema.
+    function addPdfExtraCostRow() {
+        const container = document.getElementById('pdf-extra-costs-container');
+        if (!container) return;
+        const rowId = 'cost-row-' + Date.now() + Math.floor(Math.random() * 1000);
+        const rowHtml = `
+            <div id="${rowId}" style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
+                <input type="text" class="pdf-cost-desc" placeholder="Descrição (ex: Hospedagem, Pedágio...)" style="flex: 1.6; min-width: 0; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
+                <input type="number" class="pdf-cost-value" placeholder="Valor (R$)" step="0.01" min="0" style="flex: 1; min-width: 0; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
+                <button type="button" class="btn-icon" style="width: 26px; height: 26px; min-width: 26px; font-size: 12px; color: var(--cobli-red); flex-shrink: 0;" onclick="document.getElementById('${rowId}').remove()" title="Remover">✕</button>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', rowHtml);
+    }
+
+    function getPdfExtraCosts() {
+        const descs = document.querySelectorAll('.pdf-cost-desc');
+        const vals = document.querySelectorAll('.pdf-cost-value');
+        const costs = [];
+        for (let i = 0; i < descs.length; i++) {
+            const desc = descs[i].value.trim();
+            const val = parseFloat(vals[i].value) || 0;
+            if (desc && val > 0) costs.push({ desc, val });
+        }
+        return costs;
+    }
+
+    let lastPdfCanvas = null; // canvas gerado na última pré-visualização (usado ao baixar/copiar)
+
+    // Dados compartilhados pelos 3 modelos de PDF (evita recalcular em cada um).
+    function preparePdfData(candidatesToExport, extraCostsTotal) {
+        const now = new Date();
+        const dateStr = `${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+        const produtosStr = plannerProducts.map(item => `${item.qtd}x ${item.produto}`).join(', ') || '--';
+
+        const sortedCandidates = [...candidatesToExport].sort((a, b) => {
+            const costA = (a.totalCost > 0 ? a.totalCost : a.totalCostHeuristic) + extraCostsTotal;
+            const costB = (b.totalCost > 0 ? b.totalCost : b.totalCostHeuristic) + extraCostsTotal;
+            return costA - costB;
+        });
+
+        const kmValidos = sortedCandidates.filter(c => c.totalKm > 0).map(c => c.totalKm);
+        const bestKm = kmValidos.length > 0 ? Math.min(...kmValidos) : 0;
+
+        return { dateStr, produtosStr, sortedCandidates, bestKm };
+    }
+
+    // ===================== MODELO 3 · Dual Accent (design final aprovado) =====================
+    // Cabeçalho em degradê índigo/navy, cards compactos com sombra de elevação,
+    // cor do card muda conforme o status (melhor custo = verde, demais = lavanda),
+    // métricas numa única linha separadas por "|" com ícones, e o comparativo
+    // (Melhor opção / +X% vs. melhor) logo no início da linha.
+    function buildPdfTemplate(candidatesToExport, extraCosts, extraCostsTotal) {
+        const { dateStr, produtosStr, sortedCandidates, bestKm } = preparePdfData(candidatesToExport, extraCostsTotal);
+
+        const bestTotal = sortedCandidates.length > 0
+            ? (sortedCandidates[0].totalCost > 0 ? sortedCandidates[0].totalCost : sortedCandidates[0].totalCostHeuristic) + extraCostsTotal
+            : 0;
+
+        const cards = sortedCandidates.map((c, i) => {
+            const p = c.prestador;
+            const totalComExtra = (c.totalCost > 0 ? c.totalCost : c.totalCostHeuristic) + extraCostsTotal;
+            const isBest = i === 0 && sortedCandidates.length > 1;
+            const route = c.route;
+            const pct = (!isBest && bestTotal > 0) ? (((totalComExtra - bestTotal) / bestTotal) * 100) : 0;
+
+            let addressesHtml = '';
+            if (route) {
+                const stops = [`<div class="addr-line"><b>Ponto 0:</b> ${route.legs[0].start_address}</div>`];
+                route.legs.forEach((leg, li) => {
+                    stops.push(`<div class="addr-line"><b>Atend. ${li + 1}</b> <span class="addr-km">(+${(leg.distance.value / 1000).toFixed(1)} km)</span>: ${leg.end_address}</div>`);
+                });
+                addressesHtml = `<div class="pdf3-addresses ${isBest ? 'best' : ''}">${stops.join('')}</div>`;
+            }
+
+            return `
+                <div class="pdf3-card ${isBest ? 'best' : ''}">
+                    <div class="pdf3-accent"></div>
+                    <div class="pdf3-body">
+                        <div class="pdf3-top">
+                            <div class="pdf3-rank">${i + 1}</div>
+                            <div class="pdf3-name">${formatNome(p.nome)}</div>
+                            ${isBest ? `<div class="pdf3-badge">MELHOR CUSTO</div>` : ''}
+                        </div>
+                        <div class="pdf3-metrics">
+                            ${isBest ? '' : `<span class="pdf3-compare other-pill">+${pct.toFixed(1)}% vs. melhor</span><span class="pdf3-sep">|</span>`}
+                            <span class="pdf3-mlabel">🚗 Distância</span> <span class="pdf3-mvalue">${c.totalKm > 0 ? c.totalKm.toFixed(1) + ' km' : '--'}</span><span class="pdf3-sep">|</span>
+                            <span class="pdf3-mlabel">🔧 Mão de Obra</span> <span class="pdf3-mvalue">R$ ${c.servicesCost.toFixed(2)}</span><span class="pdf3-sep">|</span>
+                            <span class="pdf3-mlabel">⛽ Deslocamento</span> <span class="pdf3-mvalue">R$ ${(c.travelCost || 0).toFixed(2)}</span><span class="pdf3-sep">|</span>
+                            <span class="pdf3-mlabel">💰 Total Previsto</span> <span class="pdf3-total">R$ ${totalComExtra.toFixed(2)}</span>
+                        </div>
+                        ${addressesHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const extraCostsHtml = extraCosts.length > 0 ? `
+            <div style="margin-top:20px;">
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; color:#07074E; margin-bottom:10px;">Custos Adicionais</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    ${extraCosts.map(c => `
+                        <div style="display:flex; align-items:center; gap:6px; background:#FFF3D6; border-radius:8px; padding:6px 12px; font-size:10.5px; color:#8A6300;">
+                            <span>${c.desc}</span>
+                            <b>R$ ${c.val.toFixed(2)}</b>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : '';
+
+        return `
+            <style>
+                .pdf3-card { border-radius:12px; border:none; margin-bottom:10px; overflow:hidden; display:flex; background:#F8F8FD; box-shadow:0 2px 6px rgba(7,7,78,0.07); }
+                .pdf3-card.best { background:#EFFBF5; box-shadow:0 3px 10px rgba(15,110,86,0.16); }
+                .pdf3-accent { width:5px; flex-shrink:0; background:#B9C0EC; }
+                .pdf3-card.best .pdf3-accent { background:#0F6E56; }
+                .pdf3-body { flex:1; }
+                .pdf3-top { display:flex; align-items:center; padding:11px 16px 3px; }
+                .pdf3-rank { width:20px; height:20px; border-radius:50%; background:#E4E6FA; color:#3248C6; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; margin-right:9px; flex-shrink:0; }
+                .pdf3-card.best .pdf3-rank { background:#0F6E56; color:#fff; }
+                .pdf3-name { font-size:12.5px; font-weight:800; color:#07074E; margin-right:9px; white-space:nowrap; }
+                .pdf3-badge { background:#0F6E56; color:#fff; font-size:7.5px; font-weight:800; padding:3px 7px; border-radius:20px; letter-spacing:0.3px; }
+                .pdf3-metrics { padding:4px 16px 9px 46px; font-size:10.5px; color:#4B4F7A; }
+                .pdf3-sep { color:#D2D5EC; margin:0 10px; }
+                .pdf3-card.best .pdf3-sep { color:#BFE4D4; }
+                .pdf3-mlabel { color:#8B8FB3; font-size:9.5px; }
+                .pdf3-mvalue { font-weight:800; color:#33365C; }
+                .pdf3-compare { display:inline-block; font-weight:800; font-size:9px; padding:3px 9px; border-radius:20px; }
+                .pdf3-compare.other-pill { background:#FCEAEA; color:#C0392B; }
+                .pdf3-total { font-weight:800; color:#3248C6; font-size:13px; }
+                .pdf3-card.best .pdf3-total { color:#0F6E56; }
+                .pdf3-addresses { padding:4px 16px 11px 46px; border-top:1px dashed #E1E3F5; }
+                .pdf3-addresses.best { border-top-color:#CFEEE0; }
+                .pdf3-addresses .addr-line { font-size:9.5px; line-height:1.6; color:#5A5E85; }
+                .pdf3-addresses .addr-line b { color:#07074E; }
+                .pdf3-addresses .addr-km { color:#9B9EC2; }
+            </style>
+            <div style="background:linear-gradient(135deg, #3248C6 0%, #07074E 60%, #0A0A3D 100%); padding:26px 40px; color:#fff;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center;">
+                        <div style="width:36px; height:36px; border-radius:9px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; font-size:18px; margin-right:12px;">📊</div>
+                        <div>
+                            <div style="font-size:19px; font-weight:800;">Orçamento de Atendimento</div>
+                            <div style="font-size:10.5px; opacity:0.8; margin-top:2px;">Rede de Prestadores · Cobli Logística</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; font-size:9.5px; opacity:0.85;">Gerado em<br><b style="font-size:11px;">${dateStr}</b></div>
+                </div>
+                <div style="display:flex; margin-top:18px; gap:10px;">
+                    <div style="background:rgba(255,255,255,0.14); border-radius:9px; padding:9px 16px;"><div style="font-size:8.5px; opacity:0.75; text-transform:uppercase; letter-spacing:0.4px;">Melhor Rota</div><b style="font-size:13px;">${bestKm > 0 ? bestKm.toFixed(1) + ' km' : '--'}</b></div>
+                    <div style="background:rgba(255,255,255,0.14); border-radius:9px; padding:9px 16px; flex:1;"><div style="font-size:8.5px; opacity:0.75; text-transform:uppercase; letter-spacing:0.4px;">Produtos/Serviços</div><b style="font-size:13px;">${produtosStr}</b></div>
+                    <div style="background:rgba(255,255,255,0.14); border-radius:9px; padding:9px 16px;"><div style="font-size:8.5px; opacity:0.75; text-transform:uppercase; letter-spacing:0.4px;">Destinos</div><b style="font-size:13px;">${plannerDestinations.length} local(is)</b></div>
+                </div>
+            </div>
+            <div style="padding:22px 40px 30px;">
+                <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; color:#07074E; margin-bottom:12px;">Comparativo de Prestadores Selecionados</div>
+
+                ${cards}
+
+                ${extraCostsHtml}
+
+                <div style="margin-top:22px; text-align:center; font-size:8.5px; color:#B0B3D1;">Documento gerado automaticamente pelo sistema de Rede de Prestadores · Cobli</div>
+            </div>
+        `;
+    }
+
+    async function generatePlannerPDF() {
+        const selectedIds = plannerExportSelection.size > 0
+            ? [...plannerExportSelection]
+            : (plannerSelectedId ? [plannerSelectedId] : []);
+
+        if (selectedIds.length === 0) {
+            showToast('Marque pelo menos um prestador (✔️) para incluir no PDF.', 'error');
+            return;
+        }
+
+        const candidatesToExport = plannerCandidates.filter(c => selectedIds.includes(c.prestador.id));
+        const extraCosts = getPdfExtraCosts();
+        const extraCostsTotal = extraCosts.reduce((sum, c) => sum + c.val, 0);
+
+        const genBtn = document.querySelector('#planner-result-modal .btn-primary');
+        const originalLabel = genBtn ? genBtn.textContent : '';
+        if (genBtn) { genBtn.disabled = true; genBtn.textContent = 'Montando pré-visualização...'; }
+
+        try {
+            const template = document.getElementById('pdf-template');
+            template.innerHTML = buildPdfTemplate(candidatesToExport, extraCosts, extraCostsTotal);
+
+            const canvas = await html2canvas(template, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+            lastPdfCanvas = canvas;
+
+            document.getElementById('pdf-preview-image').src = canvas.toDataURL('image/png');
+            openModal('pdf-preview-modal');
+        } catch (err) {
+            showToast('Erro ao gerar a pré-visualização: ' + err.message, 'error');
+        } finally {
+            if (genBtn) { genBtn.disabled = false; genBtn.textContent = originalLabel; }
+        }
+    }
+
+    function closePdfPreview() {
+        closeModal('pdf-preview-modal');
+        openModal('planner-result-modal');
+    }
+
+    function downloadGeneratedPdf() {
+        if (!lastPdfCanvas) return;
+        const { jsPDF } = window.jspdf;
+        const imgData = lastPdfCanvas.toDataURL('image/png');
+        const pdfWidth = 297; // A4 paisagem em mm
+        const pageHeight = 210;
+        const imgHeight = (lastPdfCanvas.height * pdfWidth) / lastPdfCanvas.width;
+
+        const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            doc.addPage();
+            doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        doc.save(`orcamento_${Date.now()}.pdf`);
+    }
+
+    async function copyGeneratedPdfImage() {
+        if (!lastPdfCanvas) return;
+        try {
+            lastPdfCanvas.toBlob(async (blob) => {
+                try {
+                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                    showToast('Imagem copiada! Já pode colar (Ctrl+V) em outro lugar.', 'success');
+                } catch (err) {
+                    showToast('Este navegador não permite copiar a imagem diretamente. Baixe o PDF.', 'error');
+                }
+            }, 'image/png');
+        } catch (err) {
+            showToast('Não foi possível copiar a imagem.', 'error');
+        }
+    }
+
+    function drawRouteOnMap() {
         if (!plannerDirectionsResponse || !plannerSelectedId) return;
         
         closeModal('planner-result-modal');
@@ -3458,14 +4145,10 @@ for (const key of Object.keys(labels)) {
         
         const route = plannerDirectionsResponse.routes[0];
 
-        // 1. DA ZOOM AUTOMÁTICO NA ROTA
+        // Dá zoom/enquadra o mapa em toda a extensão da rota calculada.
         if (route.bounds) {
-            map.fitBounds(route.bounds);
+            map.fitBounds(route.bounds, 60);
         }
-
-        // 2. MOSTRA O BOTÃO DE VOLTAR
-        const backBtn = document.getElementById('btn-back-planner');
-        if (backBtn) backBtn.style.display = 'block';
         
         const p = providersData.find(x => x.id === plannerSelectedId);
         const mk = markers.find(m => m.customId === plannerSelectedId);
@@ -3484,184 +4167,18 @@ for (const key of Object.keys(labels)) {
             });
             plannerCustomMarkers.push(marker);
         });
+
+        // Mostra o botão flutuante para voltar aos resultados sem precisar recalcular.
+        const backBtn = document.getElementById('planner-back-btn');
+        if (backBtn) backBtn.style.display = 'flex';
     }
 
-    function addExtraCostRow() {
-        const container = document.getElementById('pdf-extra-costs-container');
-        const rowId = 'extra-cost-' + Date.now();
-        const html = `
-            <div id="${rowId}" style="display: flex; gap: 6px; align-items: center;">
-                <input type="text" class="extra-cost-desc" placeholder="Descrição (ex: Pedágio, Hospedagem...)" style="flex: 2; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
-                <div style="position: relative; flex: 1;">
-                    <span style="position: absolute; left: 8px; top: 9px; font-size: 11px; color: var(--text-muted); font-weight: bold;">R$</span>
-                    <input type="number" class="extra-cost-val" placeholder="0.00" min="0" step="0.01" style="width: 100%; padding: 8px 10px 8px 26px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit; font-weight: bold;">
-                </div>
-                <button class="btn-icon" style="width: 30px; height: 30px; font-size: 14px; color: var(--cobli-red); flex-shrink: 0;" onclick="document.getElementById('${rowId}').remove()" title="Remover">✕</button>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', html);
-    }
-
-    function previewPDF() {
-        const selectedCbs = document.querySelectorAll('.pdf-cb:checked');
-        if (selectedCbs.length === 0) { showToast('Selecione pelo menos um prestador marcando a caixinha.', 'error'); return; }
-
-        const selectedIds = Array.from(selectedCbs).map(cb => parseInt(cb.value));
-        const routeStats = document.getElementById('planner-route-stats').textContent;
-
-        // Processa os custos extras dinâmicos
-        let extraCosts = [];
-        let totalExtraCost = 0;
-        const descInputs = document.querySelectorAll('.extra-cost-desc');
-        const valInputs = document.querySelectorAll('.extra-cost-val');
-        
-        for (let i = 0; i < descInputs.length; i++) {
-            const desc = descInputs[i].value.trim();
-            const val = parseFloat(valInputs[i].value) || 0;
-            if (desc && val > 0) {
-                extraCosts.push({ desc, val });
-                totalExtraCost += val;
-            }
-        }
-
-        let html = `
-            <div style="border-bottom: 3px solid #3248C6; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h1 style="margin: 0; color: #001BB8; font-size: 22px;">Orçamento de Roteirização</h1>
-                    <p style="margin: 5px 0 0; font-size: 12px; color: #4B4F7A;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR').slice(0,5)}</p>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 24px; font-weight: 800; color: #3248C6;">COBLI</div>
-                    <div style="font-size: 10px; color: #9296B8;">Rede de Prestadores</div>
-                </div>
-            </div>
-
-            <div style="background: #F5F6FA; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #E2E5F0;">
-                <h3 style="margin: 0 0 10px; font-size: 14px; color: #07074E; text-transform: uppercase;">Resumo da Demanda</h3>
-                <p style="margin: 0 0 5px; font-size: 12px;"><b>Estatísticas da Rota:</b> ${routeStats}</p>
-                <p style="margin: 0 0 5px; font-size: 12px;"><b>Produtos/Serviços:</b> ${plannerProducts.map(p => `${p.qtd}x ${p.produto}`).join(' | ')}</p>
-                <p style="margin: 0; font-size: 12px;"><b>Destinos:</b> ${plannerDestinations.length} locais de atendimento</p>
-            </div>
-            
-            <h3 style="margin: 0 0 15px; font-size: 14px; color: #07074E; text-transform: uppercase;">Comparativo de Prestadores Selecionados</h3>
-        `;
-
-selectedIds.forEach((id, index) => {
-            const candidate = plannerCandidates.find(c => c.prestador.id === id);
-            if (!candidate) return;
-            const p = candidate.prestador;
-            const isExact = (id === plannerSelectedId);
-            
-            const dispKm = isExact ? candidate.totalKm : (candidate.totalKm > 0 ? candidate.totalKm : 0);
-            const dispTravel = isExact ? candidate.travelCost : (candidate.totalCostHeuristic - candidate.servicesCost);
-            const dispTotal = isExact ? candidate.totalCost : candidate.totalCostHeuristic;
-            const finalTotal = dispTotal + totalExtraCost;
-
-            let extraHtmlRows = '';
-            extraCosts.forEach(ec => {
-                extraHtmlRows += `
-                <tr>
-                    <td style="padding: 3px 0; color: #4B4F7A;">[Extra] ${ec.desc}:</td>
-                    <td style="padding: 3px 0; text-align: right; color: #FF4633;">+ R$ ${ec.val.toFixed(2)}</td>
-                </tr>`;
-            });
-
-            // Monta os destinos (Ponto 0 e Atendimentos)
-            let routeHtml = ``;
-            if (isExact && candidate.route) {
-                routeHtml += `
-                    <div style="margin-top: 8px; font-size: 10px; color: #4B4F7A; border-top: 1px dashed #E2E5F0; padding-top: 6px;">
-                        <div style="margin-bottom: 3px;"><b>Ponto 0 (Prestador):</b> ${candidate.route.legs[0].start_address}</div>`;
-                candidate.route.legs.forEach((leg, i) => {
-                    routeHtml += `<div style="margin-bottom: 2px;"><b>Atendimento ${i+1} <span style="font-weight:normal; color:#9296B8">(+${(leg.distance.value/1000).toFixed(1)} km)</span>:</b> ${leg.end_address}</div>`;
-                });
-                routeHtml += `</div>`;
-            } else {
-                routeHtml = `
-                    <div style="margin-top: 8px; font-size: 10px; color: #4B4F7A; border-top: 1px dashed #E2E5F0; padding-top: 6px;">
-                        <div style="margin-bottom: 3px;"><b>Ponto 0 (Prestador):</b> ${p.endereco}</div>`;
-                plannerDestinations.forEach((dest, i) => {
-                     routeHtml += `<div style="margin-bottom: 2px;"><b>Atendimento ${i+1}:</b> ${dest.address}</div>`;
-                });
-                routeHtml += `</div>`;
-            }
-
-            html += `
-                <div style="border: 1px solid #C4C9E0; border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; page-break-inside: avoid;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E5F0; padding-bottom: 6px; margin-bottom: 6px;">
-                        <h4 style="margin: 0; color: #3248C6; font-size: 14px;">${index + 1}. ${formatNome(p.nome)}</h4>
-                        <span style="font-size: 9px; background: #E6E6ED; padding: 2px 6px; border-radius: 12px; font-weight: bold;">${p.status}</span>
-                    </div>
-                    
-                    <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
-                        <tr>
-                            <td style="padding: 3px 0; color: #4B4F7A;">Distância Estimada (Deslocamento + Rota):</td>
-                            <td style="padding: 3px 0; text-align: right; font-weight: 600;">${dispKm > 0 ? dispKm.toFixed(1) + ' km' : 'Calculo Base'} ${isExact ? '(Exata)' : ''}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 0; color: #4B4F7A;">Custo de Serviço (Mão de Obra):</td>
-                            <td style="padding: 3px 0; text-align: right;">R$ ${candidate.servicesCost.toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 0; color: #4B4F7A;">Custo de Deslocamento:</td>
-                            <td style="padding: 3px 0; text-align: right;">R$ ${dispTravel > 0 ? dispTravel.toFixed(2) : '0.00'}</td>
-                        </tr>
-                        ${extraHtmlRows}
-                        <tr>
-                            <td style="padding: 6px 0 0; color: #07074E; font-weight: 800; border-top: 1px dashed #C4C9E0; font-size: 13px;">Total Previsto:</td>
-                            <td style="padding: 6px 0 0; text-align: right; font-weight: 800; font-size: 14px; border-top: 1px dashed #C4C9E0; color: #00AE97;">R$ ${finalTotal.toFixed(2)}</td>
-                        </tr>
-                    </table>
-                    
-                    ${routeHtml}
-                </div>
-            `;
-        });
-
-        document.getElementById('pdf-paper').innerHTML = html;
-        openModal('pdf-preview-modal');
-    }
-
-    function downloadPdfFinal() {
-        const paper = document.getElementById('pdf-paper');
-        const btn = document.getElementById('btn-download-pdf');
-        const oldText = btn.innerHTML;
-        btn.innerHTML = '⏳ Baixando...'; btn.disabled = true;
-
-        const opt = {
-            margin:       10,
-            filename:     'Orcamento_Rotas_Cobli.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(paper).save().then(() => {
-            btn.innerHTML = oldText; btn.disabled = false;
-        });
-    }
-
-    async function copyPdfAsImage() {
-        const paper = document.getElementById('pdf-paper');
-        const btn = document.getElementById('btn-copy-img');
-        const oldText = btn.innerHTML;
-        btn.innerHTML = '📸 Copiando...'; btn.disabled = true;
-
-        try {
-            const canvas = await html2canvas(paper, { scale: 2, useCORS: true });
-            canvas.toBlob(async (blob) => {
-                try {
-                    await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
-                    showToast('Imagem copiada para a área de transferência! (Pode colar no WhatsApp)', 'success');
-                } catch (err) {
-                    showToast('Erro ao copiar. Tente atualizar seu navegador.', 'error');
-                }
-                btn.innerHTML = oldText; btn.disabled = false;
-            });
-        } catch (err) {
-            showToast('Erro ao gerar imagem.', 'error');
-            btn.innerHTML = oldText; btn.disabled = false;
-        }
+    // Reabre o modal de resultados do planner exatamente como estava, sem
+    // recalcular nada (os candidatos e a rota já calculada continuam em memória).
+    function backToPlannerResults() {
+        const backBtn = document.getElementById('planner-back-btn');
+        if (backBtn) backBtn.style.display = 'none';
+        openModal('planner-result-modal');
     }
     
     /* =====================================================================
