@@ -9,6 +9,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Leaflet + OpenStreetMap (substitui Google Maps JS API) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
@@ -34,6 +37,12 @@
             --border-light:  #E2E5F0;
             --border-mid:    #C4C9E0;
             --sidebar-w: 400px;
+
+            /* Sistema único de card: todo card (prestador, dashboard, acessos, resultado)
+               usa estas mesmas variáveis pra sombra/hover, em vez de cada um ter sua
+               própria receita. Só a cor da linha do topo (--acc) muda por item. */
+            --card-shadow: 0 1px 3px rgba(7,7,78,0.06);
+            --card-shadow-hover-alpha: 0.25;
         }
 
         body { font-family: 'Inter', 'Segoe UI', sans-serif; display: flex; height: 100vh; background: var(--surface-page); overflow: hidden; color: var(--text-primary); }
@@ -48,24 +57,55 @@
 
         body.is-common .admin-only { display: none !important; }
 
-        #sidebar { width: var(--sidebar-w); background: var(--surface-page); display: flex; flex-direction: column; z-index: 10; border-right: 1px solid var(--border-light); overflow: hidden; }
-        .topbar { background: var(--cobli-navy); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-        .topbar-brand { display: flex; flex-direction: column; gap: 2px; }
-        .topbar-brand h1 { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.2px; }
-        .topbar-brand p { font-size: 11px; color: var(--cobli-lavender); opacity: 0.8; }
-        .btn-ghost { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; transition: background 0.15s; white-space: nowrap; }
+        #sidebar { width: var(--sidebar-w); background: var(--surface-page); display: flex; flex-direction: column; z-index: 10; border-right: 1px solid var(--border-light); overflow: hidden; transition: width 0.2s ease, min-width 0.2s ease; flex-shrink: 0; }
+        #sidebar.desktop-collapsed { width: 0 !important; min-width: 0 !important; border-right: none; }
+        .topbar { background: var(--cobli-navy); padding: 9px 14px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .topbar-brand { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+        .topbar-brand h1 { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: -0.2px; line-height: 1.25; }
+        .topbar-brand p { font-size: 9px; color: var(--cobli-lavender); opacity: 0.8; line-height: 1.25; }
+        .btn-ghost { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: 600; letter-spacing: 0.2px; transition: background 0.15s; white-space: nowrap; }
         .btn-ghost:hover { background: rgba(255,255,255,0.22); }
         .btn-logout { background: rgba(255,70,51,0.2); border-color: rgba(255,70,51,0.4); }
         .btn-logout:hover { background: rgba(255,70,51,0.6); }
         
-        .scroll-panel { flex: 1; overflow-y: auto; padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 18px; background: var(--surface-page); }
+        .scroll-panel { flex: 1; overflow-y: auto; padding: 8px 16px 32px; display: flex; flex-direction: column; gap: 18px; background: var(--surface-page); }
         .scroll-panel::-webkit-scrollbar { width: 4px; }
         .scroll-panel::-webkit-scrollbar-track { background: transparent; }
         .scroll-panel::-webkit-scrollbar-thumb { background: var(--cobli-lavender); border-radius: 2px; }
 
-        .section-card { background: var(--surface-card); border: 1px solid var(--border-mid); border-left: 4px solid var(--cobli-indigo); border-radius: 10px; box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06); }
-        .section-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 12px 14px; background: var(--cobli-navy); border-bottom: 3px solid var(--cobli-indigo); border-top-left-radius: 6px; border-top-right-radius: 9px; transition: background 0.15s; }
-        .section-header:hover { background: #0d0d6e; }
+        .section-card { background: var(--surface-card); border: 1px solid var(--border-mid); border-radius: 10px; box-shadow: 0 3px 12px rgba(7,7,78,0.10), 0 1px 4px rgba(7,7,78,0.06); }
+
+        .sidebar-fixed-top { background: var(--surface-page); padding: 8px 14px 6px; flex-shrink: 0; }
+        .sidebar-tabs { display: flex; gap: 4px; background: var(--surface-card); border: 1px solid var(--border-mid); border-radius: 9px; padding: 3px; margin-bottom: 5px; }
+        .dashboard-fixed { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .dashboard-fixed .dash-cell { background: var(--surface-card); border: 1px solid var(--border-light); border-top: 3px solid rgb(var(--acc, 50,72,198)); border-radius: 6px; padding: 4px 2px; text-align: center; box-shadow: var(--card-shadow); transition: border-color 0.15s, box-shadow 0.15s; cursor: default; }
+        .dashboard-fixed .dash-cell:hover { border-color: rgb(var(--acc, 50,72,198)); box-shadow: 0 4px 12px rgba(var(--acc, 50,72,198), var(--card-shadow-hover-alpha)); }
+        .dashboard-fixed .dash-val { font-size: 13px; font-weight: 700; display: block; line-height: 1.15; }
+        .dashboard-fixed .dash-lbl { font-size: 7px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2px; margin-top: 1px; display: block; line-height: 1.2; }
+        .sidebar-tab-btn {
+            flex: 1;
+            padding: 6px 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+        .sidebar-tab-btn:hover { background: var(--surface-muted); color: var(--cobli-navy); }
+        .sidebar-tab-btn.active { background: var(--cobli-navy); color: #fff; box-shadow: 0 2px 6px rgba(7,7,78,0.25); }
+
+        .planner-tabs { display: flex; gap: 4px; background: var(--surface-muted); border: 1px solid var(--border-mid); border-radius: 9px; padding: 3px; margin-bottom: 12px; }
+        .planner-tab-btn { flex: 1; padding: 8px 6px; border: none; background: transparent; color: var(--text-secondary); font-size: 11.5px; font-weight: 700; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+        .planner-tab-btn:hover { background: #fff; color: var(--cobli-navy); }
+        .planner-tab-btn.active { background: var(--cobli-navy); color: #fff; }
+        .planner-tab-panel { display: none; }
+        .planner-tab-panel.active { display: block; }
+        .section-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; background: linear-gradient(120deg, var(--cobli-navy) 0%, var(--cobli-indigo) 140%); border-top-left-radius: 9px; border-top-right-radius: 9px; transition: background 0.2s; }
+        .section-header:hover { background: linear-gradient(120deg, var(--cobli-indigo) 0%, var(--cobli-navy) 100%); }
         .section-header-left { display: flex; align-items: center; gap: 8px; }
         .section-header-right { display: flex; align-items: center; gap: 10px; }
         .section-number { width: 22px; height: 22px; border-radius: 50%; background: var(--cobli-indigo); border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
@@ -107,17 +147,43 @@
         .btn-icon { width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--border-mid); background: var(--surface-muted); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--text-secondary); transition: background 0.15s; }
         .btn-icon:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
 
-        #providers-list { list-style: none; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; background: var(--surface-muted); border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 8px; }
+        .quick-filters-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .quick-filter-chip {
+            padding: 5px 11px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1.5px solid var(--border-mid);
+            background: #fff;
+            color: var(--text-secondary);
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+        .quick-filter-chip:hover { border-color: var(--cobli-violet); background: var(--surface-muted); color: var(--cobli-navy); }
+        .quick-filter-chip.active { background: var(--cobli-blue); border-color: var(--cobli-blue); color: #fff; }
+        .quick-filter-chip.piloto { border-color: var(--cobli-gold); color: #8A6300; background: #FFFBEA; }
+        .quick-filter-chip.piloto:hover { background: #FFF3C4; }
+        .quick-filter-chip.piloto.active { background: var(--cobli-gold); color: #4d3800; border-color: #B8860B; }
+
+        #providers-list { list-style: none; max-height: 260px; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 6px; background: var(--surface-muted); border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 8px; }
         #providers-list::-webkit-scrollbar { width: 3px; }
         #providers-list::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
 
-        .provider-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1.5px solid var(--border-light); border-radius: 8px; background: #fff; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
-        .provider-item:hover { border-color: var(--cobli-violet); background: #F5F6FF; box-shadow: 0 2px 8px rgba(50,72,198,0.12); }
-        .provider-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
-        .provider-name { flex: 1; font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
-        .provider-status-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
-        .badge-piloto { background: var(--cobli-gold); color: #000; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .btn-edit { flex-shrink: 0; background: transparent; border: 1px solid var(--border-mid); border-radius: 5px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.12s; font-family: inherit; }
+        .provider-item { display: flex; flex-direction: column; gap: 3px; padding: 7px 10px; border: 1.5px solid var(--border-light); border-top: 3px solid rgb(var(--acc, 50,72,198)); border-radius: 8px; background: var(--surface-card); cursor: pointer; box-shadow: var(--card-shadow); transition: border-color 0.15s, box-shadow 0.15s; }
+        .provider-item:hover { border-color: rgb(var(--acc, 50,72,198)); box-shadow: 0 4px 12px rgba(var(--acc, 50,72,198), var(--card-shadow-hover-alpha)); }
+        .provider-item.active-selected { border-color: var(--cobli-blue); background: rgba(0,27,184,0.06); box-shadow: 0 4px 12px rgba(0,27,184,0.22); }
+        .provider-top-row { display: flex; align-items: center; gap: 7px; }
+        .provider-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
+        .provider-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .provider-status-badge { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
+        .badge-piloto { background: var(--cobli-gold); color: #4d3800; font-size: 8.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; flex-shrink: 0; }
+        .provider-detail-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0 8px; padding-left: 16px; }
+        .provider-microlabel { font-size: 8px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.4; }
+        .provider-detail-value { font-size: 10px; color: var(--text-secondary); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; }
+        .provider-copy-btn { background: none; border: none; cursor: pointer; font-size: 9px; padding: 0 0 0 3px; opacity: 0.5; vertical-align: middle; }
+        .provider-copy-btn:hover { opacity: 1; }
+        .btn-edit { flex-shrink: 0; background: var(--surface-muted); border: 1px solid var(--border-mid); border-radius: 5px; width: 21px; height: 21px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-secondary); cursor: pointer; transition: all 0.12s; font-family: inherit; }
         .btn-edit:hover { background: var(--cobli-navy); color: #fff; border-color: var(--cobli-navy); }
         .empty-state { padding: 20px; text-align: center; font-size: 12px; color: var(--text-muted); background: var(--surface-muted); border: 1px dashed var(--border-mid); border-radius: 7px; }
 
@@ -146,21 +212,18 @@
         #routing-result { margin-top: 10px; max-height: 320px; overflow-y: auto; }
         #routing-result::-webkit-scrollbar { width: 3px; }
         #routing-result::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
-        .result-section-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid var(--border-light); padding-top: 10px; margin-bottom: 8px; }
-        .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
-        .result-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
-        .result-card-dist { font-size: 11px; color: var(--cobli-indigo); font-weight: 600; margin-bottom: 8px; }
-        .btn-route { width: 100%; padding: 6px 10px; background: var(--cobli-indigo); color: #fff; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
-        .btn-route:hover { background: var(--cobli-blue); }
 
         #map-container { flex: 1; position: relative; }
         #map { width: 100%; height: 100%; z-index: 1;}
-        .map-legend { position: absolute; bottom: 24px; right: 14px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; font-size: 11px; font-family: var(--font-sans); border: 1px solid var(--border-light); max-width: 250px; max-height: 300px; overflow-y: auto; }
+        .map-legend { position: absolute; bottom: 24px; right: 14px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; font-size: 11px; font-family: var(--font-sans); border: 1px solid var(--border-light); max-width: 400px; max-height: 300px; overflow-y: auto; }
         .map-legend::-webkit-scrollbar { width: 4px; }
         .map-legend::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+        .legend-columns { display: flex; gap: 18px; }
+        .legend-col { min-width: 100px; }
+        .legend-col + .legend-col { padding-left: 18px; border-left: 1px solid var(--border-light); }
         .map-legend-title { font-weight: 700; color: var(--cobli-navy); margin-bottom: 8px; text-transform: uppercase; font-size: 10px;}
-        #legend-content div { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;}
-        #legend-content div:last-child { margin-bottom: 0; }
+        #legend-content div, #legend-status-content div { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--text-primary); font-weight: 500; white-space: nowrap; }
+        #legend-content div:last-child, #legend-status-content div:last-child { margin-bottom: 0; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;}
 
         .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(7,7,78,0.55); backdrop-filter: blur(3px); z-index: 200; justify-content: center; align-items: center; }
@@ -174,27 +237,31 @@
         .modal-close:hover { background: var(--cobli-red); color: #fff; border-color: var(--cobli-red); }
         .modal-body { padding: 20px; }
 
-        .gm-style-iw { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; }
-        .gm-style-iw-d { overflow: hidden !important; padding: 0 !important; }
-        .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
-        .gm-style-iw-t::after { display: none !important; }
-
-        .gm-ui-hover-effect { display: none !important; }
-
-        .gm-style-iw-chr {
+        /* Popup do Leaflet (equivalente ao InfoWindow do Google Maps).
+           Muito mais simples que o hack anterior: o Leaflet já expõe classes
+           fixas no DOM, então não precisamos mais corrigir o botão de fechar
+           via JavaScript (fixInfoWindowChrome foi removida). */
+        .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 12px !important; overflow: hidden !important; box-shadow: 0 8px 32px rgba(7,7,78,0.18) !important; }
+        .leaflet-popup-content { margin: 0 !important; overflow: hidden !important; width: auto !important; }
+        .leaflet-popup-tip-container { display: none; } /* a "setinha" do popup não combina com o card cheio de cor no topo */
+        .leaflet-popup-close-button {
             position: absolute !important;
-            top: 0 !important;
-            right: 0 !important;
-            height: 0 !important;
-            overflow: visible !important;
-            z-index: 9999 !important;
+            top: 6px !important;
+            right: 6px !important;
+            width: 26px !important;
+            height: 26px !important;
+            background: #F01A1A !important;
+            border-radius: 50% !important;
+            color: #fff !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+            line-height: 26px !important;
+            text-align: center !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+            transition: background 0.15s !important;
+            z-index: 20 !important;
         }
-
-        .piloto-star-label {
-            margin-top: -58px !important;
-            margin-left: 1px !important;
-        }
-        .gm-style-iw-chr button:hover { background: #FF4633 !important; }
+        .leaflet-popup-close-button:hover { background: #FF4633 !important; }
 
         .iw-card { width: 230px; font-family: 'Inter','Segoe UI',sans-serif; }
         .iw-head { background: linear-gradient(135deg, #07074E 0%, #3248C6 100%); padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -238,32 +305,54 @@
         .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         #loading-indicator { display: none; text-align: center; color: var(--cobli-blue); font-size: 13px; font-weight: 600; padding: 12px; background: #fff; border-radius: 6px; border: 1px solid var(--border-mid); margin-top: 10px; }
 
+        @keyframes cobli-spin { to { transform: rotate(360deg); } }
+        .btn-spinner {
+            display: inline-block;
+            width: 12px; height: 12px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: cobli-spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        .btn-spinner.dark { border-color: rgba(0,27,184,0.25); border-top-color: var(--cobli-blue); }
+
         .user-access-card {
-            background: #fff;
-            border: 1.5px solid var(--border-mid);
-            border-radius: 10px;
-            margin-bottom: 10px;
+            background: var(--surface-card);
+            border: 1px solid var(--border-light);
+            border-top: 3px solid rgb(var(--acc, 50,72,198));
+            border-radius: 8px;
+            margin-bottom: 6px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(7,7,78,0.07);
-            transition: box-shadow 0.15s;
+            box-shadow: var(--card-shadow);
+            transition: box-shadow 0.15s, border-color 0.15s;
         }
         .user-access-card:last-child { margin-bottom: 0; }
-        .user-access-card:hover { box-shadow: 0 4px 16px rgba(7,7,78,0.12); }
+        .user-access-card:hover { border-color: rgb(var(--acc, 50,72,198)); box-shadow: 0 4px 12px rgba(var(--acc, 50,72,198), var(--card-shadow-hover-alpha)); }
 
         .uac-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 11px 14px;
+            padding: 8px 10px;
             background: var(--cobli-navy);
             cursor: pointer;
             user-select: none;
-            gap: 10px;
+            gap: 8px;
         }
         .uac-header:hover { background: #0d0d6e; }
 
+        .uac-avatar {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9.5px; font-weight: 700; color: #fff;
+            flex-shrink: 0;
+        }
+
         .uac-email {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
             color: #fff;
             flex: 1;
@@ -273,42 +362,57 @@
         }
 
         .uac-perfil-badge {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 10px;
+            padding: 2px 7px;
+            border-radius: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.3px;
             flex-shrink: 0;
         }
         .uac-perfil-badge.admin { background: var(--cobli-red); color: #fff; }
         .uac-perfil-badge.comum { background: rgba(255,255,255,0.18); color: #fff; }
 
+        .uac-delete-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.45);
+            font-size: 13px;
+            cursor: pointer;
+            padding: 3px;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .uac-delete-btn:hover { color: #FF9B8C; }
+
         .uac-chevron {
             color: rgba(255,255,255,0.6);
-            font-size: 14px;
+            font-size: 12px;
             flex-shrink: 0;
             transition: transform 0.2s;
         }
 
         .uac-body {
             display: none;
-            padding: 14px;
+            padding: 10px;
             border-top: 2px solid var(--cobli-indigo);
             background: var(--surface-muted);
         }
         .uac-body.open { display: block; }
 
+        .uac-subcard { background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 9px 10px; margin-bottom: 7px; }
+        .uac-subcard:last-of-type { margin-bottom: 0; }
+
         .uac-section { margin-bottom: 14px; }
         .uac-section:last-of-type { margin-bottom: 0; }
 
         .uac-section-title {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
             color: var(--cobli-indigo);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
+            letter-spacing: 0.4px;
+            margin-bottom: 7px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -320,16 +424,16 @@
             background: var(--border-mid);
         }
 
-        .uac-perfil-select { display: flex; gap: 6px; }
+        .uac-perfil-select { display: flex; gap: 5px; }
         .uac-perfil-btn {
             flex: 1;
-            padding: 7px 8px;
+            padding: 6px 8px;
             border: 1.5px solid var(--border-mid);
-            border-radius: 7px;
-            font-size: 11px;
-            font-weight: 600;
+            border-radius: 6px;
+            font-size: 10.5px;
+            font-weight: 700;
             cursor: pointer;
-            background: #fff;
+            background: var(--surface-muted);
             color: var(--text-secondary);
             text-align: center;
             transition: all 0.15s;
@@ -342,17 +446,17 @@
         .uac-blocos-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5px;
+            gap: 4px;
         }
 
         .uac-bloco-item {
             display: flex;
             align-items: flex-start;
-            gap: 7px;
-            padding: 8px 9px;
-            background: #fff;
+            gap: 6px;
+            padding: 6px 8px;
+            background: var(--surface-muted);
             border: 1.5px solid var(--border-light);
-            border-radius: 7px;
+            border-radius: 6px;
             cursor: pointer;
             transition: border-color 0.12s, background 0.12s;
         }
@@ -360,30 +464,29 @@
         .uac-bloco-item.checked { border-color: var(--cobli-indigo); background: #EEF0FF; }
 
         .uac-bloco-cb {
-            margin-top: 2px;
+            margin-top: 1px;
             flex-shrink: 0;
             accent-color: var(--cobli-blue);
             cursor: pointer;
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
         .uac-bloco-info { min-width: 0; }
-        .uac-bloco-num { font-size: 9px; font-weight: 700; color: var(--cobli-indigo); text-transform: uppercase; letter-spacing: 0.3px; }
-        .uac-bloco-name { font-size: 11px; font-weight: 600; color: var(--text-primary); line-height: 1.3; margin-top: 1px; }
+        .uac-bloco-name { font-size: 10.5px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
 
         .uac-bloco1-perms {
-            margin-top: 6px;
-            padding-top: 6px;
+            margin-top: 5px;
+            padding-top: 5px;
             border-top: 1px dashed var(--border-mid);
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 4px;
         }
         .uac-sub-perm {
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 10px;
+            font-size: 9.5px;
             color: var(--text-secondary);
             font-weight: 600;
             cursor: pointer;
@@ -391,19 +494,19 @@
         .uac-sub-perm input[type="checkbox"] {
             accent-color: var(--cobli-teal);
             cursor: pointer;
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
-        .uac-status-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+        .uac-status-grid { display: flex; flex-wrap: wrap; gap: 4px; }
 
         .uac-status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
+            gap: 4px;
+            padding: 4px 9px;
             border: 1.5px solid var(--border-mid);
             border-radius: 20px;
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 600;
             cursor: pointer;
             background: #fff;
@@ -413,17 +516,17 @@
         .uac-status-pill input[type="checkbox"] { display: none; }
         .uac-status-pill.pill-checked { color: #fff; }
 
-        .pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
         .uac-save-btn {
             width: 100%;
-            margin-top: 12px;
-            padding: 10px;
+            margin-top: 8px;
+            padding: 8px;
             background: var(--cobli-blue);
             color: #fff;
             border: none;
-            border-radius: 7px;
-            font-size: 12px;
+            border-radius: 6px;
+            font-size: 11px;
             font-weight: 700;
             cursor: pointer;
             font-family: inherit;
@@ -445,22 +548,22 @@
             --surface-muted: #1e1e45;
             --text-primary:  #e8e8ff;
             --text-secondary:#9a9abf;
-            --text-muted:    #5a5a8a;
+            --text-muted:    #8888ba;
             --border-light:  #2a2a5a;
             --border-mid:    #3a3a6a;
+
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --card-shadow-hover-alpha: 0.35;
         }
         body.dark-mode .section-card { background: var(--surface-card); }
-        body.dark-mode .provider-item { background: var(--surface-muted); border-color: var(--border-light); }
-        body.dark-mode .provider-item:hover { background: #22224a; }
+        body.dark-mode .sidebar-tabs { background: var(--surface-card); border-color: var(--border-mid); }
+        body.dark-mode .sidebar-tab-btn:hover { background: var(--surface-muted); }
         body.dark-mode .form-row input,
         body.dark-mode .form-row select,
         body.dark-mode .dropdown-anchor { background: var(--surface-muted); color: var(--text-primary); border-color: var(--border-mid); }
-        body.dark-mode .result-card { background: var(--surface-muted); border-color: var(--border-light); }
-        body.dark-mode .result-card:hover { background: #22224a; }
         body.dark-mode .modal-box { background: var(--surface-card); }
         body.dark-mode .modal-head { border-color: var(--border-light); }
         body.dark-mode .modal-head h3 { color: var(--text-primary); }
-        body.dark-mode .user-access-card { background: var(--surface-card); border-color: var(--border-mid); }
         body.dark-mode .uac-body { background: var(--surface-muted); }
         body.dark-mode .uac-bloco-item { background: var(--surface-card); border-color: var(--border-light); }
         body.dark-mode .uac-bloco-item.checked { background: #1a1a50; }
@@ -472,7 +575,8 @@
         body.dark-mode .dropdown-items li:hover { background: var(--surface-muted); }
         body.dark-mode .map-legend { background: rgba(22,22,58,0.97); border-color: var(--border-mid); }
         body.dark-mode .map-legend-title { color: var(--cobli-violet); }
-        body.dark-mode #legend-content div { color: var(--text-primary); }
+        body.dark-mode #legend-content div, body.dark-mode #legend-status-content div { color: var(--text-primary); }
+        body.dark-mode .legend-col + .legend-col { border-left-color: var(--border-mid); }
         body.dark-mode .login-box { background: var(--surface-card); }
         body.dark-mode .login-box h2 { color: var(--text-primary); }
         body.dark-mode .login-box input { background: var(--surface-muted); color: var(--text-primary); border-color: var(--border-mid); }
@@ -480,15 +584,12 @@
         body.dark-mode #id="client-address" { background: var(--surface-card) !important; color: var(--text-primary) !important; }
 
         .topbar-logo {
-            width: 32px; height: 32px; border-radius: 8px;
+            width: 24px; height: 24px; border-radius: 6px;
             background: rgba(127,141,219,0.15);
             border: 1px solid rgba(127,141,219,0.3);
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-        .topbar-brand { gap: 10px !important; }
-        .topbar-brand h1 { font-size: 13px !important; }
-        .topbar-brand p { font-size: 10px !important; }
 
         .section-icon {
             font-size: 15px;
@@ -575,6 +676,8 @@
             .hide-mobile { display: none !important; }
 
             .map-legend { bottom: 20px; right: 8px; max-width: 160px; font-size: 10px; }
+            .legend-columns { flex-direction: column; gap: 10px; }
+            .legend-col + .legend-col { padding-left: 0; border-left: none; padding-top: 8px; border-top: 1px solid var(--border-light); }
 
             .modal-box { width: calc(100vw - 20px) !important; max-height: 92vh; }
 
@@ -586,18 +689,20 @@
             #map-search-bar { top: 6px !important; }
         }
 
-        .dest-marker-label {
+        /* Antes era a opção "label" do marker do Google Maps; agora é um
+           tooltip permanente do Leaflet (bindTooltip com permanent:true). */
+        .leaflet-tooltip.dest-marker-label {
             background: #07074E !important;
             color: #00AE97 !important;
             padding: 4px 10px !important;
             border-radius: 6px !important;
             font-size: 11px !important;
             font-weight: 700 !important;
-            margin-top: -65px !important; 
             white-space: nowrap !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
             border: 1px solid rgba(0, 174, 151, 0.4) !important;
         }
+        .leaflet-tooltip.dest-marker-label::before { display: none !important; } /* remove a setinha padrão do tooltip */
 
         .rpill {
             flex: 1;
@@ -637,9 +742,9 @@
         #routing-result { max-height: 220px; overflow-y: auto; }
         #routing-result::-webkit-scrollbar { width: 3px; }
         #routing-result::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 2px; }
-        .result-section-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 10px 4px; background:#fff; border-radius:8px 8px 0 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        .result-card { background: #fff; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 12px; margin-bottom: 4px; cursor: pointer; transition: background 0.12s; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
-        .result-card:hover { background: #F5F6FF; }
+        .result-section-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 10px 4px; background:var(--surface-card); border-radius:8px 8px 0 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .result-card { background: var(--surface-card); border: 1.5px solid var(--border-light); border-top: 3px solid rgb(var(--acc, 50,72,198)); border-radius: 8px; padding: 10px 12px; margin-bottom: 4px; cursor: pointer; box-shadow: var(--card-shadow); transition: border-color 0.15s, box-shadow 0.15s; }
+        .result-card:hover { border-color: rgb(var(--acc, 50,72,198)); box-shadow: 0 4px 12px rgba(var(--acc, 50,72,198), var(--card-shadow-hover-alpha)); }
         .result-card-name { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
         .result-card-dist { font-size: 10px; color: var(--cobli-indigo); font-weight: 600; }
 
@@ -693,6 +798,31 @@
     </div>
 </div>
 
+<div id="planner-input-modal" class="modal-backdrop">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3>🎯 Planejador de Rotas e Custos</h3>
+            <button class="modal-close" onclick="closeModal('planner-input-modal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <label>Endereços de Destino *</label>
+                <div id="route-addresses-container"></div>
+                <button class="btn btn-outline btn-full" style="margin-top: 6px; font-size: 11px; padding: 6px; border-style: dashed;" onclick="addRouteAddressRow()">+ Adicionar endereço de destino</button>
+            </div>
+
+            <div class="form-row" style="margin-top: 10px;">
+                <label>Produtos / Serviços por Parada *</label>
+                <div id="route-products-container"></div>
+                <button class="btn btn-outline btn-full" style="margin-top: 6px; font-size: 11px; padding: 6px; border-style: dashed;" onclick="addRouteProductRow()">+ Adicionar outro produto</button>
+            </div>
+
+            <button id="btn-search-nearest" class="btn btn-primary btn-full" style="margin-top: 14px;" onclick="calculateRouteAndBudget('nearest')">🎯 Buscar 10 Prestadores Mais Próximos</button>
+            <button id="btn-search-manual" class="btn btn-outline btn-full" style="margin-top: 8px; background: #fff;" onclick="calculateRouteAndBudget('manual')">✍️ Montar Manualmente (sem busca automática)</button>
+        </div>
+    </div>
+</div>
+
 <div id="planner-result-modal" class="modal-backdrop">
     <div class="modal-box wide" style="width: 760px; max-width: 95vw;">
         <div class="modal-head">
@@ -705,44 +835,49 @@
         </div>
         <div class="modal-body" style="padding: 16px; background: var(--surface-page); display: flex; flex-direction: column; max-height: 85vh; overflow-y: auto;">
 
-            <!-- Prestador manual + Custos adicionais lado a lado, compactos -->
-            <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 230px; background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 12px;">
-                    <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">Incluir Prestador Manualmente</h4>
+            <div class="planner-tabs">
+                <button class="planner-tab-btn active" id="planner-tab-btn-comparar" onclick="switchPlannerTab('comparar', this)">🎯 Comparar Prestadores</button>
+                <button class="planner-tab-btn" id="planner-tab-btn-manual" onclick="switchPlannerTab('manual', this)">➕ Prestador Manual</button>
+                <button class="planner-tab-btn" id="planner-tab-btn-custos" onclick="switchPlannerTab('custos', this)">💰 Custos Adicionais</button>
+            </div>
+
+            <div id="planner-tab-comparar" class="planner-tab-panel active">
+                <div id="planner-extra-costs-banner" style="display:none; align-items:center; gap:6px; font-size:11px; color:#3248C6; background:#EEF0FF; border:1px solid #C9D0F5; border-radius:6px; padding:7px 10px; margin-bottom:10px;"></div>
+                <!-- Rota Selecionada (compacta, com scroll interno) -->
+                <div style="background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px;">
+                        <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Ordem Otimizada de Atendimento</h4>
+                        <span id="planner-route-stats" style="font-size: 11px; font-weight: 700; color: var(--cobli-indigo); background: var(--cobli-lavender); padding: 3px 8px; border-radius: 6px;">--</span>
+                    </div>
+                    <div id="planner-route-order-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 9.5px; color: var(--text-muted);"></div>
+                    <div id="planner-route-order" style="display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; padding-right: 4px;">
+                        <div style="font-size: 12px; color: var(--text-muted); text-align: center;">Calculando melhor rota...</div>
+                    </div>
+                </div>
+
+                <!-- Lista de Prestadores -->
+                <h4 style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; margin-left: 4px;">Opções de Prestadores (Selecione para recalcular a rota · marque a caixa ✔️ para incluir no PDF)</h4>
+                <div id="planner-candidates-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+
+            <div id="planner-tab-manual" class="planner-tab-panel">
+                <div style="background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 12px;">
+                    <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Incluir Prestador Manualmente</h4>
                     <div style="display: flex; gap: 6px;">
-                        <input type="text" id="manual-provider-input" list="manual-provider-datalist" placeholder="Digite o nome do prestador..." style="flex: 1; min-width: 0; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
+                        <input type="text" id="manual-provider-input" list="manual-provider-datalist" placeholder="Digite o nome do prestador..." style="flex: 1; min-width: 0; padding: 8px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; font-family: inherit;">
                         <datalist id="manual-provider-datalist"></datalist>
-                        <button type="button" class="btn btn-outline" style="font-size: 11px; padding: 6px 10px; white-space: nowrap;" onclick="addManualPlannerCandidate()">+ Adicionar</button>
-                    </div>
-                </div>
-
-                <div style="flex: 1; min-width: 230px; background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleExtraCostsPanel()">
-                        <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Custos Adicionais (opcional)</h4>
-                        <button type="button" class="block-toggle-btn collapsed" id="btn-toggle-extra-costs" style="pointer-events: none; color: var(--text-secondary);">▼</button>
-                    </div>
-                    <div id="pdf-extra-costs-panel" style="display: none; margin-top: 8px;">
-                        <div id="pdf-extra-costs-container"></div>
-                        <button type="button" class="btn btn-outline" style="font-size: 11px; padding: 6px 10px;" onclick="addPdfExtraCostRow()">+ Adicionar custo (hospedagem, pedágio, etc.)</button>
+                        <button type="button" class="btn btn-outline" style="font-size: 12px; padding: 8px 12px; white-space: nowrap; background:#fff;" onclick="addManualPlannerCandidate()">+ Adicionar</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Rota Selecionada (compacta, com scroll interno) -->
-            <div style="background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px;">
-                    <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Ordem Otimizada de Atendimento</h4>
-                    <span id="planner-route-stats" style="font-size: 11px; font-weight: 700; color: var(--cobli-indigo); background: var(--cobli-lavender); padding: 3px 8px; border-radius: 6px;">--</span>
-                </div>
-                <div id="planner-route-order-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 9.5px; color: var(--text-muted);"></div>
-                <div id="planner-route-order" style="display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; padding-right: 4px;">
-                    <div style="font-size: 12px; color: var(--text-muted); text-align: center;">Calculando melhor rota...</div>
+            <div id="planner-tab-custos" class="planner-tab-panel">
+                <div style="background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 12px;">
+                    <h4 style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Custos Adicionais (opcional)</h4>
+                    <div id="pdf-extra-costs-container"></div>
+                    <button type="button" class="btn btn-outline" style="font-size: 12px; padding: 8px 12px; background:#fff;" onclick="addPdfExtraCostRow()">+ Adicionar custo (hospedagem, pedágio, etc.)</button>
                 </div>
             </div>
-
-            <!-- Lista de Prestadores -->
-            <h4 style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; margin-left: 4px;">Opções de Prestadores (Selecione para recalcular a rota · marque a caixa ✔️ para incluir no PDF)</h4>
-            <div id="planner-candidates-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
     </div>
 </div>
@@ -789,29 +924,43 @@
         </button>
         <div class="topbar-brand">
             <div class="topbar-logo">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7F8DDB" stroke-width="2"><circle cx="12" cy="10" r="4"/><path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 8 14 8 14s8-8.75 8-14c0-4.42-3.58-8-8-8z"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7F8DDB" stroke-width="2"><circle cx="12" cy="10" r="4"/><path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 8 14 8 14s8-8.75 8-14c0-4.42-3.58-8-8-8z"/></svg>
             </div>
             <div>
                 <h1>Rede de Prestadores</h1>
                 <p>Gestão · Rotas · Status</p>
             </div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
+        <div style="display:flex;gap:5px;align-items:center;">
+            <button class="btn-ghost hide-mobile" id="btn-collapse-sidebar" onclick="toggleDesktopSidebar()" title="Recolher painel lateral">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+            </button>
             <button class="btn-ghost" id="btn-summary" title="Ver resumo">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
                 <span class="hide-mobile">Resumo</span>
             </button>
             <button class="btn-ghost" id="btn-darkmode" onclick="toggleDarkMode()" title="Modo escuro">
-                <svg id="dark-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                <svg id="dark-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
             <button class="btn-ghost btn-logout" onclick="logout()" title="Sair">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
                 <span class="hide-mobile">Sair</span>
             </button>
         </div>
     </div>
 
+    <div class="sidebar-fixed-top">
+        <div class="sidebar-tabs" id="sidebar-tabs">
+            <button class="sidebar-tab-btn active admin-only" id="tab-btn-operacao" onclick="switchSidebarTab('operacao')">🛠️ Operação</button>
+            <button class="sidebar-tab-btn admin-only" id="tab-btn-administracao" onclick="switchSidebarTab('administracao')">🔐 Administração</button>
+            <button class="sidebar-tab-btn" id="btn-planejador-trigger" onclick="openPlannerModal()" style="display:none;">🎯 Planejador</button>
+        </div>
+        <div class="dashboard-fixed" id="fixed-dashboard"></div>
+    </div>
+
     <div class="scroll-panel">
+
+        <div id="tab-panel-operacao">
 
         <div id="bloco-1" class="section-card">
             <div class="section-header" style="cursor: default;">
@@ -827,39 +976,17 @@
                     <input type="text" id="search-provider" placeholder="Pesquisar por nome…" oninput="applyFilters()">
                     <button class="btn-icon" onclick="clearSearchName()" title="Limpar busca">✕</button>
                 </div>
+                <div class="quick-filters-row">
+                    <button class="quick-filter-chip admin-only" id="chip-ativos" onclick="quickStatusFilter('ativos')" title="Mostrar só status Ativo">Ativos</button>
+                    <button class="quick-filter-chip admin-only" id="chip-todos" onclick="quickStatusFilter('todos')" title="Mostrar todos os status">Todos os status</button>
+                    <button class="quick-filter-chip piloto" id="chip-piloto" onclick="toggleQuickPiloto()" title="Mostrar só Prestadores Piloto">⭐ Piloto</button>
+                </div>
                 <ul id="providers-list">
                     <li style="list-style:none;"><div class="empty-state">Aguardando dados...</div></li>
                 </ul>
             </div>
         </div>
 
-        <div id="bloco-2" class="section-card">
-            <div class="section-header" onclick="toggleBlock('bloco-2')">
-                <div class="section-header-left">
-                    <span class="section-icon">🛣️</span><span class="section-title">Planejador de Rotas e Custos</span>
-                </div>
-                <div class="section-header-right">
-                    <button class="block-toggle-btn collapsed" id="btn-toggle-bloco-2">▼</button>
-                </div>
-            </div>
-            <div class="section-body collapsed" id="body-bloco-2">
-                <div class="form-row">
-                    <label>Endereços de Destino *</label>
-                    <div id="route-addresses-container"></div>
-                    <button class="btn btn-outline btn-full" style="margin-top: 6px; font-size: 11px; padding: 6px; border-style: dashed;" onclick="addRouteAddressRow()">+ Adicionar endereço de destino</button>
-                </div>
-                
-                <div class="form-row" style="margin-top: 10px;">
-                    <label>Produtos / Serviços por Parada *</label>
-                    <div id="route-products-container">
-                        </div>
-                    <button class="btn btn-outline btn-full" style="margin-top: 6px; font-size: 11px; padding: 6px; border-style: dashed;" onclick="addRouteProductRow()">+ Adicionar outro produto</button>
-                </div>
-
-               <button id="btn-search-nearest" class="btn btn-primary btn-full" style="margin-top: 14px;" onclick="calculateRouteAndBudget('nearest')">🎯 Buscar 10 Prestadores Mais Próximos</button>
-               <button id="btn-search-manual" class="btn btn-outline btn-full" style="margin-top: 8px; background: #fff;" onclick="calculateRouteAndBudget('manual')">✍️ Montar Manualmente (sem busca automática)</button>
-            </div>
-        </div>
         <div id="bloco-3" class="section-card">
             <div class="section-header" onclick="toggleBlock('bloco-3')">
                 <div class="section-header-left">
@@ -899,6 +1026,10 @@
                 <div id="dashboard-summary"></div>
             </div>
         </div>
+
+        </div>
+
+        <div id="tab-panel-administracao" style="display:none;">
 
         <div id="bloco-4" class="section-card admin-only">
             <div class="section-header" onclick="toggleBlock('bloco-4')">
@@ -1018,6 +1149,8 @@
             </div>
         </div>
 
+        </div>
+
     </div>
 </div>
 
@@ -1025,6 +1158,26 @@
 
 <div id="map-container">
     <div id="map"></div>
+
+    <button id="btn-expand-sidebar" onclick="toggleDesktopSidebar()" title="Mostrar painel lateral" style="
+        display: none;
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        z-index: 60;
+        background: var(--cobli-navy);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    ">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+    </button>
 
     <div id="planner-back-btn" style="
         display: none;
@@ -1097,8 +1250,16 @@
         <div id="routing-result" style="pointer-events:all;"></div>
     </div>
     <div class="map-legend" id="map-legend-box" style="display:none;">
-        <div class="map-legend-title">Cores por Consultor</div>
-        <div id="legend-content"></div>
+        <div class="legend-columns">
+            <div class="legend-col">
+                <div class="map-legend-title">Status</div>
+                <div id="legend-status-content"></div>
+            </div>
+            <div class="legend-col">
+                <div class="map-legend-title">Consultor</div>
+                <div id="legend-content"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1262,9 +1423,128 @@
     const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     let map, markers = [], providersData = [], rawImportedData = [];
-    let directionsService, directionsRenderer, geocoder;
+    let routeLayer = null; // camada da rota traçada no mapa (substitui o DirectionsRenderer do Google)
     let clientMarker = null, infoWindowGlobal = null, clientInfoWindow = null;
     let currentSearchRange = 50, currentUser = null;
+    let selectedProviderId = null; // prestador destacado na lista (sincronizado com clique no mapa e vice-versa)
+
+    // ===================== ADAPTADOR OpenStreetMap (Nominatim + OSRM) =====================
+    // Substitui Geocoder / DirectionsService / DirectionsRenderer / geometry.spherical do Google.
+    // Usa os servidores públicos do projeto — ótimos para uso leve, mas sujeitos a rate limit
+    // (política de uso justo do Nominatim/OSRM). Se o uso da equipe crescer bastante, troque só
+    // estas duas constantes por uma instância própria ou um provedor pago (LocationIQ, ORS, etc.).
+    const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
+    const OSRM_BASE = 'https://router.project-osrm.org';
+
+    function distMeters(a, b) {
+        // Substitui google.maps.geometry.spherical.computeDistanceBetween
+        return L.latLng(a).distanceTo(L.latLng(b));
+    }
+
+    function formatDistanceText(meters) {
+        if (meters == null || isNaN(meters)) return '--';
+        return meters >= 1000 ? (meters / 1000).toFixed(1) + ' km' : Math.round(meters) + ' m';
+    }
+
+    function formatDurationText(seconds) {
+        if (seconds == null || isNaN(seconds)) return '--';
+        const totalMin = Math.round(seconds / 60);
+        if (totalMin < 60) return totalMin + ' min';
+        const h = Math.floor(totalMin / 60), m = totalMin % 60;
+        return `${h} h ${m > 0 ? m + ' min' : ''}`.trim();
+    }
+
+    // Dá a cada camada do Leaflet (marker/polyline) um método .setMap(map|null) parecido
+    // com o do Google Maps, pra não precisar reescrever toda chamada existente no código.
+    function attachSetMapShim(layer) {
+        layer.setMap = function (targetMap) {
+            if (targetMap) { if (!map.hasLayer(this)) this.addTo(map); }
+            else { if (map.hasLayer(this)) map.removeLayer(this); }
+            return this;
+        };
+        if (!layer.setZIndex) layer.setZIndex = function (z) { if (this.setZIndexOffset) this.setZIndexOffset(z); return this; };
+        if (!layer.setTitle) layer.setTitle = function (t) { this.options.title = t; if (this._icon) this._icon.title = t; return this; };
+        return layer;
+    }
+
+    // Busca de endereço via Nominatim (equivalente a geocoder.geocode / autocomplete)
+    async function nominatimSearch(address, limit = 1) {
+        const url = `${NOMINATIM_BASE}/search?format=jsonv2&q=${encodeURIComponent(address)}&countrycodes=br&limit=${limit}&addressdetails=0`;
+        const resp = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+        if (!resp.ok) return [];
+        const data = await resp.json();
+        return (data || []).map(d => ({ lat: parseFloat(d.lat), lng: parseFloat(d.lon), formatted_address: d.display_name, place_id: d.place_id }));
+    }
+
+    // Rota simples entre 2 pontos (equivalente a directionsService.route sem waypoints)
+    async function osrmRoute(coordsLatLngArray) {
+        const coordsStr = coordsLatLngArray.map(p => `${p.lng},${p.lat}`).join(';');
+        const url = `${OSRM_BASE}/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&steps=false`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.code !== 'Ok') throw new Error(data.code || 'OSRM_ROUTE_ERROR');
+        return data;
+    }
+
+    // Rota com otimização de ordem de paradas (equivalente a optimizeWaypoints:true do Google).
+    // source=first trava o ponto de partida (o prestador); destination=any deixa o OSRM escolher
+    // qual endereço fica melhor como último — substitui o loop manual que o código tinha antes
+    // pra testar cada destino como "final".
+    async function osrmTrip(coordsLatLngArray) {
+        const coordsStr = coordsLatLngArray.map(p => `${p.lng},${p.lat}`).join(';');
+        const url = `${OSRM_BASE}/trip/v1/driving/${coordsStr}?source=first&destination=any&roundtrip=false&geometries=geojson&overview=full`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.code !== 'Ok') throw new Error(data.code || 'OSRM_TRIP_ERROR');
+        return data;
+    }
+
+    // Constrói um objeto no mesmo formato que o código já esperava do Google Directions
+    // ({ routes: [{ legs: [{distance:{value,text}, duration:{text}, start_address, end_address,
+    // start_location, end_location}], bounds, overview_path }] }), assim quase nenhuma função
+    // que já exibia rotas (lista do planejador, PDF, desenho no mapa) precisou mudar.
+    // `stopLatLngsInOrder` = [origem, parada1, parada2, ...] na ORDEM REAL de visita (já
+    // resolvida pelo OSRM no caso de rota otimizada). `addressesInOrder.stops` tem os
+    // endereços de texto na mesma ordem (sem contar a origem).
+    function buildRouteAdapter(osrmRouteObj, stopLatLngsInOrder, addressesInOrder) {
+        const geometryCoords = osrmRouteObj.geometry.coordinates; // [ [lng,lat], ... ]
+        const overviewPath = geometryCoords.map(c => L.latLng(c[1], c[0]));
+        const legs = osrmRouteObj.legs.map((leg, i) => ({
+            distance: { value: leg.distance, text: formatDistanceText(leg.distance) },
+            duration: { value: leg.duration, text: formatDurationText(leg.duration) },
+            start_address: i === 0 ? addressesInOrder.origin : addressesInOrder.stops[i - 1],
+            end_address: addressesInOrder.stops[i],
+            start_location: stopLatLngsInOrder[i],
+            end_location: stopLatLngsInOrder[i + 1]
+        }));
+        const bounds = L.latLngBounds(overviewPath.length ? overviewPath : stopLatLngsInOrder);
+        return { legs, bounds, overview_path: overviewPath };
+    }
+
+    // Dado o retorno do OSRM Trip (que pode reordenar as paradas), devolve os índices das
+    // paradas (0 = primeiro destino, 1 = segundo, ...) na ordem real de visita escolhida.
+    function getTripVisitOrder(tripData) {
+        // response.waypoints vem na MESMA ordem que os pontos enviados (origem + destinos);
+        // cada item tem waypoint_index = posição dele na rota otimizada final.
+        return tripData.waypoints
+            .map((wp, inputIdx) => ({ inputIdx, order: wp.waypoint_index }))
+            .filter(x => x.inputIdx !== 0) // remove a origem (sempre a primeira, source=first)
+            .sort((a, b) => a.order - b.order)
+            .map(x => x.inputIdx - 1); // -1 pra virar índice dentro do array de destinos (sem a origem)
+    }
+
+    // Desenha (ou redesenha) a rota calculada no mapa — substitui directionsRenderer.setDirections(response)
+    function renderRouteOnMap(adaptedResponse) {
+        clearRouteLayer();
+        const route = adaptedResponse.routes[0];
+        if (!route || !route.overview_path || !route.overview_path.length) return;
+        routeLayer = L.polyline(route.overview_path, { color: '#3248C6', weight: 5, opacity: 0.85 }).addTo(map);
+    }
+
+    // Substitui directionsRenderer.setDirections({ routes: [] })
+    function clearRouteLayer() {
+        if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+    }
 // Variáveis da Régua
     let rulerMode = false, rulerPolyline = null, rulerMarkers = [], rulerPath = [], rulerListener = null, rulerLabel = null;
 
@@ -1349,7 +1629,7 @@
         const isCollapsed = body.classList.contains('collapsed');
 
         // Fecha todos os blocos abertos primeiro
-        ['bloco-2','bloco-3','bloco-4','bloco-5','bloco-6','bloco-7'].forEach(id => {
+        ['bloco-3','bloco-4','bloco-5','bloco-6','bloco-7'].forEach(id => {
             const b = document.getElementById('body-' + id);
             const t = document.getElementById('btn-toggle-' + id);
             if (b && t) { b.classList.add('collapsed'); t.classList.add('collapsed'); }
@@ -1462,12 +1742,14 @@
     }
 
     function buildUserCard(u) {
-        const blocosArr = (u.blocos || '1,2,3').split(',').map(b => b.trim());
+        const blocosArr = (u.blocos || '1,3').split(',').map(b => b.trim());
         const statusArr = (u.status_permitidos || 'Ativo').split(',').map(s => s.trim());
         const isAdmin = u.perfil === 'admin';
         const podeEditar = u.pode_editar === true;
         const podeAdd = u.pode_adicionar === true;
         const emailId = u.email.replace(/[@.]/g, '_');
+        const initials = u.email.substring(0, 2).toUpperCase();
+        const accPerfil = isAdmin ? hexToRgbString('#FF4633') : hexToRgbString('#7F8DDB');
 
         const blocosHTML = Object.entries(BLOCK_LABELS).map(([num, info]) => {
             const checked = blocosArr.includes(String(num));
@@ -1489,7 +1771,6 @@
             <div class="uac-bloco-item${checked ? ' checked' : ''}" onclick="toggleBlocoItem(this)">
                 <input type="checkbox" class="uac-bloco-cb" data-bloco="${num}" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); this.closest('.uac-bloco-item').classList.toggle('checked', this.checked)">
                 <div class="uac-bloco-info">
-                    <div class="uac-bloco-num">Bloco ${num}</div>
                     <div class="uac-bloco-name">${info.icon} ${info.name}</div>
                     ${extraPerms}
                 </div>
@@ -1514,18 +1795,19 @@
         }).join('');
 
         return `
-        <div class="user-access-card" id="uac-${emailId}">
+        <div class="user-access-card" id="uac-${emailId}" style="--acc:${accPerfil};">
             <div class="uac-header" onclick="toggleUserCard('${emailId}')">
-                <span class="uac-email">👤 ${u.email}</span>
+                <div class="uac-avatar">${initials}</div>
+                <span class="uac-email">${u.email}</span>
                 <span class="uac-perfil-badge ${isAdmin ? 'admin' : 'comum'}" id="badge-perfil-${emailId}">
-                    ${isAdmin ? '⚙️ Admin' : '👁️ Comum'}
+                    ${isAdmin ? 'Admin' : 'Comum'}
                 </span>
-                <button onclick="event.stopPropagation(); deleteUser('${u.email}')" title="Remover acesso" style="background:rgba(255,70,51,0.25);border:1px solid rgba(255,70,51,0.5);color:#fff;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,70,51,0.7)'" onmouseout="this.style.background='rgba(255,70,51,0.25)'">🗑️</button>
+                <button class="uac-delete-btn" onclick="event.stopPropagation(); deleteUser('${u.email}')" title="Remover acesso">🗑</button>
                 <span class="uac-chevron" id="chevron-${emailId}">▾</span>
             </div>
             <div class="uac-body" id="body-${emailId}">
-                <div class="uac-section">
-                    <div class="uac-section-title">Perfil de Acesso</div>
+                <div class="uac-subcard">
+                    <div class="uac-section-title">Perfil de acesso</div>
                     <div class="uac-perfil-select">
                         <button class="uac-perfil-btn ${!isAdmin ? 'active-comum' : ''}"
                                 id="btn-comum-${emailId}"
@@ -1535,19 +1817,19 @@
                         <button class="uac-perfil-btn ${isAdmin ? 'active-admin' : ''}"
                                 id="btn-admin-${emailId}"
                                 onclick="setPerfilBtn('${emailId}', 'admin')">
-                            ⚙️ Admin (acesso total)
+                            ⚙️ Admin
                         </button>
                     </div>
                 </div>
-                <div class="uac-section" id="blocos-section-${emailId}"
+                <div class="uac-subcard" id="blocos-section-${emailId}"
                      style="${isAdmin ? 'opacity:0.45; pointer-events:none;' : ''}">
-                    <div class="uac-section-title">Blocos Visíveis</div>
+                    <div class="uac-section-title">Blocos visíveis</div>
                     <div class="uac-blocos-grid" id="blocos-grid-${emailId}">
                         ${blocosHTML}
                     </div>
                 </div>
-                <div class="uac-section">
-                    <div class="uac-section-title">Status que pode visualizar</div>
+                <div class="uac-subcard">
+                    <div class="uac-section-title">Status visíveis</div>
                     <div class="uac-status-grid" id="status-grid-${emailId}">
                         ${statusHTML}
                     </div>
@@ -1618,18 +1900,20 @@
         const btnAdmin = document.getElementById(`btn-admin-${emailId}`);
         const badge = document.getElementById(`badge-perfil-${emailId}`);
         const blocosSection = document.getElementById(`blocos-section-${emailId}`);
+        const card = document.getElementById(`uac-${emailId}`);
 
         if (btnComum) btnComum.className = `uac-perfil-btn${perfil === 'comum' ? ' active-comum' : ''}`;
         if (btnAdmin) btnAdmin.className = `uac-perfil-btn${perfil === 'admin' ? ' active-admin' : ''}`;
 
         if (badge) {
-            badge.textContent = perfil === 'admin' ? '⚙️ Admin' : '👁️ Comum';
+            badge.textContent = perfil === 'admin' ? 'Admin' : 'Comum';
             badge.className = `uac-perfil-badge ${perfil}`;
         }
         if (blocosSection) {
             blocosSection.style.opacity = perfil === 'admin' ? '0.45' : '1';
             blocosSection.style.pointerEvents = perfil === 'admin' ? 'none' : '';
         }
+        if (card) card.style.setProperty('--acc', hexToRgbString(perfil === 'admin' ? '#FF4633' : '#7F8DDB'));
     }
 
     async function saveUserPermissions(email, emailId) {
@@ -1715,75 +1999,62 @@
         if (overlay) overlay.classList.remove('open');
     }
 
+    // Recolhe/expande a sidebar inteira no desktop pra ganhar mapa cheio (no mobile já
+    // existe o próprio menu-hambúrguer, então este botão fica escondido lá via .hide-mobile).
+    function toggleDesktopSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const expandBtn = document.getElementById('btn-expand-sidebar');
+        if (!sidebar) return;
+        const collapsed = sidebar.classList.toggle('desktop-collapsed');
+        if (expandBtn) expandBtn.style.display = collapsed ? 'flex' : 'none';
+        localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0');
+        // Espera a transição de largura (0.2s) terminar antes do Leaflet recalcular o tamanho do mapa
+        setTimeout(() => { if (map) map.invalidateSize(); }, 220);
+    }
+
+    // Alterna entre "Operação" (uso do dia a dia) e "Administração" (blocos raramente
+    // usados: acessos, transferência, substituição, importação). O switcher em si já
+    // some pra usuário comum (mesma classe admin-only dos outros controles restritos),
+    // então esta função na prática só é acionada por quem é admin.
+    function switchSidebarTab(tab) {
+        const opPanel = document.getElementById('tab-panel-operacao');
+        const adminPanel = document.getElementById('tab-panel-administracao');
+        const btnOp = document.getElementById('tab-btn-operacao');
+        const btnAdmin = document.getElementById('tab-btn-administracao');
+        const isAdmin = tab === 'administracao';
+
+        if (opPanel) opPanel.style.display = isAdmin ? 'none' : 'block';
+        if (adminPanel) adminPanel.style.display = isAdmin ? 'block' : 'none';
+        if (btnOp) btnOp.classList.toggle('active', !isAdmin);
+        if (btnAdmin) btnAdmin.classList.toggle('active', isAdmin);
+
+        localStorage.setItem('sidebarActiveTab', tab);
+    }
+
+    // O botão "🎯 Planejador" fica ao lado das abas Operação/Administração pra não
+    // ocupar espaço extra, mas ele não é uma aba de conteúdo — é um atalho que abre
+    // o modal de entrada direto. Por isso não mexe no estado "active" das outras abas.
+    function openPlannerModal() {
+        openModal('planner-input-modal');
+        setTimeout(() => {
+            const c = document.getElementById('route-addresses-container');
+            if (c && c.innerHTML.trim() === '') addRouteAddressRow();
+        }, 50);
+    }
+
     function initMap() {
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: -15.793889, lng: -47.882778 }, zoom: 4,
-            mapTypeControl: true, streetViewControl: false
-        });
-        directionsService = new google.maps.DirectionsService();
-        directionsRenderer = new google.maps.DirectionsRenderer({ preserveViewport: true, suppressMarkers: true });
-        directionsRenderer.setMap(map);
-        geocoder = new google.maps.Geocoder();
-        infoWindowGlobal = new google.maps.InfoWindow({ disableAutoPan: false });
-        clientInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
+        map = L.map('map', { zoomControl: true, attributionControl: true }).setView([-15.793889, -47.882778], 4);
+        map.attributionControl.setPosition('bottomleft'); // padrão é bottomright, que sobreporia a legenda de consultores
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-        function fixInfoWindowChrome() {
-            if (!document.getElementById('cobli-iw-close-fix')) {
-                var style = document.createElement('style');
-                style.id = 'cobli-iw-close-fix';
-                style.innerHTML = `
-                    .gm-style-iw-chr button, 
-                    button.gm-ui-hover-effect {
-                        position: relative !important;
-                        z-index: 9999 !important;
-                        margin: 6px 6px 0 0 !important;
-                        background: #F01A1A !important;
-                        border-radius: 50% !important;
-                        width: 26px !important;
-                        height: 26px !important;
-                        border: none !important;
-                        cursor: pointer !important;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
-                        display: block !important;
-                        opacity: 1 !important;
-                        visibility: visible !important;
-                        transition: background 0.15s !important;
-                    }
-                    
-                    .gm-style-iw-chr button:hover, 
-                    button.gm-ui-hover-effect:hover {
-                        background: #FF4633 !important;
-                    }
-
-                    .gm-style-iw-chr button > *, 
-                    button.gm-ui-hover-effect > * {
-                        display: none !important;
-                    }
-
-                    .gm-style-iw-chr button::after, 
-                    button.gm-ui-hover-effect::after {
-                        content: "×" !important;
-                        color: #ffffff !important;
-                        font-size: 22px !important;
-                        font-weight: bold !important;
-                        line-height: 1 !important;
-                        position: absolute !important;
-                        top: 50% !important;
-                        left: 50% !important;
-                        transform: translate(-50%, -55%) !important;
-                        pointer-events: none !important;
-                    }
-
-                    .gm-style-iw-d {
-                        overflow: hidden !important;
-                        padding: 0 !important;
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-        }
-        google.maps.event.addListener(infoWindowGlobal, 'domready', fixInfoWindowChrome);
-        google.maps.event.addListener(clientInfoWindow, 'domready', fixInfoWindowChrome);
+        // Popups reutilizáveis (equivalentes aos InfoWindow do Google). O botão de fechar
+        // e o visual do card já são resolvidos via CSS (.leaflet-popup-*), sem precisar
+        // mais do patch de DOM que existia antes (fixInfoWindowChrome).
+        infoWindowGlobal = L.popup({ maxWidth: 260, closeButton: true, autoPan: true, className: 'cobli-popup' });
+        clientInfoWindow = L.popup({ maxWidth: 260, closeButton: true, autoPan: true, className: 'cobli-popup' });
 
         const fileInput = document.getElementById('file-upload');
         if (fileInput) {
@@ -1806,14 +2077,14 @@ if (savedConfig) {
         event.preventDefault();
         const emailInput = document.getElementById('login-email').value.toLowerCase().trim();
         const btnLogin = event.target.querySelector('button');
-        if (btnLogin) { btnLogin.innerText = "Verificando acesso..."; btnLogin.disabled = true; }
+        setBtnLoading(btnLogin, "Verificando acesso...");
 
         let { data: userDb } = await _supabase.from('usuarios').select('*').eq('email', emailInput).single();
 
         if (!userDb) {
             const newUser = {
                 email: emailInput, perfil: 'comum', pode_editar: false, pode_adicionar: false,
-                blocos: '1,2,3', status_permitidos: 'Ativo'
+                blocos: '1,3', status_permitidos: 'Ativo'
             };
             if (emailInput.includes('luiz.lackeski') || emailInput.includes('admin@cobli') || emailInput.includes('gerente@cobli')) {
                 newUser.perfil = 'admin'; newUser.pode_editar = true; newUser.pode_adicionar = true;
@@ -1823,7 +2094,7 @@ if (savedConfig) {
             const { error: insertError } = await _supabase.from('usuarios').insert([newUser]);
             if (insertError) {
                 await showCustomDialog("Erro ao gravar usuário: " + insertError.message, "Erro");
-                if (btnLogin) { btnLogin.innerText = "Acessar Sistema"; btnLogin.disabled = false; }
+                clearBtnLoading(btnLogin);
                 return;
             }
             userDb = newUser;
@@ -1831,7 +2102,7 @@ if (savedConfig) {
 
         localStorage.setItem('userConfig', JSON.stringify(userDb));
         localStorage.setItem('userEmail', emailInput);
-        if (btnLogin) { btnLogin.innerText = "Acessar Sistema"; btnLogin.disabled = false; }
+        clearBtnLoading(btnLogin);
         currentUser = userDb;
         initSystem();
     }
@@ -1864,6 +2135,14 @@ async function initSystem() {
             if (icon) icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
         }
 
+        if (localStorage.getItem('sidebarCollapsed') === '1') {
+            const sidebar = document.getElementById('sidebar');
+            const expandBtn = document.getElementById('btn-expand-sidebar');
+            if (sidebar) sidebar.classList.add('desktop-collapsed');
+            if (expandBtn) expandBtn.style.display = 'flex';
+            setTimeout(() => { if (map) map.invalidateSize(); }, 50);
+        }
+
         if (currentUser.perfil === 'comum') {
             document.body.classList.add('is-common');
             const btnNovo = document.querySelector('#bloco-1 .btn-secondary');
@@ -1871,6 +2150,8 @@ async function initSystem() {
         } else {
             document.body.classList.remove('is-common');
             loadUsersTable();
+            const savedTab = localStorage.getItem('sidebarActiveTab');
+            if (savedTab === 'administracao') switchSidebarTab('administracao');
         }
 
         for (let i = 1; i <= 7; i++) {
@@ -1880,6 +2161,23 @@ async function initSystem() {
                     (currentUser.blocos && currentUser.blocos.split(',').map(b=>b.trim()).includes(String(i)));
                 bloco.style.display = allowed ? 'block' : 'none';
             }
+        }
+
+        // O Planejador (antigo bloco 2) virou um botão ao lado das abas, mas continua
+        // respeitando a mesma permissão granular de sempre ("Blocos Visíveis" por usuário) —
+        // só muda onde ele aparece, não quem pode vê-lo.
+        const plannerAllowed = currentUser.perfil === 'admin' ||
+            (currentUser.blocos && currentUser.blocos.split(',').map(b => b.trim()).includes('2'));
+        const plannerBtn = document.getElementById('btn-planejador-trigger');
+        if (plannerBtn) plannerBtn.style.display = plannerAllowed ? 'flex' : 'none';
+
+        // Se o usuário comum não vê Operação/Administração (não é admin) e também não
+        // tem permissão pro Planejador, não sobra nada nessa fileira — esconde ela
+        // inteira pra não deixar uma caixa vazia no topo da sidebar.
+        const tabsRow = document.getElementById('sidebar-tabs');
+        if (tabsRow) {
+            const rowHasContent = currentUser.perfil === 'admin' || plannerAllowed;
+            tabsRow.style.display = rowHasContent ? 'flex' : 'none';
         }
 
         loadDataFromSupabase();
@@ -1908,6 +2206,7 @@ async function initSystem() {
             if (listElement) listElement.innerHTML = '<li style="list-style:none;"><div class="empty-state">Banco de dados vazio. Importe uma planilha.</div></li>';
             updateStatusFilter();
         }
+        renderFixedDashboard();
     }
 
     function generateConsultantColors(data) {
@@ -1930,6 +2229,7 @@ async function initSystem() {
     function renderMapLegend() {
         const legendBox = document.getElementById('map-legend-box');
         const legendContent = document.getElementById('legend-content');
+        const legendStatusContent = document.getElementById('legend-status-content');
         if (!legendBox || !legendContent) return;
         if (!Object.keys(consultantColors).length) { legendBox.style.display = 'none'; return; }
         legendBox.style.display = 'block';
@@ -1939,6 +2239,14 @@ async function initSystem() {
             if (!uniqueConsultants[norm]) uniqueConsultants[norm] = { name: p.consultor ? p.consultor.trim() : "Sem Consultor", color: consultantColors[norm] };
         });
         legendContent.innerHTML = Object.values(uniqueConsultants).map(c => `<div><div class="legend-dot" style="background:${c.color};"></div> ${c.name}</div>`).join('');
+
+        if (legendStatusContent) {
+            let uniqueStatuses = new Set();
+            providersData.forEach(p => { if (p.status) uniqueStatuses.add(p.status); });
+            legendStatusContent.innerHTML = Array.from(uniqueStatuses).sort().map(s =>
+                `<div><div class="legend-dot" style="background:${getStatusColor(s)};"></div> ${s}</div>`
+            ).join('');
+        }
     }
 
     function toggleDropdown(id) {
@@ -1948,9 +2256,44 @@ async function initSystem() {
         el.classList.toggle('visible');
     }
 
+    // Loading padronizado pros botões de ação mais usados no dia a dia (busca de rota,
+    // gerar PDF, login) — antes cada um trocava o texto manualmente de um jeito diferente.
+    function setBtnLoading(btn, text, dark = false) {
+        if (!btn) return;
+        if (btn.dataset.originalHtml == null) btn.dataset.originalHtml = btn.innerHTML;
+        btn.innerHTML = `<span class="btn-spinner${dark ? ' dark' : ''}"></span>${text}`;
+        btn.disabled = true;
+    }
+    function clearBtnLoading(btn) {
+        if (!btn) return;
+        if (btn.dataset.originalHtml != null) { btn.innerHTML = btn.dataset.originalHtml; delete btn.dataset.originalHtml; }
+        btn.disabled = false;
+    }
+
     function selectAll(id) { document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => cb.checked = true); applyFilters(); }
     function clearAll(id) { document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(cb => cb.checked = false); applyFilters(); }
     function clearSearchName() { const s = document.getElementById('search-provider'); if (s) s.value = ''; applyFilters(); }
+
+    // Atalhos de um clique pros filtros mais usados no dia a dia — mexem nos MESMOS
+    // controles que já existem (checkboxes do dropdown de status e o filtro de piloto),
+    // então não criam uma segunda fonte de verdade: é só um jeito mais rápido de chegar
+    // no mesmo resultado que abrir o dropdown e marcar manualmente.
+    function quickStatusFilter(mode) {
+        if (mode === 'todos') { selectAll('status-items'); return; }
+        if (mode === 'ativos') {
+            document.querySelectorAll('#status-items input[type=checkbox]').forEach(cb => {
+                cb.checked = (cb.value === 'Ativo');
+            });
+            applyFilters();
+        }
+    }
+
+    function toggleQuickPiloto() {
+        const cb = document.getElementById('filter-piloto');
+        if (!cb) return;
+        cb.checked = !cb.checked;
+        applyFilters(); // já sincroniza a classe "active" do chip
+    }
 
     function setRange(val, btn) {
         currentSearchRange = val;
@@ -1963,6 +2306,9 @@ async function initSystem() {
     document.addEventListener('click', e => {
         if (!e.target.closest('.dropdown-check-list')) document.querySelectorAll('.dropdown-items').forEach(i => i.classList.remove('visible'));
         if (!e.target.closest('#map-search-bar')) closeAutocomplete();
+        if (!e.target.closest('.route-address-input') && !e.target.closest('.planner-ac-dropdown')) {
+            document.querySelectorAll('.planner-ac-dropdown').forEach(dd => dd.style.display = 'none');
+        }
     });
 
     function normalizeStr(str) {
@@ -1986,6 +2332,41 @@ async function initSystem() {
     function getStatusColor(status) {
         const map = { 'Ativo': '#00AE97', 'Suspenso': '#7F8DDB', 'Em credenciamento': '#001BB8', 'Credenciado fase final': '#3248C6', 'Descredenciado': '#FF4633', 'Inativo': '#F01A1A', 'Free Lance': '#3248C6' };
         return map[status] || '#9296B8';
+    }
+
+    // Dashboard fixo no topo da sidebar — NÃO acompanha os filtros ativos (busca,
+    // consultor, piloto, raio); mostra sempre a contagem da base geral, igual pedido.
+    // Pra usuário comum, respeita a mesma restrição de status_permitidos que o modal
+    // de Resumo já aplica (não expõe contagem de status que ele não tem permissão de ver).
+    function renderFixedDashboard() {
+        const box = document.getElementById('fixed-dashboard');
+        if (!box) return;
+
+        let base = providersData;
+        if (currentUser && currentUser.perfil !== 'admin') {
+            const permitted = (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
+            base = providersData.filter(p => permitted.includes(p.status));
+        }
+
+        const total = base.length;
+        const countAtivo = base.filter(p => p.status === 'Ativo').length;
+        const countSuspenso = base.filter(p => p.status === 'Suspenso').length;
+        const countInativo = base.filter(p => p.status === 'Inativo').length;
+        const countCredenciamento = base.filter(p => p.status === 'Em credenciamento' || p.status === 'Credenciado fase final').length;
+
+        const accTotal = hexToRgbString('#3248C6');
+        const accAtivo = hexToRgbString(getStatusColor('Ativo'));
+        const accSuspenso = hexToRgbString(getStatusColor('Suspenso'));
+        const accInativo = hexToRgbString(getStatusColor('Inativo'));
+        const accCredenc = hexToRgbString(getStatusColor('Credenciado fase final'));
+
+        box.innerHTML = `
+            <div class="dash-cell" style="--acc:${accTotal};"><span class="dash-val" style="color:var(--cobli-navy);">${total}</span><span class="dash-lbl">Total</span></div>
+            <div class="dash-cell" style="--acc:${accAtivo};"><span class="dash-val" style="color:${getStatusColor('Ativo')};">${countAtivo}</span><span class="dash-lbl">Ativo</span></div>
+            <div class="dash-cell" style="--acc:${accSuspenso};"><span class="dash-val" style="color:${getStatusColor('Suspenso')};">${countSuspenso}</span><span class="dash-lbl">Suspenso</span></div>
+            <div class="dash-cell" style="--acc:${accInativo};"><span class="dash-val" style="color:${getStatusColor('Inativo')};">${countInativo}</span><span class="dash-lbl">Inativo</span></div>
+            <div class="dash-cell" style="--acc:${accCredenc};"><span class="dash-val" style="color:${getStatusColor('Credenciado fase final')};">${countCredenciamento}</span><span class="dash-lbl">Credenc.</span></div>
+        `;
     }
 
     function updateStatusFilter() {
@@ -2051,6 +2432,15 @@ async function initSystem() {
 
         const selConsultors = getCheckedValues('consultor-items');
         const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
+        document.getElementById('chip-piloto')?.classList.toggle('active', showOnlyPiloto);
+
+        if (currentUser.perfil === 'admin') {
+            const totalStatusCount = document.querySelectorAll('#status-items input[type=checkbox]').length;
+            const isAtivos = allowedStatuses.length === 1 && allowedStatuses[0] === 'Ativo';
+            const isTodos = totalStatusCount > 0 && allowedStatuses.length === totalStatusCount;
+            document.getElementById('chip-ativos')?.classList.toggle('active', isAtivos);
+            document.getElementById('chip-todos')?.classList.toggle('active', isTodos);
+        }
         const searchText = (document.getElementById('search-provider')?.value || '').normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
 
         let filteredList = [];
@@ -2090,22 +2480,52 @@ async function initSystem() {
         if (!list) return;
         list.innerHTML = "";
         if (!filtered.length) { list.innerHTML = '<li style="list-style:none;"><div class="empty-state">Nenhum prestador encontrado</div></li>'; return; }
+
+        // Só mostra o badge de status se o usuário puder ver mais de um status —
+        // se ele só tem "Ativo" liberado, todo card seria "Ativo" mesmo, e o badge
+        // não acrescenta nenhuma informação (só polui a tela).
+        const allowedStatusCount = currentUser.perfil === 'admin'
+            ? getCheckedValues('status-items').length
+            : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim()).length;
+        const showStatusBadge = allowedStatusCount > 1;
+
         filtered.forEach(p => {
             let colStatus = getStatusColor(p.status);
             let colConsultant = getConsultantColor(p.consultorNorm);
             let li = document.createElement('li');
-li.className = 'provider-item';
-li.onclick = function(e) { if (!e.target.closest('.btn-edit')) centerMapOnProvider(p.id); };
-li.style.cursor = 'pointer';
-let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar)
-    ? `<button class="btn-edit" onclick="event.stopPropagation(); openEditModal(${p.id})">Editar</button>` : '';
-let pilotoBadge = p.piloto ? `<span class="badge-piloto">⭐ PILOTO</span>` : '';
-const nomeFormatado = formatNome(p.nome);
-li.innerHTML = `
-    <span class="provider-dot" style="background:${colConsultant};" title="Consultor: ${p.consultor||'Nenhum'}"></span>
-    <span class="provider-name" title="${nomeFormatado}">${nomeFormatado} ${pilotoBadge}</span>
-    <span class="provider-status-badge" style="background:${colStatus}22;color:${colStatus};">${p.status}</span>
-    ${btnEditHtml}`;
+            li.className = 'provider-item' + (p.id === selectedProviderId ? ' active-selected' : '');
+            li.dataset.providerId = p.id;
+            li.style.setProperty('--acc', hexToRgbString(colConsultant));
+            li.onclick = function(e) { if (!e.target.closest('.btn-edit') && !e.target.closest('.provider-copy-btn')) centerMapOnProvider(p.id); };
+            let btnEditHtml = (currentUser.perfil === 'admin' || currentUser.pode_editar)
+                ? `<button class="btn-edit" onclick="event.stopPropagation(); openEditModal(${p.id})" title="Editar">✏️</button>` : '';
+            let pilotoBadge = p.piloto ? `<span class="badge-piloto">⭐ PILOTO</span>` : '';
+            const statusBadgeHtml = showStatusBadge
+                ? `<span class="provider-status-badge" style="background:${colStatus}22;color:${colStatus};">${p.status}</span>`
+                : '';
+            const nomeFormatado = formatNome(p.nome);
+            const contatoSafe = (p.contato || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            const copyBtnHtml = p.contato
+                ? `<button class="provider-copy-btn" onclick="event.stopPropagation(); navigator.clipboard.writeText('${contatoSafe}'); this.textContent='✅'; setTimeout(()=>this.textContent='📋',1200)" title="Copiar contato">📋</button>`
+                : '';
+            li.innerHTML = `
+                <div class="provider-top-row">
+                    <span class="provider-dot" style="background:${colConsultant};"></span>
+                    <span class="provider-name" title="${nomeFormatado}">${nomeFormatado}</span>
+                    ${pilotoBadge}
+                    ${statusBadgeHtml}
+                    ${btnEditHtml}
+                </div>
+                <div class="provider-detail-grid">
+                    <div>
+                        <div class="provider-microlabel">Consultor</div>
+                        <div class="provider-detail-value" title="${p.consultor || ''}">${p.consultor || '—'}</div>
+                    </div>
+                    <div>
+                        <div class="provider-microlabel">Contato</div>
+                        <div class="provider-detail-value" title="${p.contato || ''}">${p.contato || '—'}${copyBtnHtml}</div>
+                    </div>
+                </div>`;
             list.appendChild(li);
         });
     }
@@ -2153,21 +2573,21 @@ li.innerHTML = `
         saveGeocodeCacheToStorage();
     }
 
-    function getGeocode(address) {
+    async function getGeocode(address) {
         const cached = getCachedGeocode(address);
-        if (cached) return Promise.resolve(cached);
+        if (cached) return cached;
 
-        return new Promise(resolve => {
-            geocoder.geocode({ address }, (results, status) => {
-                if (status === 'OK') {
-                    const coords = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
-                    setCachedGeocode(address, coords.lat, coords.lng);
-                    resolve(coords);
-                } else {
-                    resolve({ lat: null, lng: null });
-                }
-            });
-        });
+        try {
+            const results = await nominatimSearch(address, 1);
+            if (results.length) {
+                const coords = { lat: results[0].lat, lng: results[0].lng };
+                setCachedGeocode(address, coords.lat, coords.lng);
+                return coords;
+            }
+            return { lat: null, lng: null };
+        } catch (e) {
+            return { lat: null, lng: null };
+        }
     }
 
     function getWhatsappLink(phoneStr) {
@@ -2215,6 +2635,16 @@ function makeMarkerSvg(color, isPiloto) {
         return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     }
 
+    // Converte hex pra "r,g,b" — usado pra alimentar a variável --acc dos cards,
+    // que faz a linha/sombra colorida do hover (rgba precisa dos 3 números soltos).
+    function hexToRgbString(hex) {
+        if (!hex) return '50,72,198';
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+        const num = parseInt(hex, 16);
+        return `${(num >> 16) & 0xff},${(num >> 8) & 0xff},${num & 0xff}`;
+    }
+
     function makeDestinationPin() {
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44">
             <text x="18" y="34" text-anchor="middle" font-size="32"
@@ -2226,19 +2656,30 @@ function makeMarkerSvg(color, isPiloto) {
     function createMarker(prestador) {
         let color = getConsultantColor(prestador.consultorNorm);
         const iconUrl = makeMarkerSvg(color, prestador.piloto);
-        const iconSize = new google.maps.Size(24, 32);
-        const iconAnchor = new google.maps.Point(12, 30);
 
-const marker = new google.maps.Marker({
-    position: { lat: prestador.lat, lng: prestador.lng },
-    map,
-    title: prestador.nome,
-    icon: { url: iconUrl, scaledSize: iconSize, anchor: iconAnchor },
-    customId: prestador.id,
-    zIndex: prestador.piloto ? 10 : 1
-});
-        marker.addListener("click", () => openProviderInfoWindow(marker.customId, marker));
+        const marker = attachSetMapShim(L.marker([prestador.lat, prestador.lng], {
+            title: prestador.nome,
+            icon: L.icon({ iconUrl: iconUrl, iconSize: [24, 32], iconAnchor: [12, 30] }),
+            zIndexOffset: prestador.piloto ? 10 : 1
+        }));
+        marker.customId = prestador.id;
+        marker.setMap(map);
+        marker.on("click", () => { openProviderInfoWindow(marker.customId, marker); highlightProviderInList(marker.customId); });
         markers.push(marker);
+    }
+
+    // Destaca na lista lateral o prestador correspondente ao marcador clicado no mapa
+    // (e mantém o destaque depois de qualquer re-render da lista, já que applyFilters
+    // reconstrói a lista do zero a cada filtro/busca).
+    function highlightProviderInList(id) {
+        selectedProviderId = id;
+        const list = document.getElementById('providers-list');
+        if (!list) return;
+        list.querySelectorAll('.provider-item').forEach(el => {
+            el.classList.toggle('active-selected', parseInt(el.dataset.providerId) === id);
+        });
+        const activeEl = list.querySelector(`.provider-item[data-provider-id="${id}"]`);
+        if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
 
     function getInitials(nome) {
@@ -2295,54 +2736,56 @@ const marker = new google.maps.Marker({
             : '';
         const fullContent = content.replace('ROUTE_BTN_HERE', routeBtn)
             + (extraRouteHtml ? '<div style="padding:0 16px 12px;">' + extraRouteHtml + '</div>' : '');
-        infoWindowGlobal.setContent(fullContent);
-        infoWindowGlobal.open({ anchor: markerRef, map, shouldFocus: false });
+        if (!markerRef) return;
+        infoWindowGlobal.setLatLng(markerRef.getLatLng()).setContent(fullContent).openOn(map);
     }
 
     function centerMapOnProvider(id) {
         const p = providersData.find(x => x.id === id);
         if (p && p.lat) {
-            map.setCenter({ lat: p.lat, lng: p.lng });
-            map.setZoom(15);
+            map.setView([p.lat, p.lng], 15);
             openProviderInfoWindow(p.id);
+            highlightProviderInList(id);
             closeSidebar();
         }
     }
 
-    let acService = null, acSessionToken = null;
+    // Autocomplete via Nominatim (substitui google.maps.places.AutocompleteService).
+    // Não existe "session token" no Nominatim; usamos debounce pra respeitar o limite
+    // de uso justo do serviço público (evita 1 requisição a cada tecla digitada).
+    let acDebounceTimer = null;
 
     function initAutocomplete() {
-        if (!google.maps.places) return;
-        acService = new google.maps.places.AutocompleteService();
-        acSessionToken = new google.maps.places.AutocompleteSessionToken();
+        // Mantida só por compatibilidade — nada para inicializar com o Nominatim.
     }
 
     function onAddressInput() {
         const val = document.getElementById('client-address').value.trim();
         if (val.length < 3) { closeAutocomplete(); return; }
-        if (!acService) initAutocomplete();
-        if (!acService) return;
-        acService.getPlacePredictions(
-            { input: val, sessionToken: acSessionToken, componentRestrictions: { country: 'br' } },
-            (predictions, status) => {
-                if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) { closeAutocomplete(); return; }
-                showAutocomplete(predictions);
-            }
-        );
+        clearTimeout(acDebounceTimer);
+        acDebounceTimer = setTimeout(async () => {
+            const results = await nominatimSearch(val, 6);
+            if (!results.length) { closeAutocomplete(); return; }
+            showAutocomplete(results);
+        }, 400);
     }
 
     function showAutocomplete(predictions) {
         const dd = document.getElementById('autocomplete-dropdown');
         if (!dd) return;
-        dd.innerHTML = predictions.slice(0, 6).map(p =>
-            `<div class="ac-item" onmousedown="selectPlace('${p.place_id.replace(/'/g,"\'")}','${p.description.replace(/'/g,"\'").replace(/"/g,"&quot;")}')">
+        dd.innerHTML = predictions.slice(0, 6).map(p => {
+            const parts = (p.formatted_address || '').split(',');
+            const mainText = (parts[0] || p.formatted_address || '').trim();
+            const secondaryText = parts.slice(1).join(',').trim();
+            const descSafe = (p.formatted_address || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            return `<div class="ac-item" onmousedown="selectPlace('${p.place_id}','${descSafe}')">
                 <span class="ac-item-icon">📍</span>
                 <div class="ac-item-text">
-                    <div class="ac-item-main">${p.structured_formatting?.main_text || p.description}</div>
-                    <div class="ac-item-sub">${p.structured_formatting?.secondary_text || ''}</div>
+                    <div class="ac-item-main">${mainText}</div>
+                    <div class="ac-item-sub">${secondaryText}</div>
                 </div>
-            </div>`
-        ).join('');
+            </div>`;
+        }).join('');
         dd.style.display = 'block';
     }
 
@@ -2359,7 +2802,6 @@ const marker = new google.maps.Marker({
     function selectPlace(placeId, description) {
         document.getElementById('client-address').value = description;
         closeAutocomplete();
-        acSessionToken = new google.maps.places.AutocompleteSessionToken();
         findClosestProviders();
     }
 
@@ -2380,7 +2822,7 @@ const marker = new google.maps.Marker({
         var toggleLbl  = exp ? ' Ocultar lista' : ' Ver prestadores';
         var toggleColor = exp ? 'var(--cobli-indigo)' : '#00AE97';
 
-        var header = '<div style="background:#fff;border-radius:' + (exp ? '8px 8px 0 0' : '8px') + ';padding:9px 14px;box-shadow:0 2px 6px rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:space-between;">'
+        var header = '<div style="background:var(--surface-card);border-radius:' + (exp ? '8px 8px 0 0' : '8px') + ';padding:9px 14px;box-shadow:0 2px 6px rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:space-between;">'
             + '<span style="font-size:11px;font-weight:800;color:var(--cobli-navy);letter-spacing:0.3px;">' + inRange.length + ' PRESTADOR' + (inRange.length !== 1 ? 'ES' : '') + ' NO RAIO</span>'
             + '<button onclick="toggleResultDetails()" style="background:none;border:none;font-size:11px;font-weight:700;color:' + toggleColor + ';cursor:pointer;padding:0;font-family:inherit;">' + toggleIcon + toggleLbl + '</button>'
             + '</div>';
@@ -2402,7 +2844,7 @@ const marker = new google.maps.Marker({
                 ? '<span style="color:#00AE97;font-size:10px;font-weight:600;white-space:nowrap;">📞 ' + item.prestador.contato + '</span>'
                 : '';
 
-            return '<div class="result-card" onclick="centerMapOnProvider(' + item.prestador.id + ')">'
+            return '<div class="result-card" style="--acc:' + hexToRgbString(col) + ';" onclick="centerMapOnProvider(' + item.prestador.id + ')">'
                 + '<div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;">'
                 +   '<span style="font-size:10px;font-weight:800;color:var(--cobli-indigo);flex-shrink:0;">#' + (i+1) + '</span>'
                 +   '<span style="flex:1;font-size:11px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + nome + piloto + '</span>'
@@ -2414,121 +2856,128 @@ const marker = new google.maps.Marker({
         }).join('');
 
         var footer = totalExtra > 0
-            ? '<div style="background:#fff;border-radius:0 0 8px 8px;padding:5px 12px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.08);"><span style="font-size:10px;color:var(--text-muted);font-weight:600;">+' + totalExtra + ' mais visíveis no mapa</span></div>'
+            ? '<div style="background:var(--surface-card);border-radius:0 0 8px 8px;padding:5px 12px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.08);"><span style="font-size:10px;color:var(--text-muted);font-weight:600;">+' + totalExtra + ' mais visíveis no mapa</span></div>'
             : '';
 
         resultDiv.innerHTML = header + cards + footer;
     }
 
-    function findClosestProviders() {
+    async function findClosestProviders() {
         const clientAddress = document.getElementById('client-address').value.trim();
         const resultDiv = document.getElementById('routing-result');
         if (!clientAddress) return;
 
         resultDiv.innerHTML = '';
-        directionsRenderer.setDirections({ routes: [] });
+        clearRouteLayer();
 
-        geocoder.geocode({ address: clientAddress }, (results, status) => {
-            if (status !== 'OK') {
-                resultDiv.innerHTML = `<p style="color:rgba(255,150,100,0.9);font-size:11px;padding:6px 0;">Endereço não localizado.</p>`;
-                return;
-            }
+        const results = await nominatimSearch(clientAddress, 1);
+        if (!results.length) {
+            resultDiv.innerHTML = `<p style="color:rgba(255,150,100,0.9);font-size:11px;padding:6px 0;">Endereço não localizado.</p>`;
+            return;
+        }
 
-            const loc = results[0].geometry.location;
-            const formattedAddr = results[0].formatted_address;
+        const loc = L.latLng(results[0].lat, results[0].lng);
+        const formattedAddr = results[0].formatted_address;
 
-            if (clientMarker) clientMarker.setMap(null);
-            
-            clientMarker = new google.maps.Marker({
-                position: loc, map,
-                title: "Destino da rota",
-                icon: { url: makeDestinationPin(), scaledSize: new google.maps.Size(36, 44), anchor: new google.maps.Point(18, 40) },
-                label: {
-                    text: "Destino da Rota",
-                    color: "#00AE97",
-                    className: "dest-marker-label"
-                },
-                zIndex: 999
-            });
-            
-            clientMarker.addListener("click", () => {
-                clientInfoWindow.setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`);
-                clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false });
-            });
+        if (clientMarker) clientMarker.setMap(null);
 
-            map.setCenter(loc);
-            map.setZoom(11);
+        clientMarker = attachSetMapShim(L.marker(loc, {
+            title: "Destino da rota",
+            icon: L.icon({ iconUrl: makeDestinationPin(), iconSize: [36, 44], iconAnchor: [18, 40] }),
+            zIndexOffset: 999
+        }));
+        clientMarker.bindTooltip("Destino da Rota", { permanent: true, direction: 'top', offset: [0, -40], className: 'dest-marker-label' });
+        clientMarker.setMap(map);
 
-            let allowedStatuses = currentUser.perfil === 'admin'
-                ? getCheckedValues('status-items')
-                : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
-            const selConsultors = getCheckedValues('consultor-items');
-            const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
-
-            let inRange = [];
-            markers.forEach(m => {
-                const p = providersData.find(x => x.id === m.customId);
-                if (!p || !p.lat || !p.lng) { m.setMap(null); return; }
-                if (!allowedStatuses.includes(p.status)) { m.setMap(null); return; }
-                const pCN = p.consultorNorm || "SEM CONSULTOR";
-                if (!selConsultors.includes(pCN)) { m.setMap(null); return; }
-                if (showOnlyPiloto && !p.piloto) { m.setMap(null); return; }
-                const dist = google.maps.geometry.spherical.computeDistanceBetween(loc, new google.maps.LatLng(p.lat, p.lng));
-                if (currentSearchRange === 999999 || dist <= currentSearchRange * 1000) {
-                    m.setMap(map);
-                    inRange.push({ prestador: p, distance: dist });
-                } else {
-                    m.setMap(null);
-                }
-            });
-
-            inRange.sort((a, b) => a.distance - b.distance);
-
-            if (!inRange.length) {
-                resultDiv.innerHTML = `
-                    <div style="background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.15);text-align:center;">
-                        <div style="font-size:22px;margin-bottom:6px;">🔍</div>
-                        <div style="font-size:12px;font-weight:700;color:var(--cobli-navy);margin-bottom:4px;">Nenhum prestador encontrado</div>
-                        <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;">Tente ampliar o raio de busca<br>ou ajustar os filtros ativos.</div>
-                        <div style="display:flex;gap:6px;margin-top:10px;justify-content:center;">
-                            <button onclick="setRange(200,document.querySelector('.rpill[data-val=\'200\']'))" style="padding:5px 12px;background:var(--cobli-blue);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Ampliar para 200 km</button>
-                            <button onclick="setRange(999999,document.querySelector('.rpill[data-val=\'999999\']'))" style="padding:5px 12px;background:var(--surface-muted);color:var(--cobli-navy);border:1px solid var(--border-mid);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Ver todos</button>
-                        </div>
-                    </div>`;
-                return;
-            }
-
-            window._lastInRange = inRange;
-            window._resultExpanded = false;
-            renderResults();
+        clientMarker.on("click", () => {
+            clientInfoWindow.setLatLng(loc).setContent(`<div class="iw-card"><div class="iw-head destination" style="align-items:center;gap:10px;"><span style="font-size:22px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div style="font-size:12px;color:#4B4F7A;">${formattedAddr}</div></div></div>`).openOn(map);
         });
+
+        map.setView(loc, 11);
+
+        let allowedStatuses = currentUser.perfil === 'admin'
+            ? getCheckedValues('status-items')
+            : (currentUser.status_permitidos || 'Ativo').split(',').map(s => s.trim());
+        const selConsultors = getCheckedValues('consultor-items');
+        const showOnlyPiloto = document.getElementById('filter-piloto')?.checked || false;
+
+        let inRange = [];
+        markers.forEach(m => {
+            const p = providersData.find(x => x.id === m.customId);
+            if (!p || !p.lat || !p.lng) { m.setMap(null); return; }
+            if (!allowedStatuses.includes(p.status)) { m.setMap(null); return; }
+            const pCN = p.consultorNorm || "SEM CONSULTOR";
+            if (!selConsultors.includes(pCN)) { m.setMap(null); return; }
+            if (showOnlyPiloto && !p.piloto) { m.setMap(null); return; }
+            const dist = distMeters(loc, L.latLng(p.lat, p.lng));
+            if (currentSearchRange === 999999 || dist <= currentSearchRange * 1000) {
+                m.setMap(map);
+                inRange.push({ prestador: p, distance: dist });
+            } else {
+                m.setMap(null);
+            }
+        });
+
+        inRange.sort((a, b) => a.distance - b.distance);
+
+        if (!inRange.length) {
+            resultDiv.innerHTML = `
+                <div style="background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.15);text-align:center;">
+                    <div style="font-size:22px;margin-bottom:6px;">🔍</div>
+                    <div style="font-size:12px;font-weight:700;color:var(--cobli-navy);margin-bottom:4px;">Nenhum prestador encontrado</div>
+                    <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;">Tente ampliar o raio de busca<br>ou ajustar os filtros ativos.</div>
+                    <div style="display:flex;gap:6px;margin-top:10px;justify-content:center;">
+                        <button onclick="setRange(200,document.querySelector('.rpill[data-val=\'200\']'))" style="padding:5px 12px;background:var(--cobli-blue);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Ampliar para 200 km</button>
+                        <button onclick="setRange(999999,document.querySelector('.rpill[data-val=\'999999\']'))" style="padding:5px 12px;background:var(--surface-muted);color:var(--cobli-navy);border:1px solid var(--border-mid);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Ver todos</button>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        window._lastInRange = inRange;
+        window._resultExpanded = false;
+        renderResults();
     }
 
-    function traceRealRoute(pId, pLat, pLng) {
+    async function traceRealRoute(pId, pLat, pLng) {
         const clientAddress = document.getElementById('client-address').value.trim();
         if (!clientAddress) { openProviderInfoWindow(pId); return; }
-        const origin = new google.maps.LatLng(pLat, pLng);
-        directionsService.route({ origin, destination: clientAddress, travelMode: google.maps.TravelMode.DRIVING }, (response, status) => {
-            if (status === 'OK') {
-                directionsRenderer.setDirections(response);
-                const bounds = new google.maps.LatLngBounds();
-                bounds.extend(origin); bounds.extend(response.routes[0].legs[0].end_location);
-                map.fitBounds(bounds);
-                const p = providersData.find(x => x.id === pId);
-                const mk = markers.find(m => m.customId === pId);
-                if (p && mk) {
-                    const extraRoute = `<div style="margin-top:10px;padding:8px;background:#F0F4FF;border-radius:6px;border-left:3px solid var(--cobli-indigo);">
-                        <div style="font-size:10px;font-weight:700;color:var(--cobli-indigo);text-transform:uppercase;margin-bottom:4px;">Rota calculada</div>
-                        <div style="font-size:12px;font-weight:600;">🚗 ${response.routes[0].legs[0].distance.text} &nbsp;·&nbsp; ⏱ ${response.routes[0].legs[0].duration.text}</div>
-                    </div>`;
-                    openProviderInfoWindow(pId, mk, extraRoute);
-                }
-                if (clientMarker) {
-                    const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${response.routes[0].legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${response.routes[0].legs[0].duration.text}</span></div></div></div>`;
-                    setTimeout(() => { clientInfoWindow.setContent(dc); clientInfoWindow.open({ anchor: clientMarker, map, shouldFocus: false }); }, 300);
-                }
-            } else { showCustomDialog('Erro ao traçar rota. Verifique o endereço de destino.', "Erro"); }
-        });
+        const origin = L.latLng(pLat, pLng);
+
+        // Reaproveita a posição já geocodificada do marcador de destino (evita repetir a
+        // consulta ao Nominatim); só geocodifica de novo se por algum motivo ele não existir.
+        let destLatLng = clientMarker ? clientMarker.getLatLng() : null;
+        if (!destLatLng) {
+            const geo = await nominatimSearch(clientAddress, 1);
+            if (!geo.length) { showCustomDialog('Erro ao traçar rota. Verifique o endereço de destino.', "Erro"); return; }
+            destLatLng = L.latLng(geo[0].lat, geo[0].lng);
+        }
+
+        try {
+            const osrmData = await osrmRoute([origin, destLatLng]);
+            const p = providersData.find(x => x.id === pId);
+            const routeObj = buildRouteAdapter(osrmData.routes[0], [origin, destLatLng], { origin: p ? p.endereco : '', stops: [clientAddress] });
+            const response = { routes: [routeObj] };
+
+            renderRouteOnMap(response);
+            const bounds = L.latLngBounds([origin, routeObj.legs[0].end_location]);
+            map.fitBounds(bounds, { padding: [40, 40] });
+
+            const mk = markers.find(m => m.customId === pId);
+            if (p && mk) {
+                const extraRoute = `<div style="margin-top:10px;padding:8px;background:#F0F4FF;border-radius:6px;border-left:3px solid var(--cobli-indigo);">
+                    <div style="font-size:10px;font-weight:700;color:var(--cobli-indigo);text-transform:uppercase;margin-bottom:4px;">Rota calculada</div>
+                    <div style="font-size:12px;font-weight:600;">🚗 ${routeObj.legs[0].distance.text} &nbsp;·&nbsp; ⏱ ${routeObj.legs[0].duration.text}</div>
+                </div>`;
+                openProviderInfoWindow(pId, mk, extraRoute);
+            }
+            if (clientMarker) {
+                const dc = `<div class="iw-card"><div class="iw-head destination" style="align-items:center;"><span style="font-size:20px;">📍</span><h4 style="margin:0;">Destino para cálculo</h4></div><div class="iw-body"><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Distância</span><span class="iw-field-val">${routeObj.legs[0].distance.text}</span></div><div class="iw-row"><span class="iw-field-label" style="color:#F01A1A;">Tempo est.</span><span class="iw-field-val">${routeObj.legs[0].duration.text}</span></div></div></div>`;
+                setTimeout(() => { clientInfoWindow.setLatLng(clientMarker.getLatLng()).setContent(dc).openOn(map); }, 300);
+            }
+        } catch (err) {
+            showCustomDialog('Erro ao traçar rota. Verifique o endereço de destino.', "Erro");
+        }
     }
 
     function clearRoutingAndSearch() {
@@ -2539,14 +2988,12 @@ const marker = new google.maps.Marker({
         const resultDiv = document.getElementById('routing-result');
         if (resultDiv) { resultDiv.innerHTML = ""; }
         closeAutocomplete();
-        directionsRenderer.setDirections({ routes: [] });
+        clearRouteLayer();
         if (clientMarker) { clientMarker.setMap(null); clientMarker = null; }
-        if (infoWindowGlobal) infoWindowGlobal.close();
-        if (clientInfoWindow) clientInfoWindow.close();
-// ADICIONE ESTA LINHA AQUI
+        map.closePopup();
         if (typeof clearRuler === 'function') clearRuler();
         applyFilters();
-        if (markers.length && map) { map.setZoom(4); map.setCenter({ lat: -15.793889, lng: -47.882778 }); }
+        if (markers.length && map) { map.setView([-15.793889, -47.882778], 4); }
     }
 
     function populateBulkConsultants() {
@@ -2718,13 +3165,11 @@ for (const key of Object.keys(labels)) {
                 mk.setTitle(p.nome);
                 const newColor = getConsultantColor(p.consultorNorm);
                 const newIconUrl = makeMarkerSvg(newColor, p.piloto);
-                const newSize = new google.maps.Size(24, 32);
-                const newAnchor = new google.maps.Point(12, 30);
-                mk.setIcon({ url: newIconUrl, scaledSize: newSize, anchor: newAnchor });
+                mk.setIcon(L.icon({ iconUrl: newIconUrl, iconSize: [24, 32], iconAnchor: [12, 30] }));
                 mk.setZIndex(p.piloto ? 10 : 1);
             }
         }
-        updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('edit-modal'); showToast('Prestador atualizado com sucesso!');
+        updateStatusFilter(); updateConsultantFilter(); applyFilters(); renderFixedDashboard(); closeModal('edit-modal'); showToast('Prestador atualizado com sucesso!');
     }
 
     async function openStatusLog(prestadorId) {
@@ -2805,7 +3250,7 @@ for (const key of Object.keys(labels)) {
         p.lat = coords.lat; p.lng = coords.lng;
         const { data, error } = await _supabase.from('prestadores').insert([p]).select();
         if (error) { await showCustomDialog("Erro ao salvar prestador.", "Erro"); console.error(error); }
-        else if (data && data.length > 0) { providersData.push(data[0]); generateConsultantColors(providersData); if (data[0].lat) createMarker(data[0]); updateStatusFilter(); updateConsultantFilter(); applyFilters(); closeModal('register-modal'); showToast('Prestador cadastrado com sucesso!'); }
+        else if (data && data.length > 0) { providersData.push(data[0]); generateConsultantColors(providersData); if (data[0].lat) createMarker(data[0]); updateStatusFilter(); updateConsultantFilter(); applyFilters(); renderFixedDashboard(); closeModal('register-modal'); showToast('Prestador cadastrado com sucesso!'); }
     }
 
     function openEditModal(id) {
@@ -3151,12 +3596,13 @@ for (const key of Object.keys(labels)) {
     function clearPlannerMarkers() {
         plannerCustomMarkers.forEach(m => m.setMap(null));
         plannerCustomMarkers = [];
-        directionsRenderer.setDirections({ routes: [] });
+        clearRouteLayer();
         const backBtn = document.getElementById('planner-back-btn');
         if (backBtn) backBtn.style.display = 'none';
         plannerExportSelection.clear();
         const costsContainer = document.getElementById('pdf-extra-costs-container');
         if (costsContainer) costsContainer.innerHTML = '';
+        updateExtraCostsBanner();
         const manualInput = document.getElementById('manual-provider-input');
         if (manualInput) manualInput.value = '';
         plannerDestinationCoords = [];
@@ -3168,11 +3614,57 @@ for (const key of Object.keys(labels)) {
         const rowHtml = `
             <div id="${rowId}" style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
                 <span style="font-size: 14px;">📍</span>
-                <input type="text" class="route-address-input" placeholder="Endereço do cliente (Rua, Número, Cidade...)" style="flex: 1; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; font-family: inherit;">
+                <div style="position: relative; flex: 1;">
+                    <input type="text" class="route-address-input" placeholder="Endereço do cliente (Rua, Número, Cidade...)"
+                        autocomplete="off"
+                        oninput="onPlannerAddressInput(this)"
+                        onkeydown="if(event.key==='Escape') this.parentElement.querySelector('.planner-ac-dropdown').style.display='none'"
+                        style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 12px; font-family: inherit;">
+                    <div class="planner-ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:500;overflow:hidden;max-height:220px;overflow-y:auto;"></div>
+                </div>
                 <button class="btn-icon" style="width: 28px; height: 28px; font-size: 12px; color: var(--cobli-red); flex-shrink: 0;" onclick="document.getElementById('${rowId}').remove()" title="Remover">✕</button>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', rowHtml);
+    }
+
+    // Autocomplete via Nominatim pros campos de "Endereços de Destino" do planejador —
+    // mesmo mecanismo do campo de busca principal, só que cada linha tem seu próprio
+    // dropdown (já que o planejador permite várias linhas de endereço dinamicamente).
+    let plannerAcDebounceTimer = null;
+
+    function onPlannerAddressInput(inputEl) {
+        const dd = inputEl.parentElement.querySelector('.planner-ac-dropdown');
+        if (!dd) return;
+        const val = inputEl.value.trim();
+        if (val.length < 3) { dd.style.display = 'none'; return; }
+        clearTimeout(plannerAcDebounceTimer);
+        plannerAcDebounceTimer = setTimeout(async () => {
+            const results = await nominatimSearch(val, 6);
+            if (!results.length) { dd.style.display = 'none'; return; }
+            dd.innerHTML = results.map(r => {
+                const parts = (r.formatted_address || '').split(',');
+                const mainText = (parts[0] || r.formatted_address || '').trim();
+                const secondaryText = parts.slice(1).join(',').trim();
+                const descSafe = (r.formatted_address || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `<div class="ac-item" onmousedown="selectPlannerAddress(this, '${descSafe}')">
+                    <span class="ac-item-icon">📍</span>
+                    <div class="ac-item-text">
+                        <div class="ac-item-main">${mainText}</div>
+                        <div class="ac-item-sub">${secondaryText}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            dd.style.display = 'block';
+        }, 400);
+    }
+
+    function selectPlannerAddress(itemEl, address) {
+        const dd = itemEl.closest('.planner-ac-dropdown');
+        const wrapper = dd.parentElement;
+        const input = wrapper.querySelector('.route-address-input');
+        input.value = address;
+        dd.style.display = 'none';
     }
 
     setTimeout(() => {
@@ -3206,9 +3698,7 @@ for (const key of Object.keys(labels)) {
         const btn = mode === 'manual'
             ? document.getElementById('btn-search-manual')
             : document.getElementById('btn-search-nearest');
-        const originalBtnText = btn.innerHTML;
-        btn.innerHTML = mode === 'manual' ? '⏳ Preparando...' : '⏳ Pesquisando Prestadores...';
-        btn.disabled = true;
+        setBtnLoading(btn, mode === 'manual' ? 'Preparando...' : 'Pesquisando Prestadores...', mode === 'manual');
 
         try {
             const productNames = plannerProducts.map(item => item.produto);
@@ -3233,7 +3723,7 @@ for (const key of Object.keys(labels)) {
             plannerDestinationCoords = [];
             for (const addr of plannerDestinations) {
                 const g = await getGeocode(addr);
-                if (g.lat != null) plannerDestinationCoords.push(new google.maps.LatLng(g.lat, g.lng));
+                if (g.lat != null) plannerDestinationCoords.push(L.latLng(g.lat, g.lng));
             }
             const baseLatLng = plannerDestinationCoords[0];
 
@@ -3256,8 +3746,8 @@ for (const key of Object.keys(labels)) {
                     if (!selConsultors.includes(pCN)) return;
                     if (showOnlyPiloto && !p.piloto) return;
 
-                    const pLatLng = new google.maps.LatLng(p.lat, p.lng);
-                    const distToStartMeters = baseLatLng ? google.maps.geometry.spherical.computeDistanceBetween(pLatLng, baseLatLng) : 0;
+                    const pLatLng = L.latLng(p.lat, p.lng);
+                    const distToStartMeters = baseLatLng ? distMeters(pLatLng, baseLatLng) : 0;
                     eligible.push({ p, pLatLng, distToStartMeters });
                 });
 
@@ -3279,8 +3769,7 @@ for (const key of Object.keys(labels)) {
 
                 if (plannerCandidates.length === 0) {
                     showToast("Nenhum prestador encontrado nos filtros ativos.", "error");
-                    btn.innerHTML = originalBtnText;
-                    btn.disabled = false;
+                    clearBtnLoading(btn);
                     return;
                 }
             }
@@ -3288,6 +3777,7 @@ for (const key of Object.keys(labels)) {
             // adiciona só quem quiser pelo campo "Incluir Prestador Manualmente".
 
             openModal('planner-result-modal');
+            switchPlannerTab(mode === 'manual' ? 'manual' : 'comparar');
             populateManualProviderDatalist();
 
             if (mode === 'manual') {
@@ -3310,8 +3800,7 @@ for (const key of Object.keys(labels)) {
         } catch (err) {
             showToast("Erro: " + err.message, "error");
         }
-        btn.innerHTML = originalBtnText;
-        btn.disabled = false;
+        clearBtnLoading(btn);
     }
 
     // Compara a distância do prestador até CADA endereço de destino (não só a rota
@@ -3320,17 +3809,24 @@ for (const key of Object.keys(labels)) {
     //    (útil pra não escolher um prestador "próximo" que só é próximo de um ponto).
     // 2) "far" — ele está longe de TODOS os endereços por igual (útil quando o
     //    prestador simplesmente não atende bem aquela região, mesmo sem desproporção).
+    //
+    // IMPORTANTE: identificamos pelo endereço em texto, não por número. A ordem aqui é a
+    // ordem em que os endereços foram digitados no formulário (plannerDestinations), que é
+    // DIFERENTE da ordem otimizada mostrada em "Atendimento 1/2" na tela (essa é decidida
+    // pelo OSRM, prestador por prestador). Um "Endereço 1" genérico causava confusão real:
+    // podia não ser o mesmo lugar que aparecia como "Atendimento 1" pra aquele prestador.
     const PLANNER_FAR_THRESHOLD_KM = 60;
 
     function computeDestinationWarning(pLatLng) {
         if (plannerDestinationCoords.length === 0) return null;
-        const dists = plannerDestinationCoords.map(d => google.maps.geometry.spherical.computeDistanceBetween(pLatLng, d) / 1000);
+        const dists = plannerDestinationCoords.map(d => distMeters(pLatLng, d) / 1000);
         const min = Math.min(...dists);
         const max = Math.max(...dists);
         const maxIdx = dists.indexOf(max);
+        const maxAddress = plannerDestinations[maxIdx] || `Endereço ${maxIdx + 1}`;
 
         if (plannerDestinationCoords.length >= 2 && (max - min) >= 20 && max > min * 1.6) {
-            return { type: 'disparity', index: maxIdx, distKm: max, diffKm: max - min };
+            return { type: 'disparity', address: maxAddress, distKm: max, diffKm: max - min };
         }
         if (min >= PLANNER_FAR_THRESHOLD_KM) {
             return { type: 'far', minKm: min };
@@ -3386,8 +3882,8 @@ for (const key of Object.keys(labels)) {
 
         await Promise.all(toCalc.map(async (c) => {
             try {
-                const origin = new google.maps.LatLng(c.prestador.lat, c.prestador.lng);
-                const result = await getBestRouteFromOrigin(origin, plannerDestinations);
+                const origin = L.latLng(c.prestador.lat, c.prestador.lng);
+                const result = await getBestRouteFromOrigin(origin, plannerDestinations, c.prestador.endereco || '');
                 const route = result.route;
                 const exactKm = route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
 
@@ -3442,10 +3938,10 @@ for (const key of Object.keys(labels)) {
 
         // Fallback (ex: falha pontual no cálculo em lote): calcula agora sob demanda.
         document.getElementById('planner-route-stats').textContent = `Otimizando paradas...`;
-        const origin = new google.maps.LatLng(p.lat, p.lng);
+        const origin = L.latLng(p.lat, p.lng);
 
         try {
-            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations);
+            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations, p.endereco || '');
             plannerDirectionsResponse = bestResult.response;
             const route = bestResult.route;
 
@@ -3484,56 +3980,35 @@ for (const key of Object.keys(labels)) {
         });
     }
 
-    // Encontra a rota mais curta partindo de `origin` (o prestador) e passando por
-    // TODOS os endereços em `destinations`, sem fixar o último item da lista como
-    // destino final. Testa cada endereço como possível ponto final (deixando os
-    // demais como waypoints otimizáveis pelo Google) e fica com a combinação de
-    // menor distância total — assim a ordem sempre se adapta ao prestador escolhido.
-    function getBestRouteFromOrigin(origin, destinations) {
+    // `origin` = L.latLng do prestador. `destinations` = array de endereços (texto), na
+    // mesma ordem/posição de `plannerDestinationCoords` (já geocodificado antes de chamar
+    // esta função). `originAddress` = texto do endereço do prestador (o OSRM, diferente do
+    // Google Directions, não devolve endereço legível pro ponto de partida sozinho).
+    // Retorna { route, response } no mesmo formato que o resto do código já esperava do
+    // Google Directions.
+    async function getBestRouteFromOrigin(origin, destinations, originAddress = '') {
+        const destCoords = plannerDestinationCoords; // array paralelo de L.latLng
+
         if (destinations.length === 1) {
-            return new Promise((resolve, reject) => {
-                directionsService.route({
-                    origin: origin,
-                    destination: destinations[0],
-                    travelMode: google.maps.TravelMode.DRIVING
-                }, (response, status) => {
-                    if (status === 'OK') resolve({ route: response.routes[0], response: response });
-                    else reject(new Error(status));
-                });
-            });
+            const osrmData = await osrmRoute([origin, destCoords[0]]);
+            const route = buildRouteAdapter(osrmData.routes[0], [origin, destCoords[0]], { origin: originAddress, stops: [destinations[0]] });
+            const response = { routes: [route] };
+            return { route, response };
         }
 
-        const routeRequest = (destAddr, waypointAddrs) => new Promise((resolve) => {
-            directionsService.route({
-                origin: origin,
-                destination: destAddr,
-                waypoints: waypointAddrs.map(addr => ({ location: addr, stopover: true })),
-                optimizeWaypoints: true,
-                travelMode: google.maps.TravelMode.DRIVING
-            }, (response, status) => {
-                if (status === 'OK') {
-                    const totalMeters = response.routes[0].legs.reduce((s, l) => s + l.distance.value, 0);
-                    resolve({ route: response.routes[0], response: response, totalMeters: totalMeters });
-                } else {
-                    resolve(null);
-                }
-            });
-        });
+        // OSRM Trip já resolve nativamente o que o código antigo fazia "na unha": testar
+        // cada endereço como destino final e otimizar a ordem dos demais. source=first
+        // trava o prestador como ponto de partida; destination=any deixa o OSRM escolher
+        // o melhor final — resultado equivalente, com 1 chamada em vez de N.
+        const osrmData = await osrmTrip([origin, ...destCoords]);
+        const visitOrder = getTripVisitOrder(osrmData); // índices (em destCoords/destinations) na ordem real de visita
 
-        // Tenta cada endereço como destino final, otimizando os demais como waypoints,
-        // e mantém a combinação com a menor distância total (rota realmente mais curta
-        // a partir do ponto de partida do prestador).
-        const attempts = destinations.map((destAddr, i) => {
-            const others = destinations.filter((_, idx) => idx !== i);
-            return routeRequest(destAddr, others);
-        });
+        const orderedStopLatLngs = [origin, ...visitOrder.map(i => destCoords[i])];
+        const orderedAddresses = visitOrder.map(i => destinations[i]);
 
-        return Promise.all(attempts).then(results => {
-            const valid = results.filter(r => r !== null);
-            if (valid.length === 0) throw new Error('ZERO_RESULTS');
-            valid.sort((a, b) => a.totalMeters - b.totalMeters);
-            return valid[0];
-        });
+        const route = buildRouteAdapter(osrmData.trips[0], orderedStopLatLngs, { origin: originAddress, stops: orderedAddresses });
+        const response = { routes: [route] };
+        return { route, response };
     }
 
     let plannerRouteStops = []; // paradas da rota atualmente exibida (sem o Ponto 0), usadas pra reordenar por arrastar
@@ -3548,8 +4023,8 @@ for (const key of Object.keys(labels)) {
 
         // Guarda as paradas (lat/lng + endereço) desta rota para permitir reordenar arrastando.
         plannerRouteStops = route.legs.map(leg => ({
-            lat: leg.end_location.lat(),
-            lng: leg.end_location.lng(),
+            lat: leg.end_location.lat,
+            lng: leg.end_location.lng,
             address: leg.end_address
         }));
 
@@ -3609,8 +4084,8 @@ for (const key of Object.keys(labels)) {
                 : `<span style="font-size:16px; font-weight:800; color:var(--cobli-navy);">R$ ${displayedTotalCost.toFixed(2)}${!hasExact ? '*' : ''}</span>`;
 
             const cardStyle = isSelected 
-                ? 'border: 2px solid var(--cobli-indigo); background: #F5F6FF; transform: scale(1.01); box-shadow: 0 4px 12px rgba(50,72,198,0.15);' 
-                : 'border: 1px solid var(--border-light); background: #fff; cursor: pointer;';
+                ? 'border-color: var(--cobli-blue); border-top-color: var(--cobli-blue); background: rgba(0,27,184,0.07); box-shadow: 0 4px 12px rgba(0,27,184,0.2);' 
+                : '';
 
             const kmText = hasExact ? `<b>${c.totalKm.toFixed(1)} km</b>` : (c.calcError ? `<span style="color:var(--cobli-red);">Falha ao calcular</span>` : `<span style="color:var(--text-muted);">Calculando...</span>`);
             const excText = hasExact ? `<b style="color:var(--cobli-red);">${c.excedenteKm.toFixed(1)} km</b>` : `<span style="color:var(--text-muted);">--</span>`;
@@ -3621,12 +4096,12 @@ for (const key of Object.keys(labels)) {
                 <div style="display:flex; align-items:center; gap:5px; font-size:9.5px; color:#8A6300; background:#FFF8E6; border:1px solid #FFE8B0; border-radius:4px; padding:4px 8px;">
                     ${c.distanceWarning.type === 'far'
                         ? `⚠️ Prestador distante de todos os endereços (mín. ${c.distanceWarning.minKm.toFixed(1)} km em linha reta)`
-                        : `⚠️ Endereço ${c.distanceWarning.index + 1} fica bem mais longe deste prestador (${c.distanceWarning.distKm.toFixed(1)} km, +${c.distanceWarning.diffKm.toFixed(1)} km a mais que o mais próximo)`}
+                        : `⚠️ "${c.distanceWarning.address}" fica bem mais longe deste prestador (${c.distanceWarning.distKm.toFixed(1)} km, +${c.distanceWarning.diffKm.toFixed(1)} km a mais que o endereço mais próximo)`}
                 </div>
             ` : '';
 
             return `
-            <div class="result-card" onclick="${!isSelected ? `selectPlannerProvider(${p.id})` : ''}" style="transition: all 0.2s; display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; ${cardStyle}">
+            <div class="result-card" onclick="${!isSelected ? `selectPlannerProvider(${p.id})` : ''}" style="--acc:${hexToRgbString(col)}; display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; ${cardStyle}">
                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
                     <div style="display:flex; align-items:center; gap: 6px; flex-wrap:wrap;">
                         <input type="checkbox" title="Incluir no PDF" ${isCheckedForExport ? 'checked' : ''} onclick="event.stopPropagation(); toggleExportSelection(${p.id}, this.checked)" style="width:15px; height:15px; cursor:pointer; accent-color: var(--cobli-indigo);">
@@ -3716,21 +4191,21 @@ for (const key of Object.keys(labels)) {
             if (plannerDestinationCoords.length === 0) {
                 for (const addr of plannerDestinations) {
                     const g = await getGeocode(addr);
-                    if (g.lat != null) plannerDestinationCoords.push(new google.maps.LatLng(g.lat, g.lng));
+                    if (g.lat != null) plannerDestinationCoords.push(L.latLng(g.lat, g.lng));
                 }
             }
 
-            const pLatLng = new google.maps.LatLng(p.lat, p.lng);
+            const pLatLng = L.latLng(p.lat, p.lng);
             const baseLatLng = plannerDestinationCoords[0];
-            const distToStartMeters = baseLatLng ? google.maps.geometry.spherical.computeDistanceBetween(pLatLng, baseLatLng) : 0;
+            const distToStartMeters = baseLatLng ? distMeters(pLatLng, baseLatLng) : 0;
 
             const newCandidate = buildPlannerCandidate(p, distToStartMeters);
             newCandidate.manuallyAdded = true;
             newCandidate.distanceWarning = computeDestinationWarning(pLatLng);
             plannerCandidates.push(newCandidate);
 
-            const origin = new google.maps.LatLng(p.lat, p.lng);
-            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations);
+            const origin = L.latLng(p.lat, p.lng);
+            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations, p.endereco || '');
             const exactKm = bestResult.route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
 
             newCandidate.route = bestResult.route;
@@ -3766,13 +4241,13 @@ for (const key of Object.keys(labels)) {
         }
     }
 
-    function toggleExtraCostsPanel() {
-        const panel = document.getElementById('pdf-extra-costs-panel');
-        const btn = document.getElementById('btn-toggle-extra-costs');
-        if (!panel || !btn) return;
-        const isOpen = panel.style.display !== 'none';
-        panel.style.display = isOpen ? 'none' : 'block';
-        btn.classList.toggle('collapsed', isOpen);
+    // Alterna entre as 3 abas do modal do planejador (Comparar / Manual / Custos).
+    function switchPlannerTab(tab, btnEl) {
+        document.querySelectorAll('.planner-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.planner-tab-panel').forEach(p => p.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active');
+        else document.getElementById('planner-tab-btn-' + tab)?.classList.add('active');
+        document.getElementById('planner-tab-' + tab)?.classList.add('active');
     }
 
     // Reordena os atendimentos: continua otimizando por distância por padrão,
@@ -3809,27 +4284,23 @@ for (const key of Object.keys(labels)) {
     }
 
     // Recalcula a rota do prestador selecionado respeitando a ordem manual dada
-    // (sem deixar o Google reotimizar), usando as coordenadas exatas de cada parada.
+    // (sem deixar o OSRM reotimizar — usamos /route, não /trip), usando as coordenadas
+    // exatas de cada parada.
     async function applyPlannerManualOrder(orderedStops) {
         const c = plannerCandidates.find(x => x.prestador.id === plannerSelectedId);
         if (!c) return;
 
         document.getElementById('planner-route-stats').textContent = `Recalculando ordem manual...`;
 
-        const origin = new google.maps.LatLng(c.prestador.lat, c.prestador.lng);
-        const destination = new google.maps.LatLng(orderedStops[orderedStops.length - 1].lat, orderedStops[orderedStops.length - 1].lng);
-        const waypoints = orderedStops.slice(0, -1).map(s => ({ location: new google.maps.LatLng(s.lat, s.lng), stopover: true }));
+        const origin = L.latLng(c.prestador.lat, c.prestador.lng);
+        const stopLatLngs = orderedStops.map(s => L.latLng(s.lat, s.lng));
+        const stopAddresses = orderedStops.map(s => s.address);
 
         try {
-            const response = await new Promise((resolve, reject) => {
-                directionsService.route({
-                    origin, destination, waypoints,
-                    optimizeWaypoints: false, // ordem fixa, definida pelo usuário
-                    travelMode: google.maps.TravelMode.DRIVING
-                }, (resp, status) => status === 'OK' ? resolve(resp) : reject(new Error(status)));
-            });
+            const osrmData = await osrmRoute([origin, ...stopLatLngs]); // ordem fixa = sem otimização (equivalente a optimizeWaypoints:false)
+            const route = buildRouteAdapter(osrmData.routes[0], [origin, ...stopLatLngs], { origin: c.prestador.endereco || '', stops: stopAddresses });
+            const response = { routes: [route] };
 
-            const route = response.routes[0];
             const exactKm = route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
 
             c.route = route;
@@ -3862,8 +4333,8 @@ for (const key of Object.keys(labels)) {
         c.manualOrder = false;
 
         try {
-            const origin = new google.maps.LatLng(c.prestador.lat, c.prestador.lng);
-            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations);
+            const origin = L.latLng(c.prestador.lat, c.prestador.lng);
+            const bestResult = await getBestRouteFromOrigin(origin, plannerDestinations, c.prestador.endereco || '');
             c.route = bestResult.route;
             c.calculatedResponse = bestResult.response;
             const exactKm = c.route.legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
@@ -3897,12 +4368,28 @@ for (const key of Object.keys(labels)) {
         const rowId = 'cost-row-' + Date.now() + Math.floor(Math.random() * 1000);
         const rowHtml = `
             <div id="${rowId}" style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
-                <input type="text" class="pdf-cost-desc" placeholder="Descrição (ex: Hospedagem, Pedágio...)" style="flex: 1.6; min-width: 0; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
-                <input type="number" class="pdf-cost-value" placeholder="Valor (R$)" step="0.01" min="0" style="flex: 1; min-width: 0; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
-                <button type="button" class="btn-icon" style="width: 26px; height: 26px; min-width: 26px; font-size: 12px; color: var(--cobli-red); flex-shrink: 0;" onclick="document.getElementById('${rowId}').remove()" title="Remover">✕</button>
+                <input type="text" class="pdf-cost-desc" placeholder="Descrição (ex: Hospedagem, Pedágio...)" oninput="updateExtraCostsBanner()" style="flex: 1.6; min-width: 0; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
+                <input type="number" class="pdf-cost-value" placeholder="Valor (R$)" step="0.01" min="0" oninput="updateExtraCostsBanner()" style="flex: 1; min-width: 0; padding: 6px; border: 1px solid var(--border-mid); border-radius: 6px; font-size: 11px; font-family: inherit;">
+                <button type="button" class="btn-icon" style="width: 26px; height: 26px; min-width: 26px; font-size: 12px; color: var(--cobli-red); flex-shrink: 0;" onclick="document.getElementById('${rowId}').remove(); updateExtraCostsBanner();" title="Remover">✕</button>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', rowHtml);
+    }
+
+    // Mostra na aba "Comparar Prestadores" que existe custo extra lançado (antes só
+    // aparecia no PDF final, o que confundia quem tava comparando os prestadores sem
+    // saber que aquele valor ainda ia entrar na conta).
+    function updateExtraCostsBanner() {
+        const banner = document.getElementById('planner-extra-costs-banner');
+        if (!banner) return;
+        const costs = getPdfExtraCosts();
+        const total = costs.reduce((sum, c) => sum + c.val, 0);
+        if (total > 0) {
+            banner.style.display = 'flex';
+            banner.innerHTML = `➕ Custos adicionais lançados: <b>R$ ${total.toFixed(2)}</b> — serão somados ao Total Previsto de cada prestador ao gerar o PDF`;
+        } else {
+            banner.style.display = 'none';
+        }
     }
 
     function getPdfExtraCosts() {
@@ -3979,6 +4466,7 @@ for (const key of Object.keys(labels)) {
                             <span class="pdf3-mlabel">🚗 Distância</span> <span class="pdf3-mvalue">${c.totalKm > 0 ? c.totalKm.toFixed(1) + ' km' : '--'}</span><span class="pdf3-sep">|</span>
                             <span class="pdf3-mlabel">🔧 Mão de Obra</span> <span class="pdf3-mvalue">R$ ${c.servicesCost.toFixed(2)}</span><span class="pdf3-sep">|</span>
                             <span class="pdf3-mlabel">⛽ Deslocamento</span> <span class="pdf3-mvalue">R$ ${(c.travelCost || 0).toFixed(2)}</span><span class="pdf3-sep">|</span>
+                            ${extraCostsTotal > 0 ? `<span class="pdf3-mlabel">➕ Custos Extras</span> <span class="pdf3-mvalue">R$ ${extraCostsTotal.toFixed(2)}</span><span class="pdf3-sep">|</span>` : ''}
                             <span class="pdf3-mlabel">💰 Total Previsto</span> <span class="pdf3-total">R$ ${totalComExtra.toFixed(2)}</span>
                         </div>
                         ${addressesHtml}
@@ -4072,8 +4560,7 @@ for (const key of Object.keys(labels)) {
         const extraCostsTotal = extraCosts.reduce((sum, c) => sum + c.val, 0);
 
         const genBtn = document.querySelector('#planner-result-modal .btn-primary');
-        const originalLabel = genBtn ? genBtn.textContent : '';
-        if (genBtn) { genBtn.disabled = true; genBtn.textContent = 'Montando pré-visualização...'; }
+        setBtnLoading(genBtn, 'Montando pré-visualização...');
 
         try {
             const template = document.getElementById('pdf-template');
@@ -4087,7 +4574,7 @@ for (const key of Object.keys(labels)) {
         } catch (err) {
             showToast('Erro ao gerar a pré-visualização: ' + err.message, 'error');
         } finally {
-            if (genBtn) { genBtn.disabled = false; genBtn.textContent = originalLabel; }
+            clearBtnLoading(genBtn);
         }
     }
 
@@ -4141,13 +4628,13 @@ for (const key of Object.keys(labels)) {
         if (!plannerDirectionsResponse || !plannerSelectedId) return;
         
         closeModal('planner-result-modal');
-        directionsRenderer.setDirections(plannerDirectionsResponse);
+        renderRouteOnMap(plannerDirectionsResponse);
         
         const route = plannerDirectionsResponse.routes[0];
 
         // Dá zoom/enquadra o mapa em toda a extensão da rota calculada.
         if (route.bounds) {
-            map.fitBounds(route.bounds, 60);
+            map.fitBounds(route.bounds, { padding: [60, 60] });
         }
         
         const p = providersData.find(x => x.id === plannerSelectedId);
@@ -4157,14 +4644,18 @@ for (const key of Object.keys(labels)) {
         }
 
         route.legs.forEach((leg, index) => {
-            const marker = new google.maps.Marker({
-                position: leg.end_location,
-                map: map,
-                label: { text: String(index + 1), color: "white", fontWeight: "bold", fontSize: "14px" },
-                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: "#001BB8", fillOpacity: 1, strokeColor: "white", strokeWeight: 2 },
-                title: `Atendimento ${index + 1}\n${leg.end_address}`,
-                zIndex: 1000 + index
+            const numberIcon = L.divIcon({
+                className: 'planner-stop-marker',
+                html: `<div style="width:28px;height:28px;border-radius:50%;background:#001BB8;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:14px;">${index + 1}</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
             });
+            const marker = attachSetMapShim(L.marker(leg.end_location, {
+                icon: numberIcon,
+                title: `Atendimento ${index + 1}\n${leg.end_address}`,
+                zIndexOffset: 1000 + index
+            }));
+            marker.setMap(map);
             plannerCustomMarkers.push(marker);
         });
 
@@ -4191,51 +4682,44 @@ for (const key of Object.keys(labels)) {
             btn.classList.add('active');
             btn.style.background = 'var(--cobli-indigo)';
             btn.style.color = '#fff';
-            map.setOptions({ draggableCursor: 'crosshair' });
-            rulerListener = map.addListener('click', addRulerPoint);
+            map.getContainer().style.cursor = 'crosshair';
+            map.on('click', addRulerPoint);
             showToast('Modo Régua ativado. Clique no mapa para medir.');
         } else {
             btn.classList.remove('active');
             btn.style.background = '#fff';
             btn.style.color = 'var(--cobli-navy)';
-            map.setOptions({ draggableCursor: '' });
-            if (rulerListener) google.maps.event.removeListener(rulerListener);
+            map.getContainer().style.cursor = '';
+            map.off('click', addRulerPoint);
             clearRuler();
             showToast('Modo Régua desativada.');
         }
     }
 
     function addRulerPoint(event) {
-        const latLng = event.latLng;
+        const latLng = event.latlng; // Leaflet usa "latlng" minúsculo no evento de clique (Google usava "latLng")
         rulerPath.push(latLng);
 
-        const marker = new google.maps.Marker({
-            position: latLng,
-            map: map,
-            icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 5,
-                fillColor: '#00AE97',
-                fillOpacity: 1,
-                strokeColor: '#ffffff',
-                strokeWeight: 2,
-            },
-            zIndex: 1000,
-            clickable: false
-        });
+        const marker = attachSetMapShim(L.circleMarker(latLng, {
+            radius: 5,
+            color: '#ffffff',
+            weight: 2,
+            fillColor: '#00AE97',
+            fillOpacity: 1,
+            interactive: false
+        }));
+        marker.setMap(map);
         rulerMarkers.push(marker);
 
         if (!rulerPolyline) {
-            rulerPolyline = new google.maps.Polyline({
-                path: rulerPath,
-                geodesic: true,
-                strokeColor: '#00AE97',
-                strokeOpacity: 0.8,
-                strokeWeight: 4,
-                map: map
-            });
+            rulerPolyline = attachSetMapShim(L.polyline(rulerPath, {
+                color: '#00AE97',
+                opacity: 0.8,
+                weight: 4
+            }));
+            rulerPolyline.setMap(map);
         } else {
-            rulerPolyline.setPath(rulerPath);
+            rulerPolyline.setLatLngs(rulerPath);
         }
 
         calculateAndDisplayRulerDistance();
@@ -4245,20 +4729,21 @@ function calculateAndDisplayRulerDistance() {
         if (rulerPath.length < 2) return;
         let totalDistance = 0;
         for (let i = 0; i < rulerPath.length - 1; i++) {
-            totalDistance += google.maps.geometry.spherical.computeDistanceBetween(rulerPath[i], rulerPath[i + 1]);
+            totalDistance += distMeters(rulerPath[i], rulerPath[i + 1]);
         }
         
         const distText = totalDistance > 1000 ? (totalDistance / 1000).toFixed(2) + ' km' : Math.round(totalDistance) + ' m';
 
         if (!rulerLabel) {
-            rulerLabel = new google.maps.InfoWindow({ disableAutoPan: true });
+            rulerLabel = L.popup({ closeButton: false, autoPan: false, className: 'ruler-label-popup' });
         }
-        
-        // AQUI ESTÁ A CORREÇÃO: Aumentamos o padding (especialmente na direita) e a altura mínima
-        rulerLabel.setContent(`<div style="padding:10px 38px 10px 14px;font-size:13px;font-weight:700;color:var(--cobli-navy);font-family:inherit;min-height:28px;display:flex;align-items:center;">Total: ${distText}</div>`);
-        
-        rulerLabel.setPosition(rulerPath[rulerPath.length - 1]);
-        rulerLabel.open(map);
+
+        // Sem botão de fechar (o popup do Leaflet não precisa do padding extra que
+        // existia antes só pra abrir espaço pro "x" do Google Maps).
+        rulerLabel.setContent(`<div style="padding:10px 14px;font-size:13px;font-weight:700;color:var(--cobli-navy);font-family:inherit;min-height:28px;display:flex;align-items:center;">Total: ${distText}</div>`);
+
+        rulerLabel.setLatLng(rulerPath[rulerPath.length - 1]);
+        rulerLabel.openOn(map);
     }
 
     function clearRuler() {
@@ -4266,7 +4751,7 @@ function calculateAndDisplayRulerDistance() {
         rulerMarkers.forEach(m => m.setMap(null));
         rulerMarkers = [];
         rulerPath = [];
-        if (rulerLabel) { rulerLabel.close(); }
+        if (rulerLabel) { map.closePopup(rulerLabel); }
     }
 
     document.querySelectorAll('.modal-backdrop').forEach(m => { m.addEventListener('click', e => { if (e.target === m && m.id !== 'custom-dialog-backdrop') { if (m.id === 'edit-modal') { confirmDiscardEdit(); } else { closeModal(m.id); } } }); });
@@ -4275,8 +4760,10 @@ function calculateAndDisplayRulerDistance() {
     if (btnSummary) btnSummary.addEventListener('click', openSummaryModal);
     const btnSummaryMobile = document.getElementById('btn-summary-mobile');
     if (btnSummaryMobile) btnSummaryMobile.addEventListener('click', openSummaryModal);
-</script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk&libraries=places,geometry&callback=initMap" async defer></script>
+    // Leaflet carrega de forma síncrona no <head>, então já está disponível aqui.
+    // (antes era o próprio Google Maps que chamava initMap via parâmetro callback=initMap)
+    initMap();
+</script>
 </body>
 </html>
